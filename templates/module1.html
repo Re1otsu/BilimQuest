@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Сөздерді сәйкестендір</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/module1.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
   <h1>Сөздерді сәйкестендір</h1>
-    <div id="timer" class="timer-badge"></div>
   <div class="container" id="words-container">
     <img class="word" draggable="true" id="word1" src="static/img/eye.png" alt="Көз">
     <img class="word" draggable="true" id="word2" src="static/img/nose.png" alt="Мұрын">
@@ -36,10 +34,6 @@
       </div>
   </div>
   <button id="check-btn" disabled>Тексеру</button>
-  <div id="result-box" style="display:none; margin-top: 30px; padding: 20px; border-radius: 10px; background: #f0fff0; border-left: 6px solid #32cd32; font-size: 18px;">
-    <h2 id="result-score"></h2>
-    <p id="result-comment"></p>
-  </div>
   <script src="static/js/module1.js"></script>
 </body>
 </html>

@@ -3,29 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Блоктар</title>
+    <title>Игра с препятствиями</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/module4.css') }}">
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
-    <h1 style="text-align: center;">Блоктарды орналастыр!</h1>
+    <h1 style="text-align: center;">Блоки на место!</h1>
     <div class="info">
-      <div id="score" class="score-badge" aria-live="polite">
-        <span class="icon">💎</span>
-        <span class="label">Ұпайлар</span>
-        <span class="score-value">0</span>
-      </div>
-      <div id="timer" class="timer-badge" aria-live="polite">
-        <span class="icon">⏱</span>
-        <span class="time-value">00:00</span>
-      </div>
-    </div>
-
-    <div id="result-box" style="display:none; margin-top: 30px; padding: 20px; border-radius: 10px; background: #f0fff0; border-left: 6px solid #32cd32; font-size: 18px; max-width: 500px;">
-        <h2 id="result-score"></h2>
-        <p id="result-comment"></p>
+        <p id="score">Очки: 0</p>
     </div>
     <div id="board"></div>
+    <div id="game-controls">
+        <button onclick="restartGame()">Рестарт</button>
+    </div>
+
     <script src="static/js/module4.js"></script>
 </body>
 </html>

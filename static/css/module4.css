@@ -9,7 +9,7 @@ body {
         }
 
         h1 {
-            margin: 10px;
+            margin: 20px;
             font-size: 28px;
             color: #e67e22;
             text-shadow: 1px 1px 3px #000;
@@ -20,9 +20,8 @@ body {
             grid-template-columns: repeat(10, 50px);
             grid-template-rows: repeat(10, 50px);
             gap: 2px;
-            margin-left: 10px;
             background-color: #34495e;
-            padding: 5px;
+            padding: 10px;
             border: 5px solid #16a085;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
@@ -63,6 +62,16 @@ body {
             box-shadow: 0 0 8px #95a5a6;
         }
 
+        #score {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #1abc9c;
+        }
+
+        #score span {
+            font-weight: bold;
+            color: #e74c3c;
+        }
         #game-controls {
             margin-top: 10px;
             text-align: center;
@@ -82,133 +91,3 @@ body {
         #game-controls button:hover {
             background-color: #0056b3;
         }
-        #result-box {
-            display: none;
-            margin-top: 30px;
-            padding: 20px;
-            border-radius: 10px;
-            background: #f0fff0;
-            border-left: 6px solid #32cd32;
-            font-size: 18px;
-            max-width: 500px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        #result-score {
-            color: #2e7d32;
-            margin: 0 0 10px 0;
-        }
-        #result-comment {
-            color: #1b5e20;
-        }
-#timer {
-  display: inline-block;
-  color: #2ecc71;
-  padding: 10px 10px;
-  background-color: #ffffff;
-  border-radius: 50px;
-  
-  font-weight: 900;
-}
-#timer.low {
-  color: #ff4d4f;
-  animation: pulse 1s infinite;
-}
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
-}
-/* HUD контейнер */
-.info {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 8px;
-  margin-bottom: 8px;
-  padding: 6px 12px;
-}
-
-/* общий стиль бейджей */
-.score-badge, .timer-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-weight: 700;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45), inset 0 -2px 6px rgba(255,255,255,0.03);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  user-select: none;
-}
-
-/* иконка слева */
-.score-badge .icon, .timer-badge .icon {
-  font-size: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* надпись "Очки" (маленькая) */
-.score-badge .label {
-  font-size: 12px;
-  color: rgba(255,255,255,0.75);
-  margin-right: 4px;
-}
-
-/* значение очков — большой контрастный текст */
-.score-badge .score-value {
-  font-size: 20px;
-  color: #ffffff;
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.08));
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-}
-
-/* специальный вид бейджа очков — градиент */
-.score-badge {
-  background: linear-gradient(135deg, #16a085 0%, #1abc9c 100%);
-  color: #0b2a24;
-}
-
-/* таймер — светлый круглый бейдж (контраст с тёмным фоном) */
-.timer-badge {
-  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.88));
-  color: #2c3e50;
-  padding: 8px 12px;
-  font-size: 16px;
-  border: 1px solid rgba(0,0,0,0.06);
-}
-
-/* таймер — оставшееся мало времени (мигание / красный) */
-#timer.low, .timer-badge.low {
-  color: #ffffff;
-  background: linear-gradient(135deg, #ff4d4f 0%, #e74c3c 100%);
-  animation: pulse 1s infinite;
-  box-shadow: 0 6px 20px rgba(231,76,60,0.35);
-}
-
-/* анимация при изменении очков */
-@keyframes popScale {
-  0% { transform: scale(1); }
-  30% { transform: scale(1.18); }
-  100% { transform: scale(1); }
-}
-.score-badge.pop {
-  animation: popScale 260ms ease;
-}
-
-/* мелкие декоративные доработки для читаемости */
-.score-badge .label, .timer-badge .time-value {
-  letter-spacing: 0.2px;
-}
-
-/* старое #timer.low keyframes остаются, если используются:
-   (сохраняем для совместимости с предыдущим кодом) */
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.4; }
-  100% { opacity: 1; }
-}

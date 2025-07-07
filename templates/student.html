@@ -1,64 +1,62 @@
 <!DOCTYPE html>
-<html lang="kk">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>БілімQuest</title>
+    <title>Мектеп порталы</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+
 </head>
 <body>
-        <header class="top-bar">
-            <h1 class="logo">BilimQuest</h1>
-            <h2 class="text">Жалпы білім беретін орта мектептің 5-сынып пәні бойынша практикалық тапсырмаларды геймификация элементтерін қолдана отырып оқыту порталы</h2>
-            <div class="top-info">
-                <a href="/rating" class="btn-rating">
-                    ⭐ {{ student.score }}
-                </a>
-                <a href="/student_dashboard" class="btn-profile">
-                    <img src="static/img/user.png" alt="user" class="avatar">
-                    <span>{{ student.name }}</span>
-                </a>
-            </div>
+    <div class="line"></div>
+    <div class="container">
+        <header>
+            <h1>5 сынып информатикасы порталы</h1>
+            {% if session.get("user_name") %}
+                <p>Қош келдіңіз, {{ session.get("user_name") }}!</p>
+            {% else %}
+                <p>Қош келдіңіздер! Мұнда сіз тіркеліп, жүйеге кіре аласыз.</p>
+                <img class="school" src="static/img/9136350_45397.jpg" alt="image" style="width:600px; height:auto;">
+            {% endif %}
         </header>
-
         <main>
-            <div class="main-container">
-
-                <!-- Левая часть: модули -->
+            <div class="buttons">
+                {% if session.get("user_name") %}
+                    <!-- Тек кірген қолданушыларға -->
+                    <form action="/logout" method="POST" style="display: inline;">
+                        <button type="submit" class="btn_ext">Шығу</button>
+                    </form>
+                    <button class="btn_profile">Жеке парақша</button>
                 <div class="sidebar">
-                    <a href="/1module" class="module">
-                        <span>Ақпаратты ұсыну</span>
-                    </a>
-                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <span>Компьютерлік графика</span>
-                    </a>
-                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <span>Робототехника</span>
-                    </a>
-                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <span>Роботтардың жарысы</span>
-                    </a>
+                 <h2>Модульдар</h2>
+                 <ul>
+                        <li><a href="/module1">Module 1</a></li>
+                        <li><a href="/module2">Module 2</a></li>
+                        <li><a href="/module3">Module 3</a></li>
+                        <li><a href="/module4">Module 4</a></li>
+                        <li><a href="#">Module 5</a></li>
+                </ul>
                 </div>
 
-                <!-- Правая часть: контейнер для объявлений -->
-                <div class="announcements">
-                    <h2>📢 Хабарландырулар</h2>
-                    <ul>
-                        {% for ann in announcements %}
-                            <li>
-                                {{ ann.message }}
-                                <small style="color: gray;">{{ ann.local_time().strftime("%d.%m.%Y %H:%M") }}</small>
-                            </li>
-                        {% else %}
-                            <li>Әзірше хабарландыру жоқ</li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                <div id="game-container"></div>
 
+
+                {% else %}
+                    <!-- Тіркелу және кіру батырмалары -->
+                    <a href="/register" class="btn_r">Тіркелу</a>
+                    <a href="/login" class="btn_l">Кіру</a>
+                {% endif %}
             </div>
         </main>
+    </div>
 
+    <div id="module-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <iframe id="module-frame" src="" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+        </div>
+    </div>
+<script src="static/js/moduls.js"></script>
 </body>
 </html>

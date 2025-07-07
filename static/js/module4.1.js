@@ -1,21 +1,3 @@
-async function sendProgress() {
-  const scoreDelta = score - sentScore;
-  if (scoreDelta === 0) return;
-
-  await fetch("/game_result", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      game_name: "push_blocks_all",
-      score: scoreDelta,                 // ➕ только новая часть
-      completed: checkWin()
-    })
-  });
-
-  sentScore = score; // Обновляем отправленное
-}
-
-
 const boardSize = 10;
 
 // Позиция персонажа
@@ -95,32 +77,28 @@ function renderBoard() {
 
 // Перемещение персонажа
 function moveCharacter(dx, dy) {
-          let newX = characterPosition.x + dx;
-          let newY = characterPosition.y + dy;
+    const newX = characterPosition.x + dx;
+    const newY = characterPosition.y + dy;
 
-          if (newX < 0) newX = boardSize - 1;
-          if (newX >= boardSize) newX = 0;
-          if (newY < 0) newY = boardSize - 1;
-          if (newY >= boardSize) newY = 0;
+    if (newX < 0 || newX >= boardSize || newY < 0 || newY >= boardSize) return;
 
-          if (obstacles.find(o => o.x === newX && o.y === newY)) return;
+    if (obstacles.find(o => o.x === newX && o.y === newY)) return;
 
-          const block = blocks.find(b => b.x === newX && b.y === newY);
-          if (block) {
-            // перенос блока через границы
-            let nextX = block.x + dx;
-            let nextY = block.y + dy;
+    const block = blocks.find(b => b.x === newX && b.y === newY);
+        if (block) {
+        const nextX = block.x + dx;
+        const nextY = block.y + dy;
 
-            if (nextX < 0) nextX = boardSize - 1;
-            if (nextX >= boardSize) nextX = 0;
-            if (nextY < 0) nextY = boardSize - 1;
-            if (nextY >= boardSize) nextY = 0;
-
-            if (!blocks.find(b => b.x === nextX && b.y === nextY) &&
-                !obstacles.find(o => o.x === nextX && o.y === nextY)) {
-              block.x = nextX;
-              block.y = nextY;
-
+        if (
+            nextX >= 0 &&
+            nextX < boardSize &&
+            nextY >= 0 &&
+            nextY < boardSize &&
+            !blocks.find(b => b.x === nextX && b.y === nextY) &&
+            !obstacles.find(o => o.x === nextX && o.y === nextY)
+        ) {
+            block.x = nextX;
+            block.y = nextY;
 
             const target = targets.find(t => t.x === block.x && t.y === block.y);
             if (target) {
@@ -159,7 +137,6 @@ function moveCharacter(dx, dy) {
 
     if (checkWin()) {
         setTimeout(() => alert("Поздравляем! Уровень завершен!"), 100);
-        sendProgress();
     }
 }
 
