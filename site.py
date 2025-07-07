@@ -32,6 +32,19 @@ class Teacher(db.Model):
     def __repr__(self):
         return f"<Teacher {self.name}>"
 
+class Task(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    module = db.Column(db.String(50), nullable=False)
+    question = db.Column(db.Text, nullable=False)
+    correct_answer = db.Column(db.String(100), nullable=False)
+    explanation = db.Column(db.Text, nullable=True)  # Жауап түсіндірмесі (қосымша)
+
+class StudentProgress(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
+    task_id = db.Column(db.Integer, db.ForeignKey("task.id"))
+    is_correct = db.Column(db.Boolean)
+
 with app.app_context():
     db.create_all()
 
@@ -135,6 +148,43 @@ def login_teacher():
         else:
             return "Қате: Есім, почта немесе құпиясөз дұрыс емес."
     return render_template("login_tchr.html")
+
+
+@app.route("/tasks/<module>", methods=["GET", "POST"])
+def tasks(module):
+    index = int(request.args.get("index", 0))
+    tasks = Task.query.filter_by(module=module).all()
+
+    if index >= len(tasks):
+        return "Сіз бұл модульдегі барлық тапсырмаларды аяқтадыңыз ✅"
+
+    task = tasks[index]
+    result = None
+
+    if request.method == "POST":
+        answer = request.form["answer"].strip().lower()
+        correct = answer == task.correct_answer.strip().lower()
+
+        # Сақтау прогресса
+        if "user_id" in session:
+            student_id = session["user_id"]
+            existing = StudentProgress.query.filter_by(student_id=student_id, task_id=task.id).first()
+            if not existing:
+                progress = StudentProgress(student_id=student_id, task_id=task.id, is_correct=correct)
+                db.session.add(progress)
+                db.session.commit()
+
+        result = correct
+        return render_template("task.html", task=task, module=module, result=result, next_index=index + 1)
+
+    return render_template("task.html", task=task, module=module, index=index)
+
+@app.route("/my_progress")
+def my_progress():
+    student_id = session.get("user_id")
+    results = StudentProgress.query.filter_by(student_id=student_id).all()
+    return render_template("progress.html", results=results)
+
 
 @app.route('/module1')
 def module1():
