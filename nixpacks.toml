@@ -1,15 +1,9 @@
 [phases.setup]
 nixPkgs = [
   "python311Full",
-  "git"
+  "git",
+  "gunicorn"
 ]
-
-[phases.build]
-nixpkgsArchive = "https://github.com/NixOS/nixpkgs/archive/nixos-23.05.tar.gz"
-cmds = []
-
-[phases.install]
-cmds = []
 
 [start]
 cmd = "gunicorn site:app --bind 0.0.0.0:$PORT"
