@@ -1,2 +1,10 @@
+[phases.setup]
+nixPkgs = ["python311", "git"]
+
+[phases.install]
+cmds = [
+  "pip install -r requirements.txt"
+]
+
 [start]
-cmd = "gunicorn site:app --bind 0.0.0.0:8080"
+cmd = "gunicorn site:app --bind 0.0.0.0:$PORT"
