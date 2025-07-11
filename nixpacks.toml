@@ -22,4 +22,4 @@ nixPkgs = [
 ]
 
 [start]
-cmd = "gunicorn site:app --bind 0.0.0.0:$PORT"
+cmd = "python site.py"

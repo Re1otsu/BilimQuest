@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import os
-from functools import wraps
 from flask import flash
 from flask_migrate import Migrate
 
