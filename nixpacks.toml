@@ -2,6 +2,7 @@
 nixPkgs = [
   "python311Full",
   "git",
+  "python311Packages.pip",
   "python311Packages.gunicorn"
 ]
 
