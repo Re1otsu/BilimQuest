@@ -1,8 +1,9 @@
 [phases.setup]
-nixPkgs = ["python311", "git"]
+nixPkgs = ["python311", "pip", "git"]
 
 [phases.install]
 cmds = [
+  "pip install --upgrade pip",
   "pip install -r requirements.txt"
 ]
 
