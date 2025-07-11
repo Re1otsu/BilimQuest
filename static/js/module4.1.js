@@ -1,3 +1,21 @@
+async function sendProgress() {
+  const scoreDelta = score - sentScore;
+  if (scoreDelta === 0) return;
+
+  await fetch("/game_result", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      game_name: "push_blocks_all",
+      score: scoreDelta,                 // ➕ только новая часть
+      completed: checkWin()
+    })
+  });
+
+  sentScore = score; // Обновляем отправленное
+}
+
+
 const boardSize = 10;
 
 // Позиция персонажа
@@ -137,6 +155,7 @@ function moveCharacter(dx, dy) {
 
     if (checkWin()) {
         setTimeout(() => alert("Поздравляем! Уровень завершен!"), 100);
+        sendProgress();
     }
 }
 

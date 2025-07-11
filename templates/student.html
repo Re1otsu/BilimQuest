@@ -23,11 +23,8 @@
         <main>
             <div class="buttons">
                 {% if session.get("user_name") %}
-                    <!-- Тек кірген қолданушыларға -->
-                    <form action="/logout" method="POST" style="display: inline;">
-                        <button type="submit" class="btn_ext">Шығу</button>
-                    </form>
-                    <button class="btn_profile">Жеке парақша</button>
+                    <a href="/student_dashboard"> <button class="btn_profile" >Жеке парақша</button></a>
+                    <a href="/rating"><button class="btn_profile" style="right: 250px;">🏆 Рейтинг</button></a>
                 <div class="sidebar">
                  <h2>Модульдар</h2>
                  <ul>
@@ -40,6 +37,22 @@
                 </div>
 
                 <div id="game-container"></div>
+                <div class="announcement-box">
+                    <h2>Сыныпқа арналған хабарландырулар</h2>
+                    {% if announcements %}
+                        <ul>
+                            {% for ann in announcements %}
+                                <li>
+                                    {{ ann.message }}<br>
+                                    <small>{{ ann.timestamp.strftime('%d.%m.%Y %H:%M') }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Қазіргі уақытта хабарландырулар жоқ.</p>
+                    {% endif %}
+                </div>
+
 
 
                 {% else %}

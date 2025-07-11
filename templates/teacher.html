@@ -19,12 +19,64 @@
         <main>
             <div class="buttons">
                 {% if session.get("email") %}
-                    <!-- Тек кірген қолданушыларға -->
                     <form action="/logout" method="POST" style="display: inline;">
                         <button type="submit" class="btn">Шығу</button>
                     </form>
+                    <a href="/teacher/progress" class="btn">📊 Прогресс учеников</a>
+
+                    <!-- 🔘 Батырма для открытия модального окна -->
+                    <button class="announcement-btn" onclick="openModal()">+ Жаңа хабарландыру</button>
+
+                    <!-- 🪟 Модальное окно -->
+                    <div id="announcementModal" class="modal">
+                        <div class="modal-content">
+                            <span class="close-btn" onclick="closeModal()">&times;</span>
+                            <h2>Жаңа хабарландыру</h2>
+                            <form method="POST" action="/create_announcement">
+                                <label>Сыныпты таңдаңыз:</label><br>
+                                <select name="class_name" required>
+                                    <option value="">Сынып таңдаңыз</option>
+                                    <option value="5А">5А</option>
+                                    <option value="5Б">5Б</option>
+                                    <option value="5В">5В</option>
+                                </select><br><br>
+
+                                <label>Хабарлама мәтіні:</label><br>
+                                <textarea name="message" rows="4" cols="50" required></textarea><br><br>
+
+                                <button type="submit" class="btn">Жариялау</button>
+                            </form>
+                            <h2>Барлық хабарландырулар</h2>
+                            <ul>
+                                {% for a in announcements %}
+                                <li>
+                                    <strong>{{ a.class_name }}</strong>: {{ a.message }}<br>
+                                    <form action="/delete_announcement/{{ a.id }}" method="POST" style="display:inline;">
+                                        <button type="submit" onclick="return confirm('Өшіруді қалайсыз ба?')">❌ Өшіру</button>
+                                    </form>
+                                    <a href="/edit_announcement/{{ a.id }}">✏️ Өзгерту</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <script>
+                        function openModal() {
+                            document.getElementById('announcementModal').style.display = 'block';
+                        }
+
+                        function closeModal() {
+                            document.getElementById('announcementModal').style.display = 'none';
+                        }
+
+                        window.onclick = function(event) {
+                            if (event.target === document.getElementById('announcementModal')) {
+                                closeModal();
+                            }
+                        }
+                    </script>
                 {% else %}
-                    <!-- Тіркелу және кіру батырмалары -->
                     <a href="/register_teacher" class="btn">Тіркелу</a>
                     <a href="/login_teacher" class="btn">Кіру</a>
                 {% endif %}

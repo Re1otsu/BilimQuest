@@ -91,3 +91,21 @@ body {
         #game-controls button:hover {
             background-color: #0056b3;
         }
+        #result-box {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f0fff0;
+            border-left: 6px solid #32cd32;
+            font-size: 18px;
+            max-width: 500px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #result-score {
+            color: #2e7d32;
+            margin: 0 0 10px 0;
+        }
+        #result-comment {
+            color: #1b5e20;
+        }

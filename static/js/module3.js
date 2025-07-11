@@ -1,3 +1,29 @@
+async function sendProgress() {
+  await fetch("/game_result", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      game_name: "cipher_game",
+      score:     totalScore,               // ✅ итоговый балл
+      completed: currentLevel >= levels.length
+    })
+  });
+}
+
+
+async function sendPenalty() {
+  const safeLevel = Math.min(currentLevel, levels.length);  // чтобы не выйти за пределы
+  await fetch("/game_result", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      game_name: "cipher_game",
+      score: -5,  // ⬅️ минус 5 баллов
+      completed: false
+    })
+  });
+}
+
 const levels = [
     { encrypted: "<БІЛІМ>", answer: "3136233633" },
     { encrypted: "<ҒОӨҒҰЮ> Цезарь шифрын шеш. Қадам 5 ", answer: "112333114426" },
@@ -5,6 +31,7 @@ const levels = [
 
 let currentLevel = 0;
 let userInput = "";
+let totalScore = 0;
 
 // Функция для обновления экрана с парами цифр
 // Функция для обновления зашифрованного текста и экрана
@@ -54,6 +81,8 @@ function submitCode() {
         message.textContent = "Дұрыс! Сейф ашылды.";
         message.style.color = "lime";
 
+        totalScore += 10; // ✅ прибавляем баллы
+
         currentLevel++; // Переходим к следующему уровню
 
         if (currentLevel < levels.length) {
@@ -64,10 +93,31 @@ function submitCode() {
         } else {
             alert("Барлық деңгей аяқталды! Жарайсыз!");
             message.textContent = "Ойын аяқталды!";
+
+            // ✅ Отправляем итоговый результат
+            sendProgress();
+            const percentage = Math.round((totalScore / (levels.length * 10)) * 100);
+            let comment = "";
+
+            if (percentage >= 90) {
+                comment = "🎉 Керемет жұмыс! Шифрларды өте жақсы меңгердің.";
+            } else if (percentage >= 70) {
+                comment = "👍 Жақсы нәтиже! Тағы да тәжірибе жасап көр.";
+            } else if (percentage >= 50) {
+                comment = "🙂 Орташа. Қайтадан өтіп көрсең, жақсырақ болады.";
+            } else {
+                comment = "⚠️ Жетілдіру қажет. Сабыр сақтап, тағы байқап көр.";
+            }
+
+            document.getElementById('result-score').innerText = `Жалпы ұпай: ${totalScore} (${percentage}%)`;
+            document.getElementById('result-comment').innerText = comment;
+            document.getElementById('result-box').style.display = 'block';
         }
     } else {
         message.textContent = "Қате! Қайта көріңіз.";
         message.style.color = "red";
+
+        totalScore -= 5; // ✅ отнимаем баллы локально, но не отправляем
     }
 }
 

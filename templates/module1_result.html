@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 <head>
     <title>Нәтиже</title>
     <style>
@@ -44,7 +43,7 @@
             <p>Сіздің соңғы ұпайыңыз: <strong>{{ score }}</strong></p>
             <p>Өту саны: <strong>{{ attempt }}</strong></p>
             <p>Қайта өту үшін мұғалім рұқсат беруі тиіс.</p>
-            <form action="/1module">
+            <form action="/student">
                 <button class="btn" onclick="closeModule()">Артқа</button>
             </form>
         </div>

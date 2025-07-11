@@ -4,31 +4,25 @@ body {
   color: #333;
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
 }
 
 .container {
-  width: 60vw;
-  max-width: 900px;
-  min-width: 300px;
+  max-width: 800px;
+  margin: 40px auto;
   background: #fff;
   border-radius: 16px;
   padding: 30px 40px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* Заголовки и текст адаптивные */
 h1 {
-  font-size: clamp(20px, 2.5vw, 32px);
+  font-size: 28px;
   color: #2a5d9f;
   margin-bottom: 10px;
 }
 
 p {
-  font-size: clamp(14px, 1.5vw, 18px);
+  font-size: 18px;
   margin: 6px 0;
 }
 
@@ -38,7 +32,7 @@ strong {
 
 h2 {
   margin-top: 30px;
-  font-size: clamp(16px, 2vw, 24px);
+  font-size: 22px;
   color: #444;
 }
 
@@ -52,22 +46,7 @@ li {
   margin: 8px 0;
   padding: 12px 16px;
   border-radius: 10px;
-  font-size: clamp(14px, 1.2vw, 18px);
-}
-
-/* Кнопки */
-.back-btn {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #e6f1ff;
-  text-decoration: none;
-  background-color: #2a5d9f;
-  width: 8em;
-  height: 2.5em;
-  border-radius: 0.5em;
-  padding: 8px 14px;
-  margin-top: 15px;
+  font-size: 16px;
 }
 
 button {
@@ -75,83 +54,29 @@ button {
   color: white;
   border: none;
   padding: 10px 18px;
-  font-size: clamp(14px, 1.2vw, 18px);
+  font-size: 16px;
   border-radius: 8px;
   cursor: pointer;
-  margin-top: 20px;
+  margin-top: 25px;
   transition: 0.3s;
 }
 
 button:hover {
   background: #1e4a7d;
 }
-
-/* Форма выхода */
 .logout-form {
-  position: relative;
-  bottom: 55vh;
-  left: 47vw;
-  display: flex;
-  width: 10vw;
-  height: 5vh;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.5vh;
+  position: absolute;
+  top: 70px;
+  right: 550px;
 }
 
 .logout-form button {
   background: #d9534f;
   padding: 8px 14px;
-  font-size: clamp(12px, 1vw, 16px);
+  font-size: 14px;
   border-radius: 6px;
 }
 
 .logout-form button:hover {
   background: #c9302c;
-}
-
-/* --- МЕДИА-ЗАПРОСЫ --- */
-
-/* Ноутбуки */
-@media (max-width: 1024px) {
-  .container {
-    width: 80vw;
-    padding: 20px 30px;
-  }
-}
-
-/* Планшеты */
-@media (max-width: 768px) {
-  .container {
-    width: 90vw;
-    padding: 20px;
-  }
-  .logout-form {
-    position: static; /* переносим вниз */
-    justify-content: center;
-    margin-top: 15px;
-  }
-}
-
-/* Смартфоны */
-@media (max-width: 480px) {
-  .container {
-    width: 95vw;
-    padding: 15px;
-  }
-  h1 {
-    font-size: 20px;
-  }
-  p, li, button {
-    font-size: 14px;
-  }
-  .back-btn {
-    width: 100%;
-  }
-  .logout-form {
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
 }

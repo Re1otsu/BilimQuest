@@ -130,7 +130,7 @@ form {
     font-family: 'Open Sans', sans-serif;
     position: absolute;
     top: 220px;
-    right: 140px;
+    right: 70px;
     border: none;
     padding: 10px 20px;
     font-size: 16px;
@@ -220,4 +220,48 @@ a:hover {
     font-size: 24px;
     color: #333;
     cursor: pointer;
+}
+
+.announcement-box {
+    margin: 40px auto;
+    background: #fff8dc;
+    padding: 20px 30px;
+    border-radius: 10px;
+    border-left: 6px solid #ffa500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 600px;      /* ✅ Орташа өлшем */
+    box-sizing: border-box;
+    text-align: left;
+    word-wrap: break-word;
+}
+
+
+.announcement-box h2 {
+    margin-top: 0;
+    color: #c25500;
+}
+
+.announcement-box ul {
+    list-style: none;
+    padding: 0;
+}
+
+.announcement-box li {
+    margin-bottom: 15px;
+    font-size: 17px;
+    line-height: 1.4;
+    color: #333;
+}
+
+.announcement-box small {
+    color: #777;
+}
+.buttons {
+    display: block; /* бұрыңғы flex-ті өшіру */
+    text-align: center;
+}
+.announcement-box {
+    max-height: 300px;        /* ✅ Шектеу биіктігі */
+    overflow-y: auto;
 }

@@ -11,13 +11,14 @@
     <div class="desk"></div>
     <div class="choose">
         <h1>Порталға қош келдіңіз!</h1>
-        <img src="static/img/3974104.jpg" alt="Картинка" style="width: 800px; height: auto;">
-        <label>
-             <a href="/teacher" class="btn_ch0">Мұғалім</a>
-        </label><br>
-        <label>
-            <a href="/student" class="btn_ch1">Оқушы</a>
-        </label><br><br>
+        <img src="{{ url_for('static', filename='img/3974104.jpg') }}" alt="Картинка" style="width: 800px; height: auto;">
+
+        <form method="POST" action="/">
+            <button type="submit" name="role" value="teacher" class="btn_ch0">Мұғалім</button>
+        </form>
+        <form method="POST" action="/">
+            <button type="submit" name="role" value="student" class="btn_ch1">Оқушы</button>
+        </form>
     </div>
 </body>
 </html>

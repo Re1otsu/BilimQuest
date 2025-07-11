@@ -41,7 +41,7 @@ img {
     right: -80px;
 }
 .btn_ch0 {
-    width: 80px;
+    width: 120px;
     font-family: 'Open Sans', sans-serif;
     display: block; /* Элементтерді жолға қою */
     justify-content: space-between; /* Батырмаларды бөлу */
@@ -63,7 +63,7 @@ img {
 }
 
 .btn_ch1 {
-    width: 80px; /* Фиксированная ширина */
+    width: 120px; /* Фиксированная ширина */
     font-family: 'Open Sans', sans-serif;
     display: block; /* Элементтерді жолға қою */
     justify-content: space-between; /* Батырмаларды бөлу */

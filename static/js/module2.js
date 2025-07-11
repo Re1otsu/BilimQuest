@@ -28,6 +28,23 @@ const info = document.getElementById('info');
 const scoreDisplay = document.getElementById('score');
 let gameFinished = false;  // Ойын аяқталғанын бақылау үшін
 
+// ——— Функция отправки прогресса на сервер —————————
+async function sendProgress() {
+  try {
+    await fetch("/game_result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        game_name:  "maze",  // уникальный идентификатор этой игры
+        score:      score,         // текущий счёт
+        completed:  gameFinished   // true, если лабиринт пройден
+      })
+    });
+  } catch (err) {
+    console.error("Ошибка сохранения прогресса:", err);
+  }
+}
+
 function restartGame() {
   currentIndex = initialMaze.indexOf('S');
   collectedKeys = 0;
@@ -154,6 +171,23 @@ grid.addEventListener('click', async (e) => {
       if (collectedKeys === totalKeys) {
         info.textContent = `Құттықтаймыз! Барлық кілт жиналды. Сіздің ұпайыңыз: ${score}`;
         gameFinished = true;  // Ойын аяқталды
+        sendProgress();
+        const percentage = Math.round((score / (totalKeys * 20)) * 100);
+        let comment = "";
+
+        if (percentage >= 90) {
+            comment = "🎉 Өте жақсы нәтиже! Сен лабиринтті тамаша меңгердің.";
+        } else if (percentage >= 70) {
+            comment = "👍 Жақсы! Тағы да біраз жаттығу артық етпейді.";
+        } else if (percentage >= 50) {
+            comment = "🙂 Орташа. Қайтадан өтіп көруге болады.";
+        } else {
+            comment = "⚠️ Тағы бірнеше рет тәжірибе жасаған дұрыс.";
+        }
+
+        document.getElementById('result-score').innerText = `Ұпай: ${score} (${percentage}%)`;
+        document.getElementById('result-comment').innerText = comment;
+        document.getElementById('result-box').style.display = 'block';
       } else {
         info.textContent = 'Барлық кілттерді жинауыңыз қажет!';
       }
@@ -167,4 +201,4 @@ grid.addEventListener('click', async (e) => {
 
 // Бастапқы рендеринг
 createGrid();
-updateScore(); 
+updateScore();
