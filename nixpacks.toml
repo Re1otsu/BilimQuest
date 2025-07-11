@@ -2,8 +2,11 @@
 nixPkgs = [
   "python311Full",
   "git",
-  "gunicorn"
+  "python311Packages.gunicorn"
 ]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
 
 [start]
 cmd = "gunicorn site:app --bind 0.0.0.0:$PORT"
