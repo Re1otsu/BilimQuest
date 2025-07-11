@@ -4,14 +4,13 @@
   <meta charset="UTF-8">
   <title>Жеке парақша</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
   <div class="container">
-    <a href="/student" class="back-btn">Басты бетке</a>
     <h1>Сәлем, {{ student.name }}!</h1>
     <p>Сынып: {{ student.student_class }}</p>
     <p>Жалпы балл: <strong>{{ student.score }}</strong></p>
+    <p>Өткен тапсырмалар: <strong>{{ progress_count }}</strong></p>
 
     <h2>🕹 Ойын нәтижелері</h2>
     {% if games %}
