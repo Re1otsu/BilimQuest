@@ -1,4 +1,2 @@
-# nixpacks.toml
-
 [start]
-cmd = "gunicorn site:app"
+cmd = "gunicorn site:app --bind 0.0.0.0:8080"
