@@ -81,7 +81,7 @@ function submitCode() {
         message.textContent = "Дұрыс! Сейф ашылды.";
         message.style.color = "lime";
 
-        totalScore += 10; // ✅ прибавляем баллы
+        totalScore += 50; // ✅ прибавляем баллы
 
         currentLevel++; // Переходим к следующему уровню
 
@@ -91,9 +91,6 @@ function submitCode() {
             userInput = ""; // Сбрасываем ввод пользователя
             updateScreen(); // Обновляем экран для нового уровня
         } else {
-            alert("Барлық деңгей аяқталды! Жарайсыз!");
-            message.textContent = "Ойын аяқталды!";
-
             // ✅ Отправляем итоговый результат
             sendProgress();
             const percentage = Math.round((totalScore / (levels.length * 10)) * 100);

@@ -7,8 +7,6 @@ from flask import flash
 from flask_migrate import Migrate
 from functools import wraps
 
-
-
 app = Flask(__name__)
 
 load_dotenv()  # .env файлын жүктеу
@@ -176,11 +174,14 @@ def index():
 
     announcements = Announcement.query.filter_by(class_name=student_class).order_by(Announcement.timestamp.desc()).all()
 
+    is_special = str(user_name).strip().lower() == "гульдана"
+
     return render_template("student.html",
                            user_name=user_name,
                            student_class=student_class,
                            announcements=announcements,
-                           student=student)  # ✅ жіберу
+                           student=student,
+                           is_special=is_special)  # ✅ жіберу
 
 # Тіркеу
 @app.route("/register", methods=["GET", "POST"])
@@ -422,6 +423,10 @@ def unlock_game():
     flash("Қайта өтуге рұқсат берілді. Бұрынғы нәтиже өшірілді.")
     return redirect("/teacher_panel")
 
+@app.route("/for_G")
+@login_required("student")
+def flower():
+    return render_template("for_G.html")
 
 @app.route("/teacher_panel")
 @login_required("teacher")
@@ -470,17 +475,44 @@ def module2():
         else:
             comment = "⚠️ Тағы бірнеше рет тәжірибе жасаған дұрыс."
 
-        return render_template("maze_result.html", score=progress.score, percentage=percentage, comment=comment)
+        return render_template("module1_result.html", score=progress.score, percentage=percentage, comment=comment)
 
     return render_template("module2.html")  # Ойын беті
 
 
 @app.route('/module3')
+@login_required("student")
 def module3():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="cipher_game") \
+        .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="cipher_game").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
     return render_template('module3.html')
 
 @app.route('/module4')
 def module4():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="push_blocks_all") \
+        .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="push_blocks_all").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
     return render_template('module4.html')
 
 @app.route('/module4_l2')
@@ -554,4 +586,4 @@ def teacher_progress():
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

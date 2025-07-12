@@ -71,5 +71,35 @@
         </div>
     </div>
 <script src="static/js/moduls.js"></script>
+{% if session.get("user_name") and session.get("user_name").lower() == "гульдана" %}
+<div id="gift-box" onclick="openGift()">
+    <a href="/for_G">
+    <img src="{{ url_for('static', filename='img/giftbox.png') }}" alt="Подарок" />
+    </a>
+</div>
+    <div class="falling-flowers-container" id="falling-flowers"></div>
+
+<script>
+const flowerContainer = document.getElementById('falling-flowers');
+
+function createFlower() {
+  const flower = document.createElement('div');
+  flower.classList.add('flower');
+  flower.style.left = Math.random() * 100 + 'vw';
+  flower.style.animationDuration = (Math.random() * 3 + 5) + 's';
+  flower.innerHTML = '🌸'; // Можешь заменить на другое, например, 🌺
+
+  flowerContainer.appendChild(flower);
+
+  setTimeout(() => {
+    flower.remove();
+  }, 8000);
+}
+
+// Появление лепестков каждые 300 мс
+setInterval(createFlower, 300);
+</script>
+{% endif %}
+
 </body>
 </html>

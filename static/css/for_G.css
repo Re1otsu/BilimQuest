@@ -1,0 +1,42 @@
+div{
+ margin: 0 auto;
+}
+
+body {
+    background-color: black;
+}
+
+body > *  {
+  width: 500px;
+}
+
+#svg{
+  background-color: darkseagreen;
+  background: radial-gradient(darkseagreen 0%, black 70%);
+}
+#svg {
+  transform: scale(1.8); /* 1.5 — увеличить на 50% */
+  transform-origin: center;
+}
+.svg-wrapper {
+  margin-top: 150px; /* Увеличь по желанию */
+}
+#greeting-text {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: white; /* или другой фон */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 48px;
+  font-weight: bold;
+  color: #e75480; /* Нежно-розовый */
+  font-family: 'Georgia', serif;
+  text-align: center;
+  opacity: 1;
+  transition: opacity 2s ease-in-out;
+  z-index: 1000;
+}

@@ -265,3 +265,70 @@ a:hover {
     max-height: 300px;        /* ✅ Шектеу биіктігі */
     overflow-y: auto;
 }
+.svg-overlay {
+  position: absolute;
+  top: 80px; /* header астына түсу үшін */
+  left: 0;
+  width: 100%;
+  z-index: 10; /* басқа элементтерден жоғары болу үшін */
+  pointer-events: none; /* батырмалармен жұмыс істеп тұрсын десеңіз */
+}
+
+#gift-box {
+  position: fixed;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  z-index: 9999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#gift-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.falling-flowers-container {
+  position: fixed;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 1; /* Позади всех визуальных элементов */
+}
+
+.flower {
+  position: absolute;
+  top: -50px;
+  font-size: 24px;
+  animation-name: fall;
+  animation-timing-function: linear;
+  animation-iteration-count: 1;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0.5;
+  }
+}
+
+
+@keyframes popIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

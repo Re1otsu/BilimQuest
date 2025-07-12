@@ -13,6 +13,19 @@
         <h1>Цифрлық сейф</h1>
         <p id="encrypted-word">Шифрланған сөз: <span id="encrypted-text"></span></p>
         <p>Сейфтің кодын шешіп, енгізіңіз!</p>
+        <div class="message" id="message"></div>
+        <div id="result-box" style="
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0fff0;
+            border-left: 6px solid #32cd32;
+            border-radius: 10px;
+            color: black; /* ← Осында қос */
+        ">
+            <h2 id="result-score"></h2>
+            <p id="result-comment"></p>
+        </div>
         <div class="safe">
             <div class="screen" id="screen"></div>
             <div class="buttons">
@@ -30,19 +43,7 @@
                 <div class="button" onclick="submitCode()">OK</div>
             </div>
         </div>
-        <div class="message" id="message"></div>
-        <div id="result-box" style="
-            display: none;
-            margin-top: 20px;
-            padding: 20px;
-            background: #f0fff0;
-            border-left: 6px solid #32cd32;
-            border-radius: 10px;
-            color: black; /* ← Осында қос */
-        ">
-            <h2 id="result-score"></h2>
-            <p id="result-comment"></p>
-        </div>
+
 
 </div>
 
