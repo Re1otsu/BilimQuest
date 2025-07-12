@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+*.pyo
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.idea/
+
+# VS Code
+.vscode/
+
+# PyCharm
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# SQLite DB
+*.sqlite3
+*.db
+
+# Migrations
+migrations/versions/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

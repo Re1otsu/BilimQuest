@@ -6,28 +6,27 @@ import os
 from flask import flash
 from flask_migrate import Migrate
 from functools import wraps
-from datetime import datetime
-import pytz
+
+
 
 app = Flask(__name__)
 
-load_dotenv()
-app.secret_key = os.getenv("SECRET_KEY")
+load_dotenv()  # .env файлын жүктеу
+app.secret_key = os.getenv("SECRET_KEY")  # Құпия кілтті пайдалану
 
-#app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-
-db_url = os.getenv("DATABASE_URL")
-if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "connect_args": {"sslmode": "require"}
+    "connect_args": {
+        "sslmode": "require"
+    }
 }
+
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -98,16 +97,7 @@ class Announcement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     class_name = db.Column(db.String(10), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    # храним в UTC
-    timestamp = db.Column(
-        db.DateTime,
-        default=lambda: datetime.utcnow()
-    )
-
-    def local_time(self):
-        # конвертация в Алматы
-        tz = pytz.timezone("Asia/Almaty")
-        return pytz.utc.localize(self.timestamp).astimezone(tz)
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 with app.app_context():
     db.create_all()
@@ -127,6 +117,16 @@ def login_required(role):
     return decorator
 
 
+app.route("/delete_announcement/<int:id>", methods=["POST"])
+@login_required("teacher")
+def delete_announcement(id):
+    announcement = Announcement.query.get(id)
+    if announcement:
+        db.session.delete(announcement)
+        db.session.commit()
+        flash("Хабарлама өшірілді.")
+    return redirect("/teacher")
+
 @app.route("/edit_announcement/<int:id>", methods=["GET", "POST"])
 @login_required("teacher")
 def edit_announcement(id):
@@ -145,7 +145,7 @@ def home():
     if request.method == "POST":
         role = request.form.get("role")
         if role == "teacher":
-            return redirect("/login_teacher")
+            return redirect("/choose_login_teacher")
         elif role == "student":
             return redirect("/student")
         else:
@@ -167,28 +167,20 @@ def teacher():
 
 # Негізгі бет оқушы үшін
 @app.route("/student")
-@login_required("student")
-def student():
+def index():
+    user_name = session.get("user_name")
+    student_class = session.get("student_class")
     student_id = session.get("user_id")
-    student = Student.query.get(student_id)
-    progress = db.session.execute(
-        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
-        {"sid": student_id}
-    ).fetchall()
 
-    announcements = (Announcement.query
-                     .filter_by(class_name=student.student_class)
-                     .order_by(Announcement.timestamp.desc())
-                     .all())
+    student = Student.query.get(student_id)  # ✅ Оқушыны базадан алу
 
-    # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all']
-    completed = {m: False for m in default_modules}
-    for row in progress:
-        if row.game_name in completed:
-            completed[row.game_name] = bool(row.completed)
+    announcements = Announcement.query.filter_by(class_name=student_class).order_by(Announcement.timestamp.desc()).all()
 
-    return render_template("student.html", student=student, completed=completed, announcements=announcements)
+    return render_template("student.html",
+                           user_name=user_name,
+                           student_class=student_class,
+                           announcements=announcements,
+                           student=student)  # ✅ жіберу
 
 # Тіркеу
 @app.route("/register", methods=["GET", "POST"])
@@ -289,6 +281,21 @@ def login_teacher():
             return "Қате: Есім, почта немесе құпиясөз дұрыс емес."
     return render_template("login_tchr.html")
 
+@app.route("/teacher/announcement", methods=["GET", "POST"])
+@login_required("teacher")
+def make_announcement():
+    if request.method == "POST":
+        class_name = request.form["class_name"]
+        message = request.form["message"]
+
+        new_announcement = Announcement(message=message, class_name=class_name)
+        db.session.add(new_announcement)
+        db.session.commit()
+
+        return redirect("/teacher")
+    return render_template("announcement_form.html")
+
+
 @app.route("/student_dashboard")
 def student_dashboard():
     student_id = session.get("user_id")
@@ -298,6 +305,7 @@ def student_dashboard():
     student = Student.query.get(student_id)
     progress_count = StudentProgress.query.filter_by(student_id=student_id).count()
     game_results = GameProgress.query.filter_by(student_id=student_id).all()
+
     return render_template("dashboard.html",
                            student=student,
                            progress_count=progress_count,
@@ -363,16 +371,10 @@ def create_announcement():
 @app.route("/delete_announcement/<int:announcement_id>", methods=["POST"])
 @login_required("teacher")
 def delete_announcement(announcement_id):
-    ann = Announcement.query.get_or_404(announcement_id)
-    db.session.delete(ann)
+    announcement = Announcement.query.get_or_404(announcement_id)
+    db.session.delete(announcement)
     db.session.commit()
-    return redirect("/teacher/announcement")
-
-@app.route("/teacher/announcement", methods=["GET"])
-@login_required("teacher")
-def announcement_history():
-    announcements = Announcement.query.order_by(Announcement.timestamp.desc()).all()
-    return render_template("announcement_history.html", announcements=announcements)
+    return redirect("/teacher")
 
 @app.route("/rating")
 @login_required("student")
@@ -427,90 +429,6 @@ def teacher_panel():
     students = Student.query.all()
     return render_template("teacher_panel.html", students=students)
 
-
-from sqlalchemy import text  # добавить импорт в начале файла
-
-@app.route("/1module")
-@login_required("student")
-def module_1():
-    student_id = session.get("user_id")
-    student = Student.query.get(student_id)
-
-    # Загружаем прогресс из GameProgress
-    progress = db.session.execute(
-        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
-        {"sid": student_id}
-    ).fetchall()
-
-    # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all']
-    completed = {m: False for m in default_modules}
-    for row in progress:
-        if row.game_name in completed:
-            completed[row.game_name] = bool(row.completed)
-
-    return render_template("1module.html", completed=completed, student=student)
-
-
-@app.route("/bolim1_1")
-@login_required("student")
-def bolim1_1():
-    student_id = session.get("user_id")
-    student = Student.query.get(student_id)
-
-    # Загружаем прогресс из GameProgress
-    progress = db.session.execute(
-        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
-        {"sid": student_id}
-    ).fetchall()
-
-    # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all', 'Ақпарат-алу', 'Көпір']
-    completed = {m: False for m in default_modules}
-    for row in progress:
-        if row.game_name in completed:
-            completed[row.game_name] = bool(row.completed)
-
-    return render_template("bolim1_1.html", completed=completed, student=student)
-
-
-
-@app.route("/game1")
-@login_required("student")
-def game1():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Ақпарат-алу") \
-                                 .order_by(GameProgress.attempt.desc()).first()
-
-    # Егер бұрын тапсырған болса
-    if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Ақпарат-алу").first()
-        if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
-
-    return render_template("game1.html")
-
-@app.route("/game2")
-@login_required("student")
-def game2():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Көпір") \
-                                 .order_by(GameProgress.attempt.desc()).first()
-
-    # Егер бұрын тапсырған болса
-    if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Көпір").first()
-        if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
-
-    return render_template("game2.html")
-
 @app.route("/module1")
 @login_required("student")
 def module1():
@@ -532,101 +450,20 @@ def module1():
 
 
 @app.route('/module2')
-@login_required("student")
 def module2():
-    student_id = session.get("user_id")
-
-    # Соңғы нәтижені алу
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="maze") \
-                                 .order_by(GameProgress.attempt.desc()).first()
-
-    if progress and not (GameAccess.query.filter_by(student_id=student_id, game_name="maze", is_unlocked=True).first()):
-        # Бұрын тапсырған, және рұқсат жоқ — нәтиже көрсетеміз
-        percentage = round((progress.score / (5 * 20)) * 100)  # 5 кілт * 20 ұпай
-        if percentage >= 90:
-            comment = "🎉 Өте жақсы нәтиже! Сен лабиринтті тамаша меңгердің."
-        elif percentage >= 70:
-            comment = "👍 Жақсы! Тағы да біраз жаттығу артық етпейді."
-        elif percentage >= 50:
-            comment = "🙂 Орташа. Қайтадан өтіп көруге болады."
-        else:
-            comment = "⚠️ Тағы бірнеше рет тәжірибе жасаған дұрыс."
-
-        return render_template("module1_result.html", score=progress.score, percentage=percentage, comment=comment)
-
-    return render_template("module2.html")  # Ойын беті
-
+    return render_template('module2.html')
 
 @app.route('/module3')
-@login_required("student")
 def module3():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="cipher_game") \
-        .order_by(GameProgress.attempt.desc()).first()
-
-    # Егер бұрын тапсырған болса
-    if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="cipher_game").first()
-        if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
-
     return render_template('module3.html')
 
 @app.route('/module4')
 def module4():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="push_blocks_all") \
-        .order_by(GameProgress.attempt.desc()).first()
-
-    # Егер бұрын тапсырған болса
-    if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="push_blocks_all").first()
-        if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
-
     return render_template('module4.html')
 
-@app.route('/module6')
-@login_required("student")
-def module6():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="paint") \
-        .order_by(GameProgress.attempt.desc()).first()
-
-    # Егер бұрын тапсырған болса
-    if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="paint").first()
-        if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
-
-    return render_template('module6.html')
-
-@app.route('/module7')
-@login_required("student")
-def module7():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="shape_builder") \
-        .order_by(GameProgress.attempt.desc()).first()
-
-    # Егер бұрын тапсырған болса
-    if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="shape_builder").first()
-        if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
-
-    return render_template('module7.html')
+@app.route('/module4_l2')
+def module4_l2():
+    return render_template('module4_l2.html')
 
 
 # Шығу
@@ -695,6 +532,4 @@ def teacher_progress():
 
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port,)
+    app.run()
