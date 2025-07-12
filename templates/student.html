@@ -71,7 +71,7 @@
         </div>
     </div>
 <script src="static/js/moduls.js"></script>
-{% if session.get("user_name") and session.get("user_name").lower() == "гульдана" %}
+{% if is_special %}
 <div id="gift-box" onclick="openGift()">
     <a href="/for_G">
     <img src="{{ url_for('static', filename='img/giftbox.png') }}" alt="Подарок" />

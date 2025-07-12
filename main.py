@@ -170,18 +170,23 @@ def index():
     student_class = session.get("student_class")
     student_id = session.get("user_id")
 
-    student = Student.query.get(student_id)  # ✅ Оқушыны базадан алу
+    student = Student.query.get(student_id)
 
     announcements = Announcement.query.filter_by(class_name=student_class).order_by(Announcement.timestamp.desc()).all()
 
-    is_special = str(user_name).strip().lower() == "гульдана"
+    # ✅ Список "особенных" имён
+    special_names = ["гульдана", "гүлдана", "гулдана"]
+
+    # ✅ Преобразуем имя в нижний регистр и убираем пробелы
+    is_special = str(user_name).strip().lower() in special_names
 
     return render_template("student.html",
                            user_name=user_name,
                            student_class=student_class,
                            announcements=announcements,
                            student=student,
-                           is_special=is_special)  # ✅ жіберу
+                           is_special=is_special)
+
 
 # Тіркеу
 @app.route("/register", methods=["GET", "POST"])
