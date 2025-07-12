@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from flask import flash
 from flask_migrate import Migrate
+from functools import wraps
 
 
 app = Flask(__name__)
