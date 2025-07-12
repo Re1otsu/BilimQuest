@@ -12,7 +12,7 @@ from functools import wraps
 app = Flask(__name__)
 
 load_dotenv()  # .env файлын жүктеу
-app.secret_key = os.getenv("SECRET_KEY")  # Құпия кілтті пайдалану
+app.secret_key = os.getenv("SECRET_KEY")
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -450,8 +450,30 @@ def module1():
 
 
 @app.route('/module2')
+@login_required("student")
 def module2():
-    return render_template('module2.html')
+    student_id = session.get("user_id")
+
+    # Соңғы нәтижені алу
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="maze") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    if progress and not (GameAccess.query.filter_by(student_id=student_id, game_name="maze", is_unlocked=True).first()):
+        # Бұрын тапсырған, және рұқсат жоқ — нәтиже көрсетеміз
+        percentage = round((progress.score / (5 * 20)) * 100)  # 5 кілт * 20 ұпай
+        if percentage >= 90:
+            comment = "🎉 Өте жақсы нәтиже! Сен лабиринтті тамаша меңгердің."
+        elif percentage >= 70:
+            comment = "👍 Жақсы! Тағы да біраз жаттығу артық етпейді."
+        elif percentage >= 50:
+            comment = "🙂 Орташа. Қайтадан өтіп көруге болады."
+        else:
+            comment = "⚠️ Тағы бірнеше рет тәжірибе жасаған дұрыс."
+
+        return render_template("maze_result.html", score=progress.score, percentage=percentage, comment=comment)
+
+    return render_template("module2.html")  # Ойын беті
+
 
 @app.route('/module3')
 def module3():
