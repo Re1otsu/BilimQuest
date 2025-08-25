@@ -1,4 +1,3 @@
-
 const modal = document.getElementById('modal');
 const studentBtn = document.getElementById('studentBtn');
 const closeBtn = document.querySelector('.close');
@@ -24,4 +23,3 @@ document.getElementById('loginBtn').onclick = () => {
 document.getElementById('registerBtn').onclick = () => {
     window.location.href = "/register"; // укажи реальный путь к регистрации
 }
-

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +8,10 @@
 </head>
 <body>
     <form action="/login" method="POST">
+        <h1>Кіру</h1>
         <label for="name">Есім:</label>
         <input type="text" id="name" name="name" required>
-        <br>
+
         <label for="class">Сынып:</label>
         <select id="class" name="class" required>
             <option value="5А">5А</option>
@@ -18,11 +19,17 @@
             <option value="5В">5В</option>
             <!-- Қажетті сыныптарды қосыңыз -->
         </select>
-        <br>
+
         <label for="password">Құпиясөз:</label>
         <input type="password" id="password" name="password" required>
-        <br>
+
         <button type="submit">Кіру</button>
+
+        <!-- Дополнительный блок для кнопки регистрации -->
+        <div class="register-link">
+            <p>Тіркелмедіңіз бе?</p>
+            <a href="/register" class="register-btn">Тіркелу</a>
+        </div>
     </form>
 </body>
 </html>

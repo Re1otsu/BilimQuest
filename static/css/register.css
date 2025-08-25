@@ -71,3 +71,28 @@ button {
 button:hover {
     background-color: #45a049;
 }
+.login-link {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.login-link p {
+    margin: 5px 0;
+    font-size: 0.9em;
+    color: #333;
+}
+
+.login-btn {
+    display: inline-block;
+    background-color: #4caf50;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: background-color 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: #45a049;
+}

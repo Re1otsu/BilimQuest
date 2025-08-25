@@ -332,3 +332,36 @@ a:hover {
     opacity: 1;
   }
 }
+  .sidebar {
+    width: 200px;
+  }
+
+  .dropdown {
+    background-color: #f0f0f0;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .dropdown-content {
+    display: none;
+    padding-left: 15px;
+  }
+
+  .dropdown.active + .dropdown-content {
+    display: block;
+  }
+
+  .dropdown-content a {
+    display: block;
+    padding: 5px 0;
+    text-decoration: none;
+    color: #333;
+  }
+
+  .dropdown-content a:hover {
+    text-decoration: underline;
+  }

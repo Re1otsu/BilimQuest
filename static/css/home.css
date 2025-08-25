@@ -1,93 +1,174 @@
 body {
-    display: flex; /* Flexbox қосу */
-    justify-content: center; /* Горизонталды ортаға қою */
-    align-items: center; /* Вертикалды ортаға қою */
-    height: 100vh; /* Бүкіл экран биіктігін қамту */
     margin: 0;
-    background-color: #f5f5f5; /* Фон түсі */
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    background: linear-gradient(to bottom right, #4f8ef7, #6a5af9);
+    min-height: 100vh;
+    color: white;
+    text-align: center;
+    display: flex;
+    flex-direction: column; /* добавим, чтобы header был сверху */
+    align-items: center;
 }
 
-.desk {
-    background-color: white;
-    position: absolute; /* Позиционируем относительно контейнера */
-    top: 200px; /* Линия будет у самой верхней границы контейнера */
-    left: 400px; /* Начинается с левой стороны */
-    width: 1200px; /* Растягиваем линию на всю ширину контейнера */
-    height: 500px;
-    z-index: 1;
+/* header уже задан, можно добавить фиксированную высоту и сделать его липким */
+.header {
+    width: 100%;
+    background-color: #fff;
+    padding: 10px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; /* шапка фиксируется сверху */
+    top: 0;
+    z-index: 100;
 }
 
+/* если хотите логотипы чуть больше */
+.school-logo {
+    height: 120px; /* увеличено */
+    width: auto;
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
 
-.choose {
+.school-logo:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+    cursor: pointer;
+}
+
+.container {
+    margin-top: 40px; /* отступ после шапки */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.title {
+    font-size: 48px;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.main-img {
+    width: 500px; /* адаптируйте под вашу картинку */
+    max-width: 90%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 20px; /* расстояние между кнопками */
+    justify-content: center; /* выравнивание по центру */
+    margin-top: 20px;
+}
+
+.btn {
+    background-color: #4285f4;
+    color: white;
+    font-size: 22px; /* увеличили шрифт */
+    font-weight: 600;
+    padding: 15px 50px; /* увеличили размер кнопок */
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #3367d6;
+    transform: scale(1.05);
+}
+button {
+  padding: 10px 20px;
+  background: #3498db;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover {
+  box-shadow: 0 0 10px #3498db;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px); /* лёгкое размытие фона */
+    animation: fadeIn 0.3s ease;
+}
+
+/* Содержимое модального окна */
+.modal-content {
+    background: #fff;
+    color: #333;
+    margin: 10% auto;
+    padding: 30px 20px;
+    width: 350px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+}
+
+/* Анимации появления */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slideDown {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Крестик закрытия */
+.close {
     position: absolute;
-    top:250px;
-    z-index:2;
-}
-
-h1 {
-    position:absolute;
-    top: 60px;
-    left: 130px;
-    width: 500px;
-    font-family: 'Open Sans', sans-serif;
-    margin: 0;
-    font-size: 2em;
-    z-index:3;
-}
-
-img {
-    position:absolute;
-    top: -50px;
-    right: -80px;
-}
-.btn_ch0 {
-    width: 120px;
-    font-family: 'Open Sans', sans-serif;
-    display: block; /* Элементтерді жолға қою */
-    justify-content: space-between; /* Батырмаларды бөлу */
-    gap: 10px; /* Араларын ашу */
-    margin-bottom: 30px;
-    position:absolute;
-    top: 180px;
-    right: -280px;
-    padding: 10px 20px;
-    font-size: 1.2em;
-    color: white;
-    background-color: #467fd0;
-    border: none;
-    border-radius: 5px;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
     cursor: pointer;
-    text-align:center;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
+    color: #888;
+    transition: 0.3s;
+}
+.close:hover {
+    color: #000;
 }
 
-.btn_ch1 {
-    width: 120px; /* Фиксированная ширина */
-    font-family: 'Open Sans', sans-serif;
-    display: block; /* Элементтерді жолға қою */
-    justify-content: space-between; /* Батырмаларды бөлу */
-    gap: 10px; /* Араларын ашу */
-    margin-bottom: 30px;
-    position:absolute;
-    top: 180px;
-    left: 380px;
-    padding: 10px 20px;
-    font-size: 1.2em;
-    color: white;
-    background-color: #467fd0;
+/* Кнопки внутри модалки */
+.modal-content .action-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    margin: 10px;
+    font-size: 16px;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
-    text-decoration: none;
-    text-align:center;
-    transition: background-color 0.3s ease;
+    color: #fff;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-.btn_ch0:hover{
-    background-color: #3561a8;
+.modal-content .login-btn {
+    background: #2196F3; /* голубая */
+}
+.modal-content .register-btn {
+    background: #FF5722; /* оранжевая */
 }
 
-.btn_ch1:hover{
-    background-color: #3561a8;
+.modal-content .action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    opacity: 0.9;
 }

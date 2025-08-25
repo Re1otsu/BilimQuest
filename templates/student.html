@@ -27,13 +27,20 @@
                     <a href="/rating"><button class="btn_profile" style="right: 250px;">🏆 Рейтинг</button></a>
                 <div class="sidebar">
                  <h2>Модульдар</h2>
-                 <ul>
-                        <li><a href="/module1">Module 1</a></li>
-                        <li><a href="/module2">Module 2</a></li>
-                        <li><a href="/module3">Module 3</a></li>
-                        <li><a href="/module4">Module 4</a></li>
-                        <li><a href="#">Module 5</a></li>
-                </ul>
+                    <button class="dropdown">1-бөлім</button>
+                    <div class="dropdown-content">
+                        <a href="/module1">Модуль 1</a>
+                        <a href="/module2">Модуль 2</a>
+                        <a href="/module3">Модуль 3</a>
+                        <a href="/module4">Модуль 4</a>
+                        <a href="/module5">Модуль 5</a>
+                    </div>
+
+                    <button class="dropdown">2-бөлім</button>
+                    <div class="dropdown-content">
+                        <a href="/module6">Модуль 6</a>
+                        <a href="/module7">Модуль 7</a>
+                    </div>
                 </div>
 
                 <div id="game-container"></div>
@@ -71,35 +78,14 @@
         </div>
     </div>
 <script src="static/js/moduls.js"></script>
-{% if is_special %}
-<div id="gift-box" onclick="openGift()">
-    <a href="/for_G">
-    <img src="{{ url_for('static', filename='img/giftbox.png') }}" alt="Подарок" />
-    </a>
-</div>
-    <div class="falling-flowers-container" id="falling-flowers"></div>
 
 <script>
-const flowerContainer = document.getElementById('falling-flowers');
-
-function createFlower() {
-  const flower = document.createElement('div');
-  flower.classList.add('flower');
-  flower.style.left = Math.random() * 100 + 'vw';
-  flower.style.animationDuration = (Math.random() * 3 + 5) + 's';
-  flower.innerHTML = '🌸'; // Можешь заменить на другое, например, 🌺
-
-  flowerContainer.appendChild(flower);
-
-  setTimeout(() => {
-    flower.remove();
-  }, 8000);
-}
-
-// Появление лепестков каждые 300 мс
-setInterval(createFlower, 300);
+  const dropdowns = document.querySelectorAll(".dropdown");
+  dropdowns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.classList.toggle("active");
+    });
+  });
 </script>
-{% endif %}
-
 </body>
 </html>

@@ -12,7 +12,7 @@ app = Flask(__name__)
 load_dotenv()  # .env файлын жүктеу
 app.secret_key = os.getenv("SECRET_KEY")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "connect_args": {
         "sslmode": "require"
@@ -174,18 +174,12 @@ def index():
 
     announcements = Announcement.query.filter_by(class_name=student_class).order_by(Announcement.timestamp.desc()).all()
 
-    # ✅ Список "особенных" имён
-    special_names = ["гульдана", "гүлдана", "гулдана"]
-
-    # ✅ Преобразуем имя в нижний регистр и убираем пробелы
-    is_special = str(user_name).strip().lower() in special_names
 
     return render_template("student.html",
                            user_name=user_name,
                            student_class=student_class,
                            announcements=announcements,
-                           student=student,
-                           is_special=is_special)
+                           student=student)
 
 
 # Тіркеу
@@ -520,9 +514,41 @@ def module4():
 
     return render_template('module4.html')
 
-@app.route('/module4_l2')
-def module4_l2():
-    return render_template('module4_l2.html')
+@app.route('/module6')
+@login_required("student")
+def module6():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="paint") \
+        .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="paint").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template('module6.html')
+
+@app.route('/module7')
+@login_required("student")
+def module7():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="shape_builder") \
+        .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="shape_builder").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template('module7.html')
 
 
 # Шығу

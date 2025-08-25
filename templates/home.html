@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +8,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="desk"></div>
-    <div class="choose">
-        <h1>Порталға қош келдіңіз!</h1>
-        <img src="{{ url_for('static', filename='img/3974104.jpg') }}" alt="Картинка" style="width: 800px; height: auto;">
-
-        <form method="POST" action="/">
-            <button type="submit" name="role" value="teacher" class="btn_ch0">Мұғалім</button>
-        </form>
-        <form method="POST" action="/">
-            <button type="submit" name="role" value="student" class="btn_ch1">Оқушы</button>
-        </form>
+<header class="header">
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='img/EKU.png') }}" alt="School 1" class="school-logo">
+        <img src="{{ url_for('static', filename='img/44.png') }}" alt="School 2" class="school-logo">
+        <img src="{{ url_for('static', filename='img/Bokei.png') }}" alt="School 3" class="school-logo">
+        <img src="{{ url_for('static', filename='img/45.png') }}" alt="School 4" class="school-logo">
     </div>
+</header>
+    <div class="container">
+        <h1 class="title">БілімQuest</h1>
+        <img src="{{ url_for('static', filename='img/main.png') }}" alt="Картинка" class="main-img">
+        <h2 class="subtitle">Порталға қош келдіңіз!</h2>
+        <div class="btn-group">
+            <!-- Кнопка для учителя -->
+            <form method="POST" action="/">
+                <button type="submit" name="role" value="teacher" class="btn">Мұғалім</button>
+            </form>
+
+        <!-- Кнопка для ученика, которая открывает модалку -->
+            <button type="button" id="studentBtn" class="btn">Оқушы</button>
+        </div>
+
+    </div>
+
+    <!-- Модальное окно -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Қош келдіңіз!</h2>
+        <p>Әрекетті таңдаңыз:</p>
+        <button class="action-btn login-btn"  id="loginBtn">Кіру</button>
+        <button class="action-btn register-btn" id="registerBtn">Тіркелу</button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>

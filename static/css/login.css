@@ -70,3 +70,31 @@ button {
 button:hover {
     background-color: #357abd;
 }
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.register-link p {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+}
+
+.register-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 10px 20px;
+    background-color: #ff5722; /* контрастный цвет */
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.register-btn:hover {
+    background-color: #e64a19;
+    transform: scale(1.05);
+}
