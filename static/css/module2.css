@@ -75,12 +75,12 @@ h1 {
 }
 .timer-badge {
   display: block;
-  margin: 0 auto;
+  margin: 0.5em auto;
   background: linear-gradient(180deg,#fff,#f3f3f3);
   color: #2c3e50;
   padding: 6px 10px;
   border-radius: 999px;
-  width:120px;
+  width:9em;
   font-weight: 700;
   box-shadow: 0 6px 14px rgba(0,0,0,0.18);
 }

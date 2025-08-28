@@ -1,55 +1,112 @@
+/* Сбрасываем отступы */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #e8f0fe;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+.game-wrapper {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  padding: 20px; /* было 30px */
-  height: 200px;
-  margin: 0;
+  width: 100%;
+  height: 100%;
+  padding: 2em;
+  overflow-y: auto;
 }
 
-h1 {
+/* Заголовок */
+.game-wrapper h1 {
+  font-size: 2.4em; 
   color: #1a237e;
-  margin-bottom: 20px; /* было 30px */
-  font-size: 1.5em; /* уменьшили размер заголовка */
+  margin-bottom: 1em;
+  text-align: center;
 }
 
+.timer-badge {
+  display: block;
+  margin: 0 auto 1.5em auto;
+  background: linear-gradient(180deg, #fff, #f3f3f3);
+  color: #2c3e50;
+  padding: 6px 10px;
+  border-radius: 999px;
+  width: 120px;
+  font-weight: 700;
+  font-size: 1.4em;
+  text-align: center;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  transition: all 0.3s ease;
+}
+
+.timer-badge.low {
+  background: linear-gradient(135deg, #ff5a5a, #ff3b3b);
+  color: #fff;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: .6; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Контейнеры слов и целей */
 .container {
   display: flex;
-  gap: 20px; /* было 40px */
-  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5em;
+  margin-bottom: 0.5em;
+  max-width: 100%;
 }
 
-.word, .target {
-  width: 130px; /* было 180px */
-  min-height: 45px; /* было 60px */
-  padding: 8px 10px; /* было 12px 15px */
-  border-radius: 8px; /* чуть меньше скругление */
-  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-  background-color: #ffffff;
-  text-align: center;
-  user-select: none;
+/* Слова */
+.word {
+  width: 7em; 
+  height: 7em;
+  object-fit: contain;
+  border-radius: 0.8em;
+  background: #fff;
+  box-shadow: 0 0.3em 0.6em rgba(0,0,0,0.1);
+  padding: 0.5em;
   cursor: grab;
-  font-weight: 600;
-  font-size: 0.9em; /* уменьшили шрифт */
-  transition: background-color 0.3s, box-shadow 0.3s;
+  transition: transform 0.2s;
 }
 
 .word:active {
   cursor: grabbing;
+  transform: scale(0.95);
 }
 
+/* Цели */
 .target {
-  border: 2px dashed #9fa8da; /* чуть тоньше граница */
+  flex: 1 1 12em;
+  min-height: 5em;
+  border: 2px dashed #9fa8da;
   background-color: #dbe9ff;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1em;
+  border-radius: 0.8em;
   color: #3f51b5;
   font-style: italic;
-  min-width: 160px; /* было 220px */
-  cursor: default;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.target.dragover {
+  background-color: #bbdefb;
+  border-color: #64b5f6;
 }
 
 .target.correct {
@@ -57,7 +114,7 @@ h1 {
   background-color: #d0f0d9;
   color: #2e7d32;
   font-style: normal;
-  box-shadow: 0 0 8px #4caf50aa; /* чуть меньше тень */
+  box-shadow: 0 0 0.8em #4caf50aa;
 }
 
 .target.incorrect {
@@ -65,19 +122,21 @@ h1 {
   background-color: #ffd6d6;
   color: #b71c1c;
   font-style: normal;
-  box-shadow: 0 0 8px #f44336aa;
+  box-shadow: 0 0 0.8em #f44336aa;
 }
 
+/* Кнопка */
 #check-btn {
-  padding: 8px 20px; /* уменьшили кнопку */
-  font-size: 0.95em; /* было 1.1em */
+  padding: 0.8em 2em;
+  font-size: 1.2em;
   background-color: #3949ab;
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: 0.8em;
   cursor: pointer;
-  box-shadow: 0 3px 8px #3949abaa;
+  box-shadow: 0 0.3em 0.8em #3949abaa;
   transition: background-color 0.3s ease;
+  margin-top: 1em;
 }
 
 #check-btn:hover:not(:disabled) {
@@ -90,20 +149,16 @@ h1 {
   box-shadow: none;
 }
 
-.target.dragover {
-  background-color: #bbdefb;
-  border-color: #64b5f6;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-.timer-badge {
-  background: linear-gradient(180deg,#fff,#f3f3f3);
-  color: #2c3e50;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 700;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
-  margin: 10px auto;
+/* Результат */
+#result-box {
+  margin-left: 6.5em;
+  margin-top: 2em;
+  padding: 1.5em;
+  border-radius: 1em;
+  background: #f0fff0;
+  border-left: 6px solid #32cd32;
+  font-size: 1.4em;
+  width: 100%;
+  max-width: 50em;
   text-align: center;
-  width: fit-content;
 }
-.timer-badge.low { color: red; }

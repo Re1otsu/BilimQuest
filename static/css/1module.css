@@ -134,11 +134,11 @@ body {
 .modal {
   display: none;
   position: fixed;
-  top: 50%;
+  top: 55%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 120em; /* 1200px */
-  height: 70em; /* 800px */
+  height: 80em; /* 800px */
   max-width: 90%;
   background: #fff;
   padding: 2em 2em 2em 3em; /* 20px, 30px */
@@ -156,7 +156,7 @@ body {
   align-items: center;
   text-align: center;
   width: 114.5em; /* 1145px */
-  height: 65em; /* 750px */
+  height: 75em; /* 750px */
   max-width: 100%;
   background: #fff;
   padding: 2em;

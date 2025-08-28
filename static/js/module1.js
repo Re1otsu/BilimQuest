@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const targetsContainer = document.getElementById('targets-container');
   const timerEl = document.getElementById('timer');
 
-  let totalTime = 20; // 60 секунд на игру
+  let totalTime = 600; // 60 секунд на игру
   let timeLeft = totalTime;
   let timerId = null;
   let finished = false; // чтобы не отправлять дважды
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateTimer() {
-    timerEl.textContent = `Уақыт: ${formatTime(timeLeft)}`;
+    timerEl.textContent = `Таймер: ${formatTime(timeLeft)}`;
     if (timeLeft <= 10) timerEl.classList.add('low');
   }
 
