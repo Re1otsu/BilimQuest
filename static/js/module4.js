@@ -1,18 +1,58 @@
-// === HTML элементтерімен жұмыс істеу үшін DOMContentLoaded ===
 document.addEventListener("DOMContentLoaded", () => {
-    startLevel(currentLevelIndex);
-    document.addEventListener("keydown", handleKeyPress);
+  startLevel(currentLevelIndex);
+  document.addEventListener("keydown", handleKeyPress);
 });
 
-// === Ойын деңгейлері ===
+// ========== Таймер ==========
+const totalTimeLimit = 300; // общее время на все уровни
+let timeLeft = totalTimeLimit;
+let timerInterval = null;
+let timerStarted = false;
+
+function formatTime(s) {
+  const mm = Math.floor(s / 60).toString().padStart(2, '0');
+  const ss = (s % 60).toString().padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timer');
+  if (!el) return;
+  el.textContent = `Таймер: ${formatTime(timeLeft)}`;
+  if (timeLeft <= 10) el.classList.add('low');
+  else el.classList.remove('low');
+}
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      stopTimer();
+      onTimeOut();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  const el = document.getElementById('timer');
+  if (el) el.classList.remove('low');
+}
+
+// ========== Уровни и карта ==========
 const levels = [
   {
     characterStart: { x: 5, y: 5 },
     blocks: [
-      { x: 2, y: 2, id: "01000111" }, // G
-      { x: 3, y: 3, id: "01000001" }, // A
-      { x: 1, y: 3, id: "01001101" }, // M
-      { x: 5, y: 6, id: "01000101" }, // E
+      { x: 2, y: 2, id: "01000111" },
+      { x: 3, y: 3, id: "01000001" },
+      { x: 1, y: 3, id: "01001101" },
+      { x: 5, y: 6, id: "01000101" },
     ],
     targets: [
       { x: 8, y: 8, id: "G" },
@@ -22,7 +62,7 @@ const levels = [
     ],
     obstacles: [
       { x: 4, y: 4 }, { x: 7, y: 7 }, { x: 5, y: 2 },
-      { x: 2, y: 8 }, { x: 3, y: 7 }, { x: 2, y: 4 }
+      { x: 2, y: 9 }, { x: 3, y: 7 }, { x: 2, y: 4 }
     ]
   },
   {
@@ -48,7 +88,7 @@ const levels = [
   }
 ];
 
-// === Жалпы айнымалылар ===
+// ========== Общие переменные ==========
 const boardSize = 10;
 let currentLevelIndex = 0;
 let characterPosition;
@@ -59,19 +99,25 @@ let score = 0;
 let firstWarningShown = false;
 let firstMistake = true;
 
-// === Деңгейді бастау ===
+// ========== Старт уровня ==========
 function startLevel(index) {
   const level = levels[index];
   characterPosition = { ...level.characterStart };
   blocks = level.blocks.map(b => ({ ...b, startX: b.x, startY: b.y }));
-  targets = level.targets;
-  obstacles = level.obstacles;
+  targets = level.targets.map(t => ({ ...t }));
+  obstacles = level.obstacles.map(o => ({ ...o }));
   firstWarningShown = false;
   firstMistake = true;
   renderBoard();
+
+  // старт таймера для уровня (использует timeLimit если задан)
+    if (!timerStarted) {
+      timerStarted = true;
+      startTimer();
+    }
 }
 
-// === Ойын өрісін салу ===
+// ========== Рендер ==========
 function renderBoard() {
   const board = document.getElementById("board");
   board.innerHTML = "";
@@ -106,28 +152,67 @@ function renderBoard() {
     }
   }
 
-  document.getElementById("score").textContent = `Очки: ${score}`;
+  // Обновим счёт
+  const scoreEl = document.getElementById("score");
+  if (scoreEl) scoreEl.textContent = `Очки: ${score}`;
 }
 
-// === Персонажды жылжыту ===
-function moveCharacter(dx, dy) {
-  const newX = characterPosition.x + dx;
-  const newY = characterPosition.y + dy;
+// обновление отображения очков (если использовал кастомный HUD)
+function updateScoreDisplay() {
+  const scoreEl = document.getElementById('score');
+  if (!scoreEl) return;
+  scoreEl.textContent = `Очки: ${score}`;
+  // небольшой визуальный эффект, если есть класс .score-badge
+  const badge = scoreEl.closest('.score-badge') || scoreEl;
+  badge.classList.remove('pop');
+  void badge.offsetWidth;
+  badge.classList.add('pop');
+}
 
-  if (newX < 0 || newX >= boardSize || newY < 0 || newY >= boardSize) return;
+// ========== Сброс позиции (reset) ==========
+function resetPositions() {
+  // вернуть блоки на исходные координаты и игрока на старт уровня
+  const level = levels[currentLevelIndex];
+  blocks.forEach(b => {
+    b.x = b.startX;
+    b.y = b.startY;
+  });
+  characterPosition = { ...level.characterStart };
+  renderBoard();
+}
+
+// ========== Обработка таймаута ==========
+function onTimeOut() {
+  stopTimer();
+  alert("Время вышло! Игра завершена.");
+  sendProgress(); // показываем результат
+}
+
+// ========== Движение персонажа (включая wrap-around) ==========
+function moveCharacter(dx, dy) {
+  let newX = characterPosition.x + dx;
+  let newY = characterPosition.y + dy;
+
+  if (newX < 0) newX = boardSize - 1;
+  if (newX >= boardSize) newX = 0;
+  if (newY < 0) newY = boardSize - 1;
+  if (newY >= boardSize) newY = 0;
+
   if (obstacles.find(o => o.x === newX && o.y === newY)) return;
 
   const block = blocks.find(b => b.x === newX && b.y === newY);
   if (block) {
-    const nextX = block.x + dx;
-    const nextY = block.y + dy;
+    let nextX = block.x + dx;
+    let nextY = block.y + dy;
 
-    if (
-      nextX >= 0 && nextX < boardSize &&
-      nextY >= 0 && nextY < boardSize &&
-      !blocks.find(b => b.x === nextX && b.y === nextY) &&
-      !obstacles.find(o => o.x === nextX && o.y === nextY)
-    ) {
+    if (nextX < 0) nextX = boardSize - 1;
+    if (nextX >= boardSize) nextX = 0;
+    if (nextY < 0) nextY = boardSize - 1;
+    if (nextY >= boardSize) nextY = 0;
+
+    if (!blocks.find(b => b.x === nextX && b.y === nextY) &&
+        !obstacles.find(o => o.x === nextX && o.y === nextY)) {
+
       block.x = nextX;
       block.y = nextY;
 
@@ -156,7 +241,7 @@ function moveCharacter(dx, dy) {
           block.y = block.startY;
 
           if (!firstMistake) {
-            score -= 5;
+            score = Math.max(0, score - 5);
           }
           firstMistake = false;
         }
@@ -177,12 +262,13 @@ function moveCharacter(dx, dy) {
       startLevel(currentLevelIndex);
     } else {
       alert("Барлық деңгей аяқталды!");
+      stopTimer();
       sendProgress();
     }
   }
 }
 
-// === Клавиатура басқару ===
+// ========== Клавиатура ==========
 function handleKeyPress(event) {
   if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
     event.preventDefault();
@@ -196,8 +282,9 @@ function handleKeyPress(event) {
   }
 }
 
-// === Нәтиже жіберу ===
+// ========== Отправка результата ==========
 async function sendProgress() {
+  stopTimer();
   const maxScore = levels.reduce((sum, level) => sum + level.blocks.length * 10, 0);
   const percentage = (score / maxScore) * 100;
 
@@ -212,11 +299,12 @@ async function sendProgress() {
     comment = "⚠️ Жетілдіру қажет. Сабыр сақтап, тағы байқап көр.";
   }
 
-  // Комментарийді шығару
+  // Показ результата
   document.getElementById("result-score").textContent = `Нәтиже: ${score} / ${maxScore} (${Math.round(percentage)}%)`;
   document.getElementById("result-comment").textContent = comment;
   document.getElementById("result-box").style.display = "block";
 
+  // Отправка на сервер
   await fetch("/game_result", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -228,3 +316,7 @@ async function sendProgress() {
   });
 }
 
+// ========== Горячие клавиши ==========
+document.addEventListener("keydown", (e) => {
+  if (e.key === "r") resetPositions(); // R — ресет
+});

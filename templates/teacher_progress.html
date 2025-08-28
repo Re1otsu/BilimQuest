@@ -1,64 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Прогресс учеников</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f1f6fb; margin: 0; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; background: #fff; }
-    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
-    th { background-color: #2a5d9f; color: #fff; }
-    h1 { margin-bottom: 20px; }
-    .game-row { font-size: 14px; color: #444; margin-bottom: 8px; }
-    form { display: inline; }
-    button { padding: 4px 8px; font-size: 12px; }
-  </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tch_progress.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <title>Оқушылар үлгерімі</title>
 </head>
 <body>
-  <h1>Прогресс всех учеников</h1>
+    <div class="container">
+        <div class="top">
+        <h1>Барлық оқушылар үлгерімі</h1>
+         <a href="/teacher" class="btn">Басты бетке</a>
+        </div>
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <ul>
-        {% for message in messages %}
-          <li>{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul>
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
 
-  <table>
-    <thead>
-      <tr>
-        <th>Имя</th>
-        <th>Класс</th>
-        <th>Баллы</th>
-        <th>Выполнено</th>
-        <th>Игры</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for student in progress_data %}
-      <tr>
-        <td>{{ student.name }}</td>
-        <td>{{ student.student_class }}</td>
-        <td>{{ student.score }}</td>
-        <td>{{ student.correct_tasks }}</td>
-        <td>
-          {% for game in student.games %}
-            <div class="game-row">
-              {{ game.game_name }}: {{ game.score }} балл –
-              {% if game.completed %}✅{% else %}❌{% endif %}
-              <form method="POST" action="/reset_module_score">
-                <input type="hidden" name="student_id" value="{{ student.id }}">
-                <input type="hidden" name="game_name" value="{{ game.game_name }}">
-                <button type="submit">Қайта рұқсат беру</button>
-              </form>
-            </div>
-          {% endfor %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Аты</th>
+                    <th>Сынып</th>
+                    <th>Ұпай</th>
+                    <th>Орындады</th>
+                    <th>Ойындар</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in progress_data %}
+                <tr>
+                    <td>{{ student.name }}</td>
+                    <td>{{ student.student_class }}</td>
+                    <td>{{ student.score }}</td>
+                    <td>{{ student.correct_tasks }}</td>
+                    <td>
+                        {% for game in student.games %}
+                            <div class="game-row">
+                                <span>{{ game.game_name }}: {{ game.score }} балл – {% if game.completed %}✅{% else %}❌{% endif %}</span>
+                                <form method="POST" action="/reset_module_score">
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    <input type="hidden" name="game_name" value="{{ game.game_name }}">
+                                    <button type="submit">Қайта рұқсат беру</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </body>
 </html>

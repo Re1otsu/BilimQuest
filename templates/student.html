@@ -1,91 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мектеп порталы</title>
+    <title>БілімQuest</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
-    <div class="line"></div>
-    <div class="container">
-        <header>
-            <h1>5 сынып информатикасы порталы</h1>
-            {% if session.get("user_name") %}
-                <p>Қош келдіңіз, {{ session.get("user_name") }}!</p>
-            {% else %}
-                <p>Қош келдіңіздер! Мұнда сіз тіркеліп, жүйеге кіре аласыз.</p>
-                <img class="school" src="static/img/9136350_45397.jpg" alt="image" style="width:600px; height:auto;">
-            {% endif %}
-        </header>
-        <main>
-            <div class="buttons">
-                {% if session.get("user_name") %}
-                    <a href="/student_dashboard"> <button class="btn_profile" >Жеке парақша</button></a>
-                    <a href="/rating"><button class="btn_profile" style="right: 250px;">🏆 Рейтинг</button></a>
-                <div class="sidebar">
-                 <h2>Модульдар</h2>
-                    <button class="dropdown">1-бөлім</button>
-                    <div class="dropdown-content">
-                        <a href="/module1">Модуль 1</a>
-                        <a href="/module2">Модуль 2</a>
-                        <a href="/module3">Модуль 3</a>
-                        <a href="/module4">Модуль 4</a>
-                        <a href="/module5">Модуль 5</a>
-                    </div>
-
-                    <button class="dropdown">2-бөлім</button>
-                    <div class="dropdown-content">
-                        <a href="/module6">Модуль 6</a>
-                        <a href="/module7">Модуль 7</a>
-                    </div>
-                </div>
-
-                <div id="game-container"></div>
-                <div class="announcement-box">
-                    <h2>Сыныпқа арналған хабарландырулар</h2>
-                    {% if announcements %}
-                        <ul>
-                            {% for ann in announcements %}
-                                <li>
-                                    {{ ann.message }}<br>
-                                    <small>{{ ann.timestamp.strftime('%d.%m.%Y %H:%M') }}</small>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p>Қазіргі уақытта хабарландырулар жоқ.</p>
-                    {% endif %}
-                </div>
-
-
-
-                {% else %}
-                    <!-- Тіркелу және кіру батырмалары -->
-                    <a href="/register" class="btn_r">Тіркелу</a>
-                    <a href="/login" class="btn_l">Кіру</a>
-                {% endif %}
+        <header class="top-bar">
+            <h1 class="logo">BilimQuest</h1>
+            <h2 class="text">Жалпы білім беретін орта мектептің 5-сынып пәні бойынша практикалық тапсырмаларды геймификация элементтерін қолдана отырып оқыту порталы</h2>
+            <div class="top-info">
+                <a href="/rating" class="btn-rating">
+                    ⭐ {{ student.score }}
+                </a>
+                <a href="/student_dashboard" class="btn-profile">
+                    <img src="static/img/user.png" alt="user" class="avatar">
+                    <span>Бейін</span>
+                </a>
             </div>
-        </main>
-    </div>
+        </header>
 
-    <div id="module-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <iframe id="module-frame" src="" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+    <main class="dashboard">
+        <div class="main-container">
+            <a href="/1module" class="module">
+                <img src="static/img/1.png" alt="Модуль 1">
+                <span>Модуль 1</span>
+            </a>
+            <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
+                <img src="static/img/2.png" alt="Модуль 2">
+                <span>Модуль 2</span>
+            </a>
+            <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
+                <img src="static/img/3.png" alt="Модуль 3">
+                <span>Модуль 3</span>
+            </a>
+            <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
+                <img src="static/img/4.png" alt="Модуль 4">
+                <span>Модуль 4</span>
+            </a>
         </div>
-    </div>
-<script src="static/js/moduls.js"></script>
-
-<script>
-  const dropdowns = document.querySelectorAll(".dropdown");
-  dropdowns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      btn.classList.toggle("active");
-    });
-  });
-</script>
+    </main>
 </body>
 </html>

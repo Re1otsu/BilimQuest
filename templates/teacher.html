@@ -1,87 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мұғалім парағы</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мұғалім парағы</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Мұғалім парағы</h1>
-            {% if session.get("email") %}
-                <p>Қош келдіңіз, {{ session.get("email") }}!</p>
-            {% else %}
-                <p>Қош келдіңіз! Мұнда сіз тіркеліп, жүйеге кіре аласыз.</p>
-            {% endif %}
-        </header>
-        <main>
-            <div class="buttons">
-                {% if session.get("email") %}
-                    <form action="/logout" method="POST" style="display: inline;">
-                        <button type="submit" class="btn">Шығу</button>
-                    </form>
-                    <a href="/teacher/progress" class="btn">📊 Прогресс учеников</a>
+  <header class="top-bar">
+    <h1>BilimQuest Teacher</h1>
+    <div class="icons">
+      <img src="static/img/message.png" class="icon" id="announcementIcon" style="cursor:pointer; width:3em;">
 
-                    <!-- 🔘 Батырма для открытия модального окна -->
-                    <button class="announcement-btn" onclick="openModal()">+ Жаңа хабарландыру</button>
+      <!-- Модальное окно -->
+      <div id="announcementModal" class="modal">
+          <div class="modal-content">
+              <span class="close-btn" onclick="closeModal()">&times;</span>
+              <h2>Жаңа хабарландыру</h2>
+              <a href="/teacher/announcement" class="btn history-btn">Барлық хабарламалар</a>
+              <form method="POST" action="/create_announcement">
+                  <label>Сыныпты таңдаңыз:</label><br>
+                  <select name="class_name" required>
+                      <option value="">Сынып таңдаңыз</option>
+                      <option value="5А">5А</option>
+                      <option value="5Б">5Б</option>
+                      <option value="5В">5В</option>
+                  </select><br><br>
 
-                    <!-- 🪟 Модальное окно -->
-                    <div id="announcementModal" class="modal">
-                        <div class="modal-content">
-                            <span class="close-btn" onclick="closeModal()">&times;</span>
-                            <h2>Жаңа хабарландыру</h2>
-                            <form method="POST" action="/create_announcement">
-                                <label>Сыныпты таңдаңыз:</label><br>
-                                <select name="class_name" required>
-                                    <option value="">Сынып таңдаңыз</option>
-                                    <option value="5А">5А</option>
-                                    <option value="5Б">5Б</option>
-                                    <option value="5В">5В</option>
-                                </select><br><br>
+                  <label>Хабарлама мәтіні:</label><br>
+                  <textarea name="message" rows="4" cols="50" required></textarea><br><br>
 
-                                <label>Хабарлама мәтіні:</label><br>
-                                <textarea name="message" rows="4" cols="50" required></textarea><br><br>
+                  <button type="submit" class="btn">Жариялау</button>
+              </form>
 
-                                <button type="submit" class="btn">Жариялау</button>
-                            </form>
-                            <h2>Барлық хабарландырулар</h2>
-                            <ul>
-                                {% for a in announcements %}
-                                <li>
-                                    <strong>{{ a.class_name }}</strong>: {{ a.message }}<br>
-                                    <form action="/delete_announcement/{{ a.id }}" method="POST" style="display:inline;">
-                                        <button type="submit" onclick="return confirm('Өшіруді қалайсыз ба?')">❌ Өшіру</button>
-                                    </form>
-                                    <a href="/edit_announcement/{{ a.id }}">✏️ Өзгерту</a>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
+          </div>
+      </div>
+      <form id="logoutForm" action="/logout" method="POST" style="display: inline;">
+        <img src="static/img/exit.png" class="icon" id="logoutIcon" alt="Шығу" style="width: 2.5em;">
+      </form>
 
-                    <script>
-                        function openModal() {
-                            document.getElementById('announcementModal').style.display = 'block';
-                        }
-
-                        function closeModal() {
-                            document.getElementById('announcementModal').style.display = 'none';
-                        }
-
-                        window.onclick = function(event) {
-                            if (event.target === document.getElementById('announcementModal')) {
-                                closeModal();
-                            }
-                        }
-                    </script>
-                {% else %}
-                    <a href="/register_teacher" class="btn">Тіркелу</a>
-                    <a href="/login_teacher" class="btn">Кіру</a>
-                {% endif %}
-            </div>
-        </main>
+      <script>
+        const logoutIcon = document.getElementById('logoutIcon');
+        const logoutForm = document.getElementById('logoutForm');
+        logoutIcon.addEventListener('click', () => {
+          logoutForm.submit();
+        });
+      </script>
     </div>
+  </header>
+
+  <main class="dashboard">
+    <div class="grid">
+      <a href="#" class="card red">
+        <img src="static/img/book.png" class="icon">
+        <span>Геймификация теориясы</span>
+      </a>
+      <a href="#" class="card green">
+        <img src="static/img/doc.png" class="icon">
+        <span>КТЖ</span>
+      </a>
+      <a href="#" class="card blue">
+        <img src="static/img/QMZ.png" class="icon">
+        <span>ҚМЖ</span>
+      </a>
+      <a href="#" class="card yellow">
+        <img src="static/img/guide.png" class="icon">
+        <span>Нұсқаулық</span>
+      </a>
+      <a href="/teacher/progress" class="card orange">
+        <img src="static/img/raiting.png" class="icon">
+        <span>Оқушы нәтижелері</span>
+      </a>
+      <a href="#" class="card gray">
+        <img src="static/img/call.png" class="icon">
+        <span>Байланыс</span>
+      </a>
+    </div>
+  </main>
+
+<script>
+
+// Получаем элементы
+const modal = document.getElementById('announcementModal');
+const icon = document.getElementById('announcementIcon');
+
+// Открыть модалку при клике на иконку
+icon.addEventListener('click', () => {
+    modal.style.display = 'flex';
+});
+
+// Функция закрытия модалки
+function closeModal() {
+    modal.style.display = 'none';
+}
+
+// Закрытие при клике вне содержимого модалки
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+icon.addEventListener('click', () => {
+    modal.style.display = 'flex'; // показываем только при клике
+});
+
+</script>
 </body>
 </html>

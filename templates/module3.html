@@ -6,12 +6,16 @@
     <title>Цифрлық сейф</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/module3.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 
 </head>
 <body>
     <div class="container">
         <h1>Цифрлық сейф</h1>
         <p id="encrypted-word">Шифрланған сөз: <span id="encrypted-text"></span></p>
+        <div class="hud">
+          <div id="timer" class="timer-badge" aria-live="polite">Таймер: <span id="time-value">00:00</span></div>
+        </div>
         <p>Сейфтің кодын шешіп, енгізіңіз!</p>
         <div class="message" id="message"></div>
         <div id="result-box" style="
@@ -43,9 +47,7 @@
                 <div class="button" onclick="submitCode()">OK</div>
             </div>
         </div>
-
-
-</div>
+    </div>
 
 
 <script src="static/js/module3.js"></script>

@@ -1,367 +1,171 @@
-/* Дененің негізгі стилі */
 body {
-    display: flex; /* Flexbox қосу */
-    justify-content: center; /* Горизонталды ортаға қою */
-    align-items: center; /* Вертикалды ортаға қою */
-    height: 100vh; /* Бүкіл экран биіктігін қамту */
-    margin: 0;
-    background-color:  #F0FFFF; /* Фон түсі */
-}
-
-.line {
-    background-color: #467fd0;
-    position: absolute; /* Позиционируем относительно контейнера */
-    top: 0; /* Линия будет у самой верхней границы контейнера */
-    left: 203px; /* Начинается с левой стороны */
-    width: 1500px; /* Растягиваем линию на всю ширину контейнера */
-    height: 80px;
-
-}
-/* Контейнер орталықта орналастырылады */
-.container {
-    margin-top: 200px;
-    text-align: center;
-    padding: 50px;
-    background:#f5f5f5;
-    height: 1000px;
-    width: 1500px; /* Енді кеңейттік */
-    box-sizing: border-box;
-    position: relative; /* Позицияны басқару үшін */
-    overflow: hidden; /* Шығып тұрған элементтерді жасыру */
-}
-
-.school {
-    position:absolute;
-    top:250px;
-    right:450px;
-}
-
-/* Хедер стилі */
-header {
-    background-color: #4682B4;
-    color: white;
-    padding: 20px 0;
-    border-radius: 8px;
-    margin-bottom: 30px;
-}
-
-header h1 {
     font-family: 'Open Sans', sans-serif;
+    background: #e3f2fd;
     margin: 0;
-    font-size: 2.5em;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-size: 30px;
 }
 
-header p {
-    font-family: 'Open Sans', sans-serif;
-    font-size: 1.2em;
-}
-
-/* Батырмалардың жалпы стилі */
-form {
+/* Кнопка рейтинга */
+.btn-rating {
     display: inline-block;
-}
-
-.buttons {
-    font-family: 'Open Sans', sans-serif;
-    display: flex; /* Элементтерді жолға қою */
-    justify-content: space-between; /* Батырмаларды бөлу */
-    gap: 10px; /* Араларын ашу */
-    margin-bottom: 20px;
-}
-
-/* Батырма стильдері */
-.btn_r {
-    position:absolute;
-    top: 220px;
-    right: 50px;
-    padding: 10px 20px;
-    font-size: 1.2em;
-    color: white;
-    background-color: #467fd0;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-}
-
-.btn_r:hover {
-    background-color: #3561a8;
-}
-
-.btn_l {
-    position:absolute;
-    top: 220px;
-    right: 180px;
-    padding: 10px 20px;
-    font-size: 1.2em;
-    color: white;
-    background-color: #467fd0;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-}
-
-.btn_l:hover {
-    background-color: #3561a8;
-}
-
-.btn_ext {
-    font-family: 'Open Sans', sans-serif;
-    background-color: #ff5733;
-    color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    position: absolute;
-    top: 220px;
-    right: 50px;
-}
-
-.btn_ext:hover {
-    background-color: #8c4a2a;
-}
-
-.btn_profile {
-    font-family: 'Open Sans', sans-serif;
-    position: absolute;
-    top: 220px;
-    right: 70px;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    background-color: #4682B4;
-    color: #ffffff;
-    cursor: pointer;
-}
-
-.btn_profile:hover {
-    background-color: #36648b;
-}
-
-/* Сілтемелер стилі */
-a {
-    color: #467fd0;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-a:hover {
-    color: #3561a8;
-}
-
-/* Sidebar стилі */
-.sidebar {
-    position: absolute;
-    top: 200px;
-    background: #e8e8e8; /* Sidebar фоны */
-    padding: 20px;
-    border-radius: 8px;
-    margin-top: 20px;
-    text-align: left; /* Солға қарай туралау */
-}
-
-.sidebar h2 {
-    font-size: 1.5em;
-    margin-bottom: 10px;
-}
-
-.sidebar ul {
-    list-style: none;
-    padding: 0;
-}
-
-.sidebar ul li {
-    margin-bottom: 10px;
-}
-
-.sidebar ul li a {
-    color: #467fd0;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.sidebar ul li a:hover {
-    color: #3561a8;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-    position: relative;
-    margin: 5% auto;
-    width: 80%;
-    height: 80%;
-    background: #fff;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-.close-button {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    font-size: 24px;
+    background: linear-gradient(45deg, #ffd700, #ffb400);
     color: #333;
-    cursor: pointer;
+    font-weight: 700;
+    padding: 10px 20px;
+    border-radius: 50px;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
 }
 
-.announcement-box {
-    margin: 40px auto;
-    background: #fff8dc;
-    padding: 20px 30px;
-    border-radius: 10px;
-    border-left: 6px solid #ffa500;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+.btn-rating:hover {
+    background: linear-gradient(45deg, #ffb400, #ff9000);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+/* Кнопка личного кабинета */
+.btn-profile {
+    display: flex;
+    align-items: center;
+    background: #4a90e2;
+    color: #fff;
+    font-weight: 600;
+    padding: 8px 15px;
+    border-radius: 50px;
+    text-decoration: none;
+    gap: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-profile img.avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.btn-profile:hover {
+    background: #357abd;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+/* Верхняя панель */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #4a90e2;
+    color: white;
+    padding: 15px 30px;
+    font-weight:750
+}
+
+.text {
+    width: 850px;
+    font-size: 20px;
+    font-weight: 600
+    justify-content: center; /* центр по горизонтали */
+    align-items: center;
+}
+
+.logo {
+    font-size: 50px;
+    font-weight: 900;
+}
+
+.top-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.top-info .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+}
+
+/* Основной контейнер */
+.dashboard {
+    flex: 1; /* чтобы заняло оставшееся место */
+    display: flex;
+    justify-content: center; /* центр по горизонтали */
+    align-items: center;     /* центр по вертикали */
+    padding: 40px;
+}
+
+/* Модули */
+.main-container {
+    background-color: white;
     width: 100%;
-    max-width: 600px;      /* ✅ Орташа өлшем */
-    box-sizing: border-box;
-    text-align: left;
-    word-wrap: break-word;
-}
-
-
-.announcement-box h2 {
-    margin-top: 0;
-    color: #c25500;
-}
-
-.announcement-box ul {
-    list-style: none;
-    padding: 0;
-}
-
-.announcement-box li {
-    margin-bottom: 15px;
-    font-size: 17px;
-    line-height: 1.4;
-    color: #333;
-}
-
-.announcement-box small {
-    color: #777;
-}
-.buttons {
-    display: block; /* бұрыңғы flex-ті өшіру */
+    max-width: 1800px;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
     text-align: center;
 }
-.announcement-box {
-    max-height: 300px;        /* ✅ Шектеу биіктігі */
-    overflow-y: auto;
-}
-.svg-overlay {
-  position: absolute;
-  top: 80px; /* header астына түсу үшін */
-  left: 0;
-  width: 100%;
-  z-index: 10; /* басқа элементтерден жоғары болу үшін */
-  pointer-events: none; /* батырмалармен жұмыс істеп тұрсын десеңіз */
-}
 
-#gift-box {
-  position: fixed;
-  top: 60%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 150px;
-  height: 150px;
-  z-index: 9999;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-#gift-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.falling-flowers-container {
-  position: fixed;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: 1; /* Позади всех визуальных элементов */
-}
-
-.flower {
-  position: absolute;
-  top: -50px;
-  font-size: 24px;
-  animation-name: fall;
-  animation-timing-function: linear;
-  animation-iteration-count: 1;
-}
-
-@keyframes fall {
-  to {
-    transform: translateY(100vh) rotate(360deg);
-    opacity: 0.5;
-  }
-}
-
-
-@keyframes popIn {
-  from {
-    transform: scale(0);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-  .sidebar {
-    width: 200px;
-  }
-
-  .dropdown {
-    background-color: #f0f0f0;
-    border: none;
-    padding: 10px;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
+.module {
+    background: #eaeaea;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 20px;
     font-weight: bold;
-  }
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* центрируем содержимое */
+    gap: 10px; /* расстояние между логотипом и текстом */
+}
 
-  .dropdown-content {
-    display: none;
-    padding-left: 15px;
-  }
+.module:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
 
-  .dropdown.active + .dropdown-content {
-    display: block;
-  }
+.module img {
+    width: 80px; /* размер логотипа */
+    height: 80px; /* можно задать auto, если нужна пропорция */
+    object-fit: contain;
+}
 
-  .dropdown-content a {
-    display: block;
-    padding: 5px 0;
-    text-decoration: none;
-    color: #333;
-  }
+/* Боковая панель */
+.sidebar {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 250px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    text-align: center;
+}
 
-  .dropdown-content a:hover {
-    text-decoration: underline;
-  }
+.next-btn {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.next-btn:hover {
+    background: #357abd;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}

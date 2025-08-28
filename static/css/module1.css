@@ -1,86 +1,109 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #e8f0fe;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 30px;
-    min-height: 100vh;
-    margin: 0;
-  }
-  h1 {
-    color: #1a237e;
-    margin-bottom: 30px;
-  }
-  .container {
-    display: flex;
-    gap: 40px;
-    margin-bottom: 30px;
-  }
-  .word, .target {
-    width: 180px;
-    min-height: 60px;
-    padding: 12px 15px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    background-color: #ffffff;
-    text-align: center;
-    user-select: none;
-    cursor: grab;
-    font-weight: 600;
-    font-size: 1.1em;
-    transition: background-color 0.3s, box-shadow 0.3s;
-  }
-  .word:active {
-    cursor: grabbing;
-  }
-  .target {
-    border: 3px dashed #9fa8da;
-    background-color: #dbe9ff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #3f51b5;
-    font-style: italic;
-    min-width: 220px;
-    cursor: default;
-  }
-  .target.correct {
-    border-color: #4caf50;
-    background-color: #d0f0d9;
-    color: #2e7d32;
-    font-style: normal;
-    box-shadow: 0 0 12px #4caf50aa;
-  }
-  .target.incorrect {
-    border-color: #f44336;
-    background-color: #ffd6d6;
-    color: #b71c1c;
-    font-style: normal;
-    box-shadow: 0 0 12px #f44336aa;
-  }
-  #check-btn {
-    padding: 12px 28px;
-    font-size: 1.1em;
-    background-color: #3949ab;
-    color: white;
-    border: none;
-    border-radius: 14px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px #3949abaa;
-    transition: background-color 0.3s ease;
-  }
-  #check-btn:hover:not(:disabled) {
-    background-color: #303f9f;
-  }
-  #check-btn:disabled {
-    background-color: #b0bec5;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #e8f0fe;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px; /* было 30px */
+  height: 200px;
+  margin: 0;
+}
 
-  .target.dragover {
-    background-color: #bbdefb;
-    border-color: #64b5f6;
-    transition: background-color 0.2s, border-color 0.2s;
-  }
+h1 {
+  color: #1a237e;
+  margin-bottom: 20px; /* было 30px */
+  font-size: 1.5em; /* уменьшили размер заголовка */
+}
+
+.container {
+  display: flex;
+  gap: 20px; /* было 40px */
+  margin-bottom: 20px;
+}
+
+.word, .target {
+  width: 130px; /* было 180px */
+  min-height: 45px; /* было 60px */
+  padding: 8px 10px; /* было 12px 15px */
+  border-radius: 8px; /* чуть меньше скругление */
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  background-color: #ffffff;
+  text-align: center;
+  user-select: none;
+  cursor: grab;
+  font-weight: 600;
+  font-size: 0.9em; /* уменьшили шрифт */
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.word:active {
+  cursor: grabbing;
+}
+
+.target {
+  border: 2px dashed #9fa8da; /* чуть тоньше граница */
+  background-color: #dbe9ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3f51b5;
+  font-style: italic;
+  min-width: 160px; /* было 220px */
+  cursor: default;
+}
+
+.target.correct {
+  border-color: #4caf50;
+  background-color: #d0f0d9;
+  color: #2e7d32;
+  font-style: normal;
+  box-shadow: 0 0 8px #4caf50aa; /* чуть меньше тень */
+}
+
+.target.incorrect {
+  border-color: #f44336;
+  background-color: #ffd6d6;
+  color: #b71c1c;
+  font-style: normal;
+  box-shadow: 0 0 8px #f44336aa;
+}
+
+#check-btn {
+  padding: 8px 20px; /* уменьшили кнопку */
+  font-size: 0.95em; /* было 1.1em */
+  background-color: #3949ab;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 3px 8px #3949abaa;
+  transition: background-color 0.3s ease;
+}
+
+#check-btn:hover:not(:disabled) {
+  background-color: #303f9f;
+}
+
+#check-btn:disabled {
+  background-color: #b0bec5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.target.dragover {
+  background-color: #bbdefb;
+  border-color: #64b5f6;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.timer-badge {
+  background: linear-gradient(180deg,#fff,#f3f3f3);
+  color: #2c3e50;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  margin: 10px auto;
+  text-align: center;
+  width: fit-content;
+}
+.timer-badge.low { color: red; }

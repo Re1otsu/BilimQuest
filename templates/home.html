@@ -6,9 +6,11 @@
     <title>Рөлді Таңдау</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
 <header class="header">
+    <h1 class="title">BilimQuest</h1>
     <div class="logo-container">
         <img src="{{ url_for('static', filename='img/EKU.png') }}" alt="School 1" class="school-logo">
         <img src="{{ url_for('static', filename='img/44.png') }}" alt="School 2" class="school-logo">
@@ -17,7 +19,6 @@
     </div>
 </header>
     <div class="container">
-        <h1 class="title">БілімQuest</h1>
         <img src="{{ url_for('static', filename='img/main.png') }}" alt="Картинка" class="main-img">
         <h2 class="subtitle">Порталға қош келдіңіз!</h2>
         <div class="btn-group">

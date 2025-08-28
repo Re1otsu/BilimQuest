@@ -1,28 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", function() {
     const modal = document.getElementById('module-modal');
     const iframe = document.getElementById('module-frame');
-    const closeButton = document.querySelector('.close-button');
+    const closeBtn = document.querySelector('.close-button');
 
-    // Добавляем обработчики для всех ссылок модулей
-    document.querySelectorAll('.sidebar a').forEach(link => {
-        link.addEventListener('click', event => {
-            event.preventDefault();
-            const moduleUrl = link.getAttribute('href');
-            iframe.src = moduleUrl; // Загружаем модуль в iframe
-            modal.style.display = 'block'; // Показываем модальное окно
+    document.querySelectorAll('.module').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault(); // блокируем переход на другую страницу
+            const url = this.getAttribute('href');
+            iframe.src = url;
+            modal.style.display = 'block';
         });
     });
 
-    // Закрытие модального окна
-    closeButton.addEventListener('click', () => {
+    closeBtn.addEventListener('click', function() {
         modal.style.display = 'none';
-        iframe.src = ''; // Очищаем содержимое iframe при закрытии
+        iframe.src = ""; // очищаем iframe
     });
 
-    window.addEventListener('click', event => {
-        if (event.target === modal) {
+    window.addEventListener('click', function(e) {
+        if (e.target === modal) {
             modal.style.display = 'none';
-            iframe.src = '';
+            iframe.src = "";
         }
     });
 });

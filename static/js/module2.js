@@ -45,6 +45,53 @@ async function sendProgress() {
   }
 }
 
+let timeLeft = 180; // 2 минуты на прохождение (можно изменить)
+let timerInterval = null;
+
+function formatTime(s) {
+  const mm = Math.floor(s / 60).toString().padStart(2, '0');
+  const ss = (s % 60).toString().padStart(2, '0');
+  return `${mm}:${ss}`;
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('time-value');
+  if (el) el.textContent = formatTime(timeLeft);
+}
+
+function startTimer() {
+  stopTimer();
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      stopTimer();
+      onTimeOut();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function onTimeOut() {
+  if (gameFinished) return;
+  info.textContent = "⏰ Уақыт бітті!";
+  score -= 20; // штраф (можно изменить)
+  if (score < 0) score = 0;
+  updateScore();
+  gameFinished = true;
+  sendProgress();
+  document.getElementById('result-score').innerText = `Ұпай: ${score}`;
+  document.getElementById('result-comment').innerText = "Уақыт аяқталды! Келесіде тезірек әрекет ет.";
+  document.getElementById('result-box').style.display = 'block';
+}
+
 function restartGame() {
   currentIndex = initialMaze.indexOf('S');
   collectedKeys = 0;
@@ -85,6 +132,8 @@ function createGrid() {
     cell.id = `cell-${i}`;
     grid.appendChild(cell);
   }
+  startTimer();
+
 }
 
 function isNeighbor(index1, index2) {
@@ -138,6 +187,7 @@ function showModalQuestion(index) {
     document.body.appendChild(modal);
   });
 }
+
 
 grid.addEventListener('click', async (e) => {
   if (gameFinished) return;  // Егер ойын аяқталған болса, ешқандай әрекет жасалмайды

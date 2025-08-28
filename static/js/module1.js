@@ -4,21 +4,79 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkBtn = document.getElementById('check-btn');
   const wordsContainer = document.getElementById('words-container');
   const targetsContainer = document.getElementById('targets-container');
+  const timerEl = document.getElementById('timer');
 
-  // Функция перемешивания
+  let totalTime = 20; // 60 секунд на игру
+  let timeLeft = totalTime;
+  let timerId = null;
+  let finished = false; // чтобы не отправлять дважды
+
+  function formatTime(s) {
+    const mm = Math.floor(s / 60).toString().padStart(2,'0');
+    const ss = (s % 60).toString().padStart(2,'0');
+    return `${mm}:${ss}`;
+  }
+
+  function updateTimer() {
+    timerEl.textContent = `Уақыт: ${formatTime(timeLeft)}`;
+    if (timeLeft <= 10) timerEl.classList.add('low');
+  }
+
+  function startTimer() {
+    updateTimer();
+    timerId = setInterval(() => {
+      timeLeft--;
+      updateTimer();
+      if (timeLeft <= 0) {
+        clearInterval(timerId);
+        if (!finished) {
+          finished = true;
+          alert("Уақыт бітті!");
+          autoSubmitScore();
+        }
+      }
+    }, 1000);
+  }
+
+  function autoSubmitScore() {
+    // считаем сколько правильных, как в checkBtn
+    let correctCount = 0;
+    targets.forEach(target => {
+      const expected = target.dataset.word;
+      const placed = target.firstChild ? target.firstChild.id : null;
+      if (placed === expected) correctCount++;
+    });
+    const score = correctCount * 10;
+
+    fetch("/game_result", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        game_name: "words_match",
+        score: score,
+        completed: true
+      })
+    }).then(r=>r.json()).then(data=>{
+      const percentage = Math.round((correctCount / words.length) * 100);
+      document.getElementById('result-score').innerText = `Ұпай: ${score} (${percentage}%)`;
+      document.getElementById('result-comment').innerText = "Уақыт аяқталды!";
+      document.getElementById('result-box').style.display = 'block';
+    }).catch(()=>alert("Серверге қосыла алмады."));
+  }
+
+  startTimer();
+
+  // --- далее твоя логика dnd ---
   function shuffleElements(container) {
     const elements = Array.from(container.children);
     elements.sort(() => Math.random() - 0.5);
     elements.forEach(el => container.appendChild(el));
   }
-
   shuffleElements(targetsContainer);
   shuffleElements(wordsContainer);
 
-  // Изначально блокируем кнопку проверки
   checkBtn.disabled = true;
 
-  // Drag & drop
   words.forEach(word => {
     word.addEventListener('dragstart', e => {
       e.dataTransfer.setData('text/plain', e.target.id);
@@ -31,20 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
     });
-
     target.addEventListener('drop', e => {
       e.preventDefault();
       const wordId = e.dataTransfer.getData('text/plain');
       const dragged = document.getElementById(wordId);
       if (!dragged) return;
-
-      // Если в целевом уже есть картинка — возвращаем её назад
       const existing = target.querySelector('img');
       if (existing && existing !== dragged) {
         wordsContainer.appendChild(existing);
       }
-
-      target.innerHTML = ''; // очищаем описание
+      target.innerHTML = '';
       target.appendChild(dragged);
       checkCompletion();
     });
@@ -55,10 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
     checkBtn.disabled = placedCount !== words.length;
   }
 
-  // Обработчик кнопки «Тексеру»
   checkBtn.addEventListener('click', () => {
-    let correctCount = 0;
+    if (finished) return;
+    clearInterval(timerId);
+    finished = true;
 
+    let correctCount = 0;
     targets.forEach(target => {
       const expected = target.dataset.word;
       const placed   = target.firstChild ? target.firstChild.id : null;
@@ -83,35 +139,11 @@ document.addEventListener('DOMContentLoaded', () => {
         score: score,
         completed: true
       })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "ok") {
-            const percentage = Math.round((correctCount / words.length) * 100);
-            let comment = "";
-
-            if (percentage >= 90) {
-                comment = "🎉 Өте жақсы! Сен бұл тақырыпты жақсы меңгердің.";
-            } else if (percentage >= 70) {
-                comment = "👍 Жақсы нәтиже. Тағы да қайталап көрсең болады.";
-            } else if (percentage >= 50) {
-                comment = "🙂 Орташа. Біраз жаттығу қажет.";
-            } else {
-                comment = "⚠️ Бұл тақырыпты тағы бір қарап шыққан дұрыс.";
-            }
-
-            document.getElementById('result-score').innerText = `Ұпай: ${score} (${percentage}%)`;
-            document.getElementById('result-comment').innerText = comment;
-            document.getElementById('result-box').style.display = 'block';
-        } else if (data.status === "denied") {
-            alert("Бұл тапсырманы бұрын орындадыңыз. Қайта орындау үшін мұғалімге жүгініңіз.");
-                location.href = "/module1";
-        } else {
-          alert("Нәтижені сақтау кезінде қате кетті.");
-        }
-    })
-    .catch(() => {
-      alert("Серверге қосыла алмады.");
+    }).then(res => res.json()).then(data => {
+      const percentage = Math.round((correctCount / words.length) * 100);
+      document.getElementById('result-score').innerText = `Ұпай: ${score} (${percentage}%)`;
+      document.getElementById('result-comment').innerText = `Дұрыс ${correctCount}/${words.length}`;
+      document.getElementById('result-box').style.display = 'block';
     });
   });
 });

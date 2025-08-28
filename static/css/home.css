@@ -17,16 +17,25 @@ body {
     background-color: #fff;
     padding: 10px 0;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     position: sticky; /* шапка фиксируется сверху */
     top: 0;
     z-index: 100;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    
 }
 
+.title {
+    margin-left: 0.5em;
+}
+
+.logo-container {
+    margin-left: 18em;
+}
 /* если хотите логотипы чуть больше */
 .school-logo {
+    margin-left: 2em;
     height: 120px; /* увеличено */
     width: auto;
     transition: transform 0.3s ease, filter 0.3s ease;
@@ -49,6 +58,7 @@ body {
 .title {
     font-size: 48px;
     font-weight: 700;
+    color:#3367d6
 }
 
 .subtitle {

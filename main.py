@@ -12,12 +12,12 @@ app = Flask(__name__)
 load_dotenv()  # .env файлын жүктеу
 app.secret_key = os.getenv("SECRET_KEY")
 
-#app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "connect_args": {
-        "sslmode": "require"
-    }
-}
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+#app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    #"connect_args": {
+        #"sslmode": "require"
+    #}
+#}
 
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -143,7 +143,7 @@ def home():
     if request.method == "POST":
         role = request.form.get("role")
         if role == "teacher":
-            return redirect("/choose_login_teacher")
+            return redirect("/login_teacher")
         elif role == "student":
             return redirect("/student")
         else:
@@ -165,22 +165,24 @@ def teacher():
 
 # Негізгі бет оқушы үшін
 @app.route("/student")
-def index():
-    user_name = session.get("user_name")
-    student_class = session.get("student_class")
+@login_required("student")
+def student():
     student_id = session.get("user_id")
 
+    progress = db.session.execute(
+        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
+        {"sid": student_id}
+    ).fetchall()
+
+    # Определяем порядок модулей и создаём словарь completed
+    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all']
+    completed = {m: False for m in default_modules}
+    for row in progress:
+        if row.game_name in completed:
+            completed[row.game_name] = bool(row.completed)
+
     student = Student.query.get(student_id)
-
-    announcements = Announcement.query.filter_by(class_name=student_class).order_by(Announcement.timestamp.desc()).all()
-
-
-    return render_template("student.html",
-                           user_name=user_name,
-                           student_class=student_class,
-                           announcements=announcements,
-                           student=student)
-
+    return render_template("student.html", student=student, completed=completed)
 
 # Тіркеу
 @app.route("/register", methods=["GET", "POST"])
@@ -281,21 +283,6 @@ def login_teacher():
             return "Қате: Есім, почта немесе құпиясөз дұрыс емес."
     return render_template("login_tchr.html")
 
-@app.route("/teacher/announcement", methods=["GET", "POST"])
-@login_required("teacher")
-def make_announcement():
-    if request.method == "POST":
-        class_name = request.form["class_name"]
-        message = request.form["message"]
-
-        new_announcement = Announcement(message=message, class_name=class_name)
-        db.session.add(new_announcement)
-        db.session.commit()
-
-        return redirect("/teacher")
-    return render_template("announcement_form.html")
-
-
 @app.route("/student_dashboard")
 def student_dashboard():
     student_id = session.get("user_id")
@@ -305,7 +292,6 @@ def student_dashboard():
     student = Student.query.get(student_id)
     progress_count = StudentProgress.query.filter_by(student_id=student_id).count()
     game_results = GameProgress.query.filter_by(student_id=student_id).all()
-
     return render_template("dashboard.html",
                            student=student,
                            progress_count=progress_count,
@@ -371,10 +357,16 @@ def create_announcement():
 @app.route("/delete_announcement/<int:announcement_id>", methods=["POST"])
 @login_required("teacher")
 def delete_announcement(announcement_id):
-    announcement = Announcement.query.get_or_404(announcement_id)
-    db.session.delete(announcement)
+    ann = Announcement.query.get_or_404(announcement_id)
+    db.session.delete(ann)
     db.session.commit()
-    return redirect("/teacher")
+    return redirect("/teacher/announcement")
+
+@app.route("/teacher/announcement", methods=["GET"])
+@login_required("teacher")
+def announcement_history():
+    announcements = Announcement.query.order_by(Announcement.timestamp.desc()).all()
+    return render_template("announcement_history.html", announcements=announcements)
 
 @app.route("/rating")
 @login_required("student")
@@ -422,16 +414,36 @@ def unlock_game():
     flash("Қайта өтуге рұқсат берілді. Бұрынғы нәтиже өшірілді.")
     return redirect("/teacher_panel")
 
-@app.route("/for_G")
-@login_required("student")
-def flower():
-    return render_template("for_G.html")
 
 @app.route("/teacher_panel")
 @login_required("teacher")
 def teacher_panel():
     students = Student.query.all()
     return render_template("teacher_panel.html", students=students)
+
+
+from sqlalchemy import text  # добавить импорт в начале файла
+
+@app.route("/1module")
+@login_required("student")
+def module_1():
+    student_id = session.get("user_id")
+
+    # Загружаем прогресс из GameProgress
+    progress = db.session.execute(
+        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
+        {"sid": student_id}
+    ).fetchall()
+
+    # Определяем порядок модулей и создаём словарь completed
+    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all']
+    completed = {m: False for m in default_modules}
+    for row in progress:
+        if row.game_name in completed:
+            completed[row.game_name] = bool(row.completed)
+
+    return render_template("1module.html", completed=completed)
+
 
 @app.route("/module1")
 @login_required("student")
@@ -617,4 +629,6 @@ def teacher_progress():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

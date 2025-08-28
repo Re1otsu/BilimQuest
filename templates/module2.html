@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Ақпараттық Лабиринт</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/module2.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
   <h1>Лабиринт: Барлық кілттерді жина!</h1>
@@ -13,6 +14,7 @@
     <h2 id="result-score"></h2>
     <p id="result-comment"></p>
   </div>
+  <div id="timer" class="timer-badge" aria-live="polite">Таймер: <span id="time-value">00:00</span></div>
   <div id="score" class="score">Сіздің баллыңыз: 0</div>
   <div id="grid" class="grid"></div>
 
