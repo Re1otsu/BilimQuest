@@ -86,7 +86,7 @@ button:hover {
 
 .login-btn {
     display: inline-block;
-    background-color: #4caf50;
+    background-color: #054dd4;
     color: #fff;
     padding: 8px 16px;
     border-radius: 5px;
@@ -96,5 +96,5 @@ button:hover {
 }
 
 .login-btn:hover {
-    background-color: #45a049;
+    background-color: #091e92;
 }
