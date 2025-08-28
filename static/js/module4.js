@@ -184,7 +184,7 @@ function resetPositions() {
 // ========== Обработка таймаута ==========
 function onTimeOut() {
   stopTimer();
-  alert("Время вышло! Игра завершена.");
+  alert("Уақыт аяқталды! Ойын аякталды!.");
   sendProgress(); // показываем результат
 }
 
@@ -231,10 +231,10 @@ function moveCharacter(dx, dy) {
           targets = targets.filter(t => t !== target);
         } else {
           if (!firstWarningShown) {
-            alert("Нельзя ставить блоки на неправильные места!");
+            alert("Блоктарды бұрыс орындарға қоюға болмайды!");
             firstWarningShown = true;
           } else {
-            alert("Блок возвращается на исходное место!");
+            alert("Блоктар бастапқы орындарына орналасты!");
           }
 
           block.x = block.startX;
