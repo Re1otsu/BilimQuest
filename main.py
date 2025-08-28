@@ -9,22 +9,23 @@ from functools import wraps
 
 app = Flask(__name__)
 
-load_dotenv()  # .env файлын жүктеу
+load_dotenv()
 app.secret_key = os.getenv("SECRET_KEY")
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-#app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    #"connect_args": {
-        #"sslmode": "require"
-    #}
-#}
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 
+db_url = os.getenv("DATABASE_URL")
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "connect_args": {"sslmode": "require"}
+}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
