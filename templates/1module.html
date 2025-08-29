@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/1module.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="top-bar">
-        <h1>Модуль-1</h1>
+        <h1>Ақпаратты ұсыну</h1>
         <h2>BilimQuest</h2>
         <a href="/student">Артқа</a>
     </div>
@@ -15,10 +16,22 @@
     <div class="announcement-box">
     <div class="container">
         <h1>Модульды таңдаңыз</h1>
-        <a href="/module1" class="module">1 Ойын</a>
-        <a href="/module2" class="module {% if not completed['words_match'] %}disabled{% endif %}">2 Ойын</a>
-        <a href="/module3" class="module {% if not completed['maze'] %}disabled{% endif %}">3 Ойын</a>
-        <a href="/module4" class="module {% if not completed['cipher_game'] %}disabled{% endif %}">4 Ойын</a>
+        <a href="/module1" class="module">
+            <img src="static/img/g1.png" style="width: 6em; height: 6em;">
+            <span>Сәйкестік</span>
+        </a>
+        <a href="/module2" class="module {% if not completed['words_match'] %}disabled{% endif %}">
+            <img src="static/img/g2.png" style="width: 6em; height: 6em;">
+            <span>Лабиринт</span>
+        </a>
+        <a href="/module3" class="module {% if not completed['maze'] %}disabled{% endif %}">
+            <img src="static/img/g3.png" style="width: 6em; height: 6em;">
+            <span>Құпия код</span>
+        </a>
+        <a href="/module4" class="module {% if not completed['cipher_game'] %}disabled{% endif %}">
+            <img src="static/img/g4.png" style="width: 6em; height: 6em;">
+            <span>Блоктар</span>
+        </a>
 
     <div id="module-modal" class="modal">
         <div class="modal-content">

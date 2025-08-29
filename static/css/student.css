@@ -3,6 +3,7 @@ body {
     background: #e3f2fd;
     margin: 0;
     padding: 0;
+    padding-top: 120px;   /* высота хедера */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -58,14 +59,21 @@ body {
 
 /* Верхняя панель */
 .top-bar {
+    position: fixed;           /* фиксируем наверху */
+    top: 0;
+    left: 0;
+    width: 100%;               /* растягиваем по ширине */
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #4a90e2;
     color: white;
     padding: 15px 30px;
-    font-weight:750
+    font-weight: 750;
+    z-index: 1000;             /* поверх всего */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
+
 
 .text {
     width: 850px;
@@ -99,21 +107,30 @@ body {
     justify-content: center; /* центр по горизонтали */
     align-items: center;     /* центр по вертикали */
     padding: 40px;
+    text-decoration: none;
 }
 
 /* Модули */
 .main-container {
     background-color: white;
+    margin-top: 1em;
     width: 100%;
+    height: 24em;
     max-width: 1800px;
     padding: 40px;
     border-radius: 20px;
     box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    display: flex;       /* делаем 2 колонки */
+    gap: 30px;
+}
+
+.modules-section {
+    flex: 2; /* занимает больше места */
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
-    text-align: center;
 }
+
 
 .module {
     background: #eaeaea;
@@ -124,9 +141,15 @@ body {
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     transition: 0.3s;
     display: flex;
+    justify-content: center;
     flex-direction: column;
     align-items: center; /* центрируем содержимое */
     gap: 10px; /* расстояние между логотипом и текстом */
+    text-decoration: none; /* убирает подчеркивание */
+    color: inherit;
+    text-align: center;
+    word-wrap: break-word; /* перенос длинных слов */
+    color: #2c3e50;
 }
 
 .module:hover {
@@ -135,11 +158,44 @@ body {
 }
 
 .module img {
-    width: 80px; /* размер логотипа */
-    height: 80px; /* можно задать auto, если нужна пропорция */
+    width: 11em; /* размер логотипа */
+    height: 11em; /* можно задать auto, если нужна пропорция */
     object-fit: contain;
 }
 
+/* Правая часть: объявления */
+.announcements {
+    flex: 1; /* занимает меньше места */
+    background-color: #4a90e2;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.announcements h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    color: #ffffff;
+    text-align: center;
+}
+
+.announcements ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.announcements ul li {
+    background: #ffffff;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    max-width: 19em;
+    max-height: 120px;   /* ограничиваем высоту объявления */
+    overflow-y: auto;    /* вертикальная прокрутка внутри */
+    word-wrap: break-word; /* перенос длинных слов */
+}
 /* Боковая панель */
 .sidebar {
     background: #fff;
@@ -169,3 +225,4 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
 }
+

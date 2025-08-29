@@ -116,7 +116,7 @@ function submitCode() {
 }
 
 // ======== Таймер ========
-let timeLeft = 120; // например, 2 минуты на прохождение
+let timeLeft = 180; // например, 2 минуты на прохождение
 let timerInterval = null;
 
 function formatTime(s) {

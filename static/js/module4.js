@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ========== Таймер ==========
-const totalTimeLimit = 300; // общее время на все уровни
+const totalTimeLimit = 240; // общее время на все уровни
 let timeLeft = totalTimeLimit;
 let timerInterval = null;
 let timerStarted = false;

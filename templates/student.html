@@ -23,25 +23,46 @@
             </div>
         </header>
 
-    <main class="dashboard">
-        <div class="main-container">
-            <a href="/1module" class="module">
-                <img src="static/img/1.png" alt="Модуль 1">
-                <span>Модуль 1</span>
-            </a>
-            <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                <img src="static/img/2.png" alt="Модуль 2">
-                <span>Модуль 2</span>
-            </a>
-            <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                <img src="static/img/3.png" alt="Модуль 3">
-                <span>Модуль 3</span>
-            </a>
-            <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                <img src="static/img/4.png" alt="Модуль 4">
-                <span>Модуль 4</span>
-            </a>
-        </div>
-    </main>
+        <main class="dashboard">
+            <div class="main-container">
+
+                <!-- Левая часть: модули -->
+                <div class="modules-section">
+                    <a href="/1module" class="module">
+                        <img src="static/img/1.png" alt="Модуль 1">
+                        <span>Ақпаратты ұсыну</span>
+                    </a>
+                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
+                        <img src="static/img/2.png" alt="Модуль 2">
+                        <span>Компьютерлік графика</span>
+                    </a>
+                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
+                        <img src="static/img/3.png" alt="Модуль 3">
+                        <span>Робототехника</span>
+                    </a>
+                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
+                        <img src="static/img/4.png" alt="Модуль 4">
+                        <span>Роботтардың жарысы</span>
+                    </a>
+                </div>
+
+                <!-- Правая часть: контейнер для объявлений -->
+                <div class="announcements">
+                    <h2>📢 Хабарландырулар</h2>
+                    <ul>
+                        {% for ann in announcements %}
+                            <li>
+                                {{ ann.message }}
+                                <small style="color: gray;">{{ ann.local_time().strftime("%d.%m.%Y %H:%M") }}</small>
+                            </li>
+                        {% else %}
+                            <li>Әзірше хабарландыру жоқ</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+            </div>
+        </main>
+
 </body>
 </html>

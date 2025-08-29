@@ -6,6 +6,8 @@ import os
 from flask import flash
 from flask_migrate import Migrate
 from functools import wraps
+from datetime import datetime
+import pytz
 
 app = Flask(__name__)
 
@@ -96,7 +98,16 @@ class Announcement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     class_name = db.Column(db.String(10), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+    # храним в UTC
+    timestamp = db.Column(
+        db.DateTime,
+        default=lambda: datetime.utcnow()
+    )
+
+    def local_time(self):
+        # конвертация в Алматы
+        tz = pytz.timezone("Asia/Almaty")
+        return pytz.utc.localize(self.timestamp).astimezone(tz)
 
 with app.app_context():
     db.create_all()
@@ -169,11 +180,16 @@ def teacher():
 @login_required("student")
 def student():
     student_id = session.get("user_id")
-
+    student = Student.query.get(student_id)
     progress = db.session.execute(
         text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
         {"sid": student_id}
     ).fetchall()
+
+    announcements = (Announcement.query
+                     .filter_by(class_name=student.student_class)
+                     .order_by(Announcement.timestamp.desc())
+                     .all())
 
     # Определяем порядок модулей и создаём словарь completed
     default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all']
@@ -182,8 +198,7 @@ def student():
         if row.game_name in completed:
             completed[row.game_name] = bool(row.completed)
 
-    student = Student.query.get(student_id)
-    return render_template("student.html", student=student, completed=completed)
+    return render_template("student.html", student=student, completed=completed, announcements=announcements)
 
 # Тіркеу
 @app.route("/register", methods=["GET", "POST"])

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const targetsContainer = document.getElementById('targets-container');
   const timerEl = document.getElementById('timer');
 
-  let totalTime = 600; // 60 секунд на игру
+  let totalTime = 90; // 60 секунд на игру
   let timeLeft = totalTime;
   let timerId = null;
   let finished = false; // чтобы не отправлять дважды

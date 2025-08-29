@@ -15,7 +15,7 @@
             <div>
                 <strong>{{ a.class_name }}</strong>: {{ a.message }}
             </div>
-            <div class="timestamp">{{ a.timestamp.strftime('%d.%m.%Y %H:%M') }}</div>
+            <div class="timestamp">{{ a.local_time().strftime("%d.%m.%Y %H:%M") }}</div>
             <div class="actions">
                 <form action="{{ url_for('delete_announcement', announcement_id=a.id) }}" method="POST" onsubmit="return confirm('Хабарламаны өшіру?')">
                     <button type="submit">❌ Жою</button>
