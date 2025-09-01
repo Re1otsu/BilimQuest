@@ -18,30 +18,26 @@
                 </a>
                 <a href="/student_dashboard" class="btn-profile">
                     <img src="static/img/user.png" alt="user" class="avatar">
-                    <span>Бейін</span>
+                    <span>{{ student.name }}</span>
                 </a>
             </div>
         </header>
 
-        <main class="dashboard">
+        <main>
             <div class="main-container">
 
                 <!-- Левая часть: модули -->
-                <div class="modules-section">
+                <div class="sidebar">
                     <a href="/1module" class="module">
-                        <img src="static/img/1.png" alt="Модуль 1">
                         <span>Ақпаратты ұсыну</span>
                     </a>
                     <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <img src="static/img/2.png" alt="Модуль 2">
                         <span>Компьютерлік графика</span>
                     </a>
                     <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <img src="static/img/3.png" alt="Модуль 3">
                         <span>Робототехника</span>
                     </a>
                     <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <img src="static/img/4.png" alt="Модуль 4">
                         <span>Роботтардың жарысы</span>
                     </a>
                 </div>

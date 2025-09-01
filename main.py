@@ -444,6 +444,7 @@ from sqlalchemy import text  # добавить импорт в начале ф�
 @login_required("student")
 def module_1():
     student_id = session.get("user_id")
+    student = Student.query.get(student_id)
 
     # Загружаем прогресс из GameProgress
     progress = db.session.execute(
@@ -458,8 +459,67 @@ def module_1():
         if row.game_name in completed:
             completed[row.game_name] = bool(row.completed)
 
-    return render_template("1module.html", completed=completed)
+    return render_template("1module.html", completed=completed, student=student)
 
+
+@app.route("/bolim1_1")
+@login_required("student")
+def bolim1_1():
+    student_id = session.get("user_id")
+    student = Student.query.get(student_id)
+
+    # Загружаем прогресс из GameProgress
+    progress = db.session.execute(
+        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
+        {"sid": student_id}
+    ).fetchall()
+
+    # Определяем порядок модулей и создаём словарь completed
+    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all', 'Ақпарат-алу', 'Көпір']
+    completed = {m: False for m in default_modules}
+    for row in progress:
+        if row.game_name in completed:
+            completed[row.game_name] = bool(row.completed)
+
+    return render_template("bolim1_1.html", completed=completed, student=student)
+
+
+
+@app.route("/game1")
+@login_required("student")
+def game1():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Ақпарат-алу") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Ақпарат-алу").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template("game1.html")
+
+@app.route("/game2")
+@login_required("student")
+def game2():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Көпір") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Көпір").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template("game2.html")
 
 @app.route("/module1")
 @login_required("student")

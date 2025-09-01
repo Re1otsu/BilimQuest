@@ -37,7 +37,7 @@ body {
 
 .school-logo {
     height: 100px;
-    margin-right: 10em;
+    margin-right: 5em;
     width: auto;
     transition: transform 0.3s ease, filter 0.3s ease;
 }
