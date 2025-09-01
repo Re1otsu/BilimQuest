@@ -2,8 +2,7 @@ body {
     font-family: 'Open Sans', sans-serif;
     background: #e3f2fd;
     margin: 0;
-    padding: 0;
-    padding-top: 120px;   /* высота хедера */
+    padding: 0;  /* высота хедера */
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -14,11 +13,15 @@ body {
 
 /* Кнопка рейтинга */
 .btn-rating {
-    display: inline-block;
+    display: flex;
+    width: 8vw;
+    height: 8vh;
+    align-items: center;
+    justify-content: center;
     background: linear-gradient(45deg, #ffd700, #ffb400);
     color: #333;
-    font-weight: 700;
-    padding: 10px 20px;
+    font-weight:bold;
+    font-size: 2vw;
     border-radius: 50px;
     text-decoration: none;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
@@ -34,14 +37,19 @@ body {
 /* Кнопка личного кабинета */
 .btn-profile {
     display: flex;
+    width: 12vw;
+    height: 8vh;
     align-items: center;
+    justify-content: center;
     background: #4a90e2;
+    text-align: center;
     color: #fff;
-    font-weight: 600;
-    padding: 8px 15px;
-    border-radius: 50px;
+    font-weight:normal;
+    font-size: 2vw;
+    padding: 0.2em 0.1em;
+    border-radius: 5em;
     text-decoration: none;
-    gap: 10px;
+    gap: 0.1em;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     transition: all 0.3s ease;
 }
@@ -65,12 +73,12 @@ body {
     top: 0;
     left: 0;
     width: 100%;               /* растягиваем по ширине */
+    height: 20vh;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #4a90e2;
     color: white;
-    padding: 15px 30px;
     font-weight: 750;
     z-index: 1000;             /* поверх всего */
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -78,16 +86,17 @@ body {
 
 
 .text {
-    width: 850px;
-    font-size: 20px;
-    font-weight: 600
+    width: 40%;
+    font-size: 1.5vw;
+    font-weight:bold;
+    word-wrap: break-word;
     justify-content: center; /* центр по горизонтали */
     align-items: center;
 }
 
 .logo {
-    font-size: 50px;
-    font-weight: 900;
+    font-size: 4vw;
+    font-weight: bold;
 }
 
 .top-info {
@@ -113,7 +122,9 @@ body {
 
 /* Модули */
 .main-container {
+    position: relative;
     background-color: rgb(255, 255, 255);
+    top:10vh;
     width: 70vw;
     height: 80vh;
     padding: 40px;
@@ -133,13 +144,16 @@ body {
 
 .module {
     background: #eaeaea;
-    padding: 20px;
+    padding: 0.3em;
     border-radius: 10px;
-    font-size: 20px;
+    font-size: 1.3vw;
     font-weight: bold;
     box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     transition: 0.3s;
     display: flex;
+    width: 12vw;
+    height: 12vh;
+    margin-bottom: 2.5vh;
     justify-content: center;
     flex-direction: row;
     align-items: center; /* центрируем содержимое */
@@ -155,24 +169,20 @@ body {
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
 
-.module img {
-    width: 11em; /* размер логотипа */
-    height: 11em; /* можно задать auto, если нужна пропорция */
-    object-fit: contain;
-}
 
 /* Правая часть: объявления */
 .announcements {
     flex: 1; /* занимает меньше места */
     background-color: #e7e7e7;
     align-items: center;
+    display: table-row;
     padding: 20px;
     border-radius: 15px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .announcements h2 {
-    font-size: 20px;
+    font-size: 1.5vw;
     margin-bottom: 15px;
     color: #000000;
     text-align: center;
@@ -188,6 +198,7 @@ body {
     text-align: center;
     background: #ffffff;
     margin-bottom: 10px;
+    font-size: 2vw;
     padding: 10px;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
@@ -198,11 +209,11 @@ body {
 }
 /* Боковая панель */
 .sidebar {
-    background: #fff;
+    background: #ffffff;
     padding: 20px;
     border-radius: 10px;
     width: 15vw;
-    height: auto;
+    height: 66vh;
     max-width: 90%;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     text-align: center;

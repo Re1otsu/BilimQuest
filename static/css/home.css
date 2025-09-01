@@ -6,9 +6,9 @@ body {
     min-height: 100vh;
     color: white;
     text-align: center;
-    display: flex;
     flex-direction: column;
     align-items: center;
+
 }
 
 /* ===== Шапка ===== */
@@ -32,11 +32,11 @@ body {
     align-items: center;
     gap: 2em; /* расстояние между школами */
     flex-wrap: wrap; /* если логотипов много, переносятся */
-    width: 100%;
+    width: 100vw;
 }
 
 .school-logo {
-    height: 100px;
+    height: 15vh;
     margin-right: 5em;
     width: auto;
     transition: transform 0.3s ease, filter 0.3s ease;
@@ -72,7 +72,7 @@ body {
 }
 
 .main-img {
-    width: 500px;
+    width: 20vw;
     max-width: 90%;
     height: auto;
     margin-bottom: 20px;
@@ -133,7 +133,7 @@ button:hover {
     color: #333;
     margin: 10% auto;
     padding: 30px 20px;
-    width: 350px;
+    width: 30vw;
     border-radius: 16px;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -191,3 +191,65 @@ button:hover {
     box-shadow: 0 6px 15px rgba(0,0,0,0.3);
     opacity: 0.9;
 }
+/* ===== Адаптивность ===== */
+
+/* Экраны до 1280px (ноутбуки, планшеты) */
+@media (max-width: 1280px) {
+  .title {
+    font-size: 36px;
+  }
+  .subtitle {
+    font-size: 20px;
+  }
+  .school-logo {
+    height: 80px;
+    margin-right: 2em;
+  }
+  .btn {
+    font-size: 18px;
+    padding: 12px 30px;
+  }
+  .main-img {
+    width: 400px;
+  }
+}
+
+/* Экраны до 720px (телефоны) */
+@media (max-width: 720px) {
+  .header {
+    flex-direction: column;
+    padding: 10px;
+  }
+  .logo-container {
+    gap: 1em;
+    margin-bottom: 10px;
+  }
+  .school-logo {
+    height: 60px;
+    margin-right: 0;
+  }
+  .title {
+    font-size: 28px;
+  }
+  .subtitle {
+    font-size: 16px;
+  }
+  .btn-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+  .main-img {
+    width: 100%;
+    max-width: 300px;
+  }
+  .modal-content {
+    width: 90%;
+    margin: 30% auto;
+  }
+}
+

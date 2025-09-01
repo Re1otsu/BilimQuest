@@ -1,112 +1,178 @@
-  /* ====== БАЗА ====== */
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
-  body {
-    font-family: "Open Sans", system-ui, -apple-system, Arial, sans-serif;
-    color: #fff;
-    overflow: hidden;                 /* без лишнего скролла */
-    background-size: cover; /* чтобы растянуть на весь экран */
-    background-repeat: no-repeat; /* убрать повторение */
-    background-position: center;                  /* «звёздное» небо */
-  }
+/* ====== БАЗА ====== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100vh; }
+body {
+  font-family: "Open Sans", system-ui, -apple-system, Arial, sans-serif;
+  color: #fff;
+  overflow: hidden;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color:rgb(0, 115, 255)
+}
 
-  /* ====== TOP BAR ====== */
-  .topbar {
-    position: fixed; 
-    inset: 0 0 auto 0; 
-    height: 64px;
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between;
-    padding: 0 16px;
-  }
-  .title { 
-    display: flex;
-    margin-top: 2%;
-    font-weight: 800;
-    font-size: 50px; 
-    letter-spacing: .5px; 
-  }
+/* ====== TOP BAR ====== */
+.topbar {
+  position: fixed; 
+  inset: 0 0 auto 0; 
+  height: 9vh;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 0 16px;
+}
+.title { 
+  font-weight: 800;
+  font-size: clamp(1.2rem, 4vw, 3rem); /* адаптив */
+  letter-spacing: .5px; 
+}
+.coins {
+  display: flex;
+  font-size: 2vw;
+  display:inline-flex; 
+  align-items:center; 
+  justify-content: center;
+  width:9vw;
+  height: 7vh;
+  background:#ffc82c; 
+  color:#1f2d3d; 
+  border-radius:5em; 
+  font-weight:800;
+  box-shadow: 0 4px 12px #0002;
+}
 
-  .coins {
-    margin-top: 2%;
-    font-size: 30px;
-    display:inline-flex; 
-    align-items:center; 
-    justify-content: center;
-    width: 8vw;
-    height: 8vh;
-    background:#ffc82c; 
-    color:#1f2d3d;
-    padding:6px 12px; 
-    border-radius:5em; 
-    font-weight:800;
-    box-shadow: 0 4px 12px #0002;
-  }
+/* ====== ПОЛОТНО КАРТЫ ====== */
+.map {
+  position: relative;
+  width: 100vw; height: 100vh;
+}
+.paths {
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  pointer-events:none;
+}
+.paths path {
+  stroke:#fff; stroke-width:4;
+  stroke-dasharray:10 10; fill:none;
+  opacity:.9; stroke-linecap:round;
+  filter: drop-shadow(0 2px 2px #0003);
+}
 
-  /* ====== ПОЛОТНО КАРТЫ ====== */
-  .map {
-    position: relative;
-    width: 100vw; height: 100vh;
-    padding-top: 64px;               /* место под topbar */
-  }
+/* ====== ОСТРОВА ====== */
+.node {
+  display: table-row;
+  position: absolute;
+  width: 10vw;
+  height: auto;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff;
+  text-decoration: none;
+  word-wrap:break-word;
+  transition: transform .2s ease, filter .2s ease;
+  cursor: pointer;
+}
+.node:hover { transform: translate(-50%, -50%) scale(1.05); filter: brightness(1.06); }
 
-  /* SVG-маршруты поверх карты */
-  .paths {
-    position:absolute; inset:0;
-    width:100%; height:100%;
-    pointer-events:none;              /* не мешает кликам по модулям */
-  }
-  .paths path {
-    stroke:#fff; stroke-width:4;
-    stroke-dasharray:10 10; fill:none;
-    opacity:.9; stroke-linecap:round;
-    filter: drop-shadow(0 2px 2px #0003);
-  }
+#i1{
+  top:20vh;
+  left: 50vw;
+}
 
-  /* ====== ОСТРОВКИ/МОДУЛИ ====== */
-  .node {
-    position: absolute;
-    max-width: 10vw;
-    transform: translate(-50%, -50%); /* якорь по центру */
-    text-align: center;
-    color: #fff;
-    text-decoration: none;
-    transition: transform .2s ease, filter .2s ease;
-    cursor: pointer;
-  }
-  .node:hover { transform: translate(-50%, -50%) scale(1.05); filter: brightness(1.06); }
+#i2{
+  top:80vh;
+  left: 10vw;
+}
 
-  /* Сам «остров» на CSS */
-  .island {
-    position: relative;
-    width: clamp(120px, 12vw, 180px);
-    height: clamp(80px, 8vw, 120px);
-    background: radial-gradient(120% 100% at 70% 40%, #2e9e47 0 65%, #2a8a3f 66% 100%);
-    border-radius: 45% 55% 50% 50%;
-    box-shadow: 0 12px 0 0 #f7cda1, 0 16px 24px #0003; /* песок + тень */
-    display:flex; 
-    justify-content:center;
-  }
-  .emoji, .icon {
-    font-size: clamp(36px, 4vw, 56px); line-height:1;
-    filter: drop-shadow(0 3px 3px #0002);
-  }
-  .label {
-    margin-top: .6rem;
-    font-weight: 700;
-    font-size: clamp(14px, 1.6vw, 20px);
-    text-shadow: 0 2px 4px #0004;
-  }
+#i3{
+  top:76vh;
+  left: 35vw;
+}
 
-  /* Заблокировано */
-  .node.locked { cursor: not-allowed; }
-  .node.locked .island { filter: grayscale(.35) brightness(.95); }
-  .node.locked .label::after {
-    content: " (қолжетімсіз)"; font-weight: 700; opacity:.85;
-  }
+#i4{
+  top:82vh;
+  left: 60vw;
+}
 
-  /* На очень маленьких экранах масштабируем всю карту */
-  @media (max-width: 560px) {
-    .map { transform: scale(.9); transform-origin: top center; }
-  }
+#i5{
+  top:73vh;
+  left: 83vw;
+}
+
+#earth{
+  position: relative;
+  display: flex;
+  align-items:center;
+  justify-content: center;
+  top:50vh;
+  left: 50vw;
+
+}
+
+#saturn {
+  position: relative;
+  display: flex;
+  align-items:center;
+  justify-content: center;
+  top:5vh;
+  left: 80vw;
+  transform: rotate(50deg);
+}
+
+#saturn:hover {
+  transform: scale(1.2); 
+  filter: brightness(1.05);
+}
+
+.island {
+  position: relative;
+  width: 10vw;
+  height: 12vh;
+  background: radial-gradient(120% 100% at 70% 40%, #2e9e47 0 65%, #2a8a3f 66% 100%);
+  border-radius: 45% 55% 50% 50%;
+  box-shadow: 0 2vh 0 0 #f7cda1, 0 16px 24px #0003;
+  display:flex; 
+  justify-content:center;
+  margin-bottom: 2vh;
+}
+
+.emoji, .icon {
+  font-size: clamp(28px, 4vw, 56px);
+  filter: drop-shadow(0 3px 3px #0002);
+}
+.label {
+  margin-top: .6rem;
+  font-weight: 700;
+  font-size: clamp(12px, 1.6vw, 20px);
+  text-shadow: 0 2px 4px #0004;
+}
+
+/* Заблокировано */
+.node.locked { cursor: not-allowed; }
+.node.locked .island { filter: grayscale(.35) brightness(.95); }
+.node.locked .label::after {
+  content: " (қолжетімсіз)"; font-weight: 700; opacity:.85;
+}
+
+/* ====== АДАПТАЦИЯ ====== */
+
+/* Планшеты */
+@media (max-width: 768px) {
+  .paths path { stroke-width: 3; }
+  .title { font-size: clamp(1rem, 5vw, 2rem); }
+  .coins { font-size: 1rem; }
+}
+
+/* Телефоны */
+@media (max-width: 560px) {
+  .map { transform: scale(.8); transform-origin: top center; }
+  .paths path { stroke-width: 2.5; }
+  .coins { width: 90px; height: 40px; font-size: .9rem; }
+  .label { font-size: .85rem; }
+}
+
+/* Очень маленькие телефоны */
+@media (max-width: 380px) {
+  .map { transform: scale(.7); }
+  .coins { width: 80px; height: 36px; font-size: .8rem; }
+}
