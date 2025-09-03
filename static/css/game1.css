@@ -1,136 +1,144 @@
 body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
   font-family: Arial, sans-serif;
   text-align: center;
   background: #368dda;
 }
-
-#game-area {
-  width: 60vw;
-  height: 50vh;
-  border: 2px solid #333;
-  border-radius:2em;
-  position: relative;
-  overflow: hidden;
-  margin: 20px auto;
-  background: white;
-}
-
-.item {
-  position: absolute;
-  width: 80px;
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-
-.item:hover {
-  transform: scale(1.1);
-}
-
-.star {
-  position: absolute;
-  font-size: 24px;
-  color: gold;
-  font-weight: bold;
-  pointer-events: none;
-  animation: floatUp 1.5s ease-out forwards;
-}
-
-@keyframes floatUp {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
+  #game-area {
+    width: 70vw;
+    height: 60vh;
+    border: 0.2em solid #333;
+    border-radius:2em;
+    position: relative;
+    overflow: hidden;
+    margin: 20px auto;
+    background: white;
   }
-  100% {
-    transform: translateY(-50px);
-    opacity: 0;
+
+  .item {
+    position: absolute;
+    width: 5vw;
+    cursor: pointer;
+    transition: transform 0.3s;
   }
-}
-@keyframes fly {
-  from { transform: translateY(0); opacity: 1; }
-  to { transform: translateY(-100px); opacity: 0; }
-}
 
-#message {
-  margin-top: 15px;
-  font-size: 18px;
-  color: red;
-  font-weight: bold;
-}
+  .item:hover {
+    transform: scale(1.1);
+  }
 
-/* Game Over терезесін стильдеу */
+  .star {
+    position: absolute;
+    font-size: 24px;
+    color: gold;
+    font-weight: bold;
+    pointer-events: none;
+    animation: floatUp 1.5s ease-out forwards;
+  }
+
+  @keyframes floatUp {
+    0% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-50px);
+      opacity: 0;
+    }
+  }
+  @keyframes fly {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(-100px); opacity: 0; }
+  }
+
+  #message {
+    margin-top: 15px;
+    font-size: 18px;
+    color: red;
+    font-weight: bold;
+  }
+
+  /* Game Over терезесін стильдеу */
 #game-over {
   position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 30vw;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  padding: 30px 20px;
+  top: 0;               /* привязка к верху */
+  left: 0;              /* привязка к левому краю */
+  width: 100vw;
+  height: 100vh;
+  background-color: #368dda;
+
+  display: flex;        /* включаем flex */
+  flex-direction: column;
+  align-items: center;  /* горизонтальное центрирование */
+  justify-content: center; /* вертикальное центрирование */
+
   text-align: center;
-  z-index: 1000;
+  z-index: 1100;
   animation: popUp 0.5s ease-out;
 }
 
-#game-over.hidden {
-  display: none;
-}
 
-/* Заголовок */
-#game-over h2 {
-  font-size: 24px;
-  color: #fffb00;
-  margin-bottom: 15px;
-  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
-}
+  #game-over.hidden {
+    display: none;
+  }
 
+  /* Заголовок */
+  #game-over h2 {
+    font-size: 2vw;
+    color: #fffb00;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+  }
 
-/* Финальный счет */
-#final-score {
-  font-size: 20px;
-  font-weight: bold;
-  color: #ffee00;
-  margin-bottom: 10px;
-  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+#star{
+  width: 35vw;
 }
+  /* Финальный счет */
+  #final-score {
+    font-size: 3vw;
+    font-weight: bold;
+    color: #ffee00;
+    margin-bottom: 1em;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+  }
 
-/* Жұлдызша */
-#star-container {
-  font-size: 50px;
-  color: gold;
-  margin-bottom: 15px;
-  animation: floatStar 1.5s ease-out forwards;
-}
+  /* Жұлдызша */
+  #star-container {
+    font-size: 50px;
+    color: gold;
+    margin-bottom: 15px;
+    animation: floatStar 1.5s ease-out forwards;
+  }
 
-/* Кнопка рестарта */
-#restart-btn {
-  margin-top: 10px;
-  padding: 10px 25px;
-  font-size: 16px;
-  background-color: #fff;
-  color: #ff6f91;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-  transition: transform 0.2s, background-color 0.2s;
-}
+  /* Кнопка рестарта */
+  #restart-btn {
+    margin-top: 10px;
+    padding: 10px 25px;
+    font-size: 16px;
+    background-color: #fff;
+    color: #ff6f91;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background-color 0.2s;
+  }
 
-#restart-btn:hover {
-  transform: scale(1.05);
-  background-color: #ffe6eb;
-}
+  #restart-btn:hover {
+    transform: scale(1.05);
+    background-color: #ffe6eb;
+  }
 
-/* Анимация жұлдызшаны көтеру */
-@keyframes floatStar {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(-50px); opacity: 0; }
-}
+  /* Анимация жұлдызшаны көтеру */
+  @keyframes floatStar {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-50px); opacity: 0; }
+  }
 
-/* Анимация появления окна */
-@keyframes popUp {
-  0% { transform: translate(-50%, -60%) scale(0.5); opacity: 0; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-}
+  /* Анимация появления окна */
+  @keyframes popUp {
+    0% { transform:scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
 

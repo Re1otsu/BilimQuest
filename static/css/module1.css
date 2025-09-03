@@ -7,10 +7,15 @@
 
 body {
     font-family: "Segoe UI", Tahoma, sans-serif;
+    text-align: center;
     background: #f4f6f9;
     margin: 0;
     padding: 0;
     color: #333;
+    width: 100vw;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
 }
 .game-wrapper {
   display: flex;
@@ -18,7 +23,6 @@ body {
   justify-content: flex-start;
   align-items: center;
   width: 100%;
-  height: 100%;
   padding: 2em;
   overflow-y: auto;
 }
@@ -36,11 +40,11 @@ body {
   margin: 0 auto 1.5em auto;
   background: linear-gradient(180deg, #fff, #f3f3f3);
   color: #2c3e50;
-  padding: 6px 10px;
-  border-radius: 999px;
-  width: 180px;
+  padding: 0.5% 0.5%;
+  border-radius: 5rem;
+  width: 10vw;
   font-weight: 700;
-  font-size: 1.4em;
+  font-size: 1.25vw;
   text-align: center;
   box-shadow: 0 6px 14px rgba(0,0,0,0.18);
   transition: all 0.3s ease;
@@ -61,18 +65,20 @@ body {
 /* Контейнеры слов и целей */
 .container {
   display: flex;
+transform: translateX(22%);
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1.5em;
+  gap: 3%;
   margin-bottom: 0.5em;
-  max-width: 100%;
+  width: 70vw;
+  height: 30vh;
 }
 
 /* Слова */
 .word {
-  width: 7em; 
-  height: 7em;
+  width: 10vw; 
+  height: 15vh;
   object-fit: contain;
   border-radius: 0.8em;
   background: #fff;
@@ -89,19 +95,20 @@ body {
 
 /* Цели */
 .target {
-  flex: 1 1 12em;
-  min-height: 5em;
-  border: 2px dashed #9fa8da;
+  width: 12vw;
+  height: 12vh;
+  border: 0.3vw dashed #9fa8da;
   background-color: #dbe9ff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1em;
-  border-radius: 0.8em;
+  border-radius: 1rem;
   color: #3f51b5;
+  font-size: 1.4vw;
   font-style: italic;
-  font-weight: 500;
+  font-weight: 600;
   transition: all 0.3s;
+  word-wrap: break-word;
 }
 
 .target.dragover {
@@ -127,8 +134,14 @@ body {
 
 /* Кнопка */
 #check-btn {
+  display: flex;
+  position: relative;
+  align-items: center;
+  left: 43%;
+  width: 15vw;
+  height: 10vh;
   padding: 0.8em 2em;
-  font-size: 1.2em;
+  font-size: 2vw;
   background-color: #3949ab;
   color: white;
   border: none;
@@ -136,7 +149,7 @@ body {
   cursor: pointer;
   box-shadow: 0 0.3em 0.8em #3949abaa;
   transition: background-color 0.3s ease;
-  margin-top: 1em;
+  margin-top: 1%;
 }
 
 #check-btn:hover:not(:disabled) {
@@ -149,16 +162,72 @@ body {
   box-shadow: none;
 }
 
-/* Результат */
-#result-box {
-  margin-left: 6.5em;
-  margin-top: 2em;
-  padding: 1.5em;
-  border-radius: 1em;
-  background: #f0fff0;
-  border-left: 6px solid #32cd32;
-  font-size: 1.4em;
-  width: 100%;
-  max-width: 50em;
+#game-over {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: rgb(9, 143, 233);
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
+  z-index: 1000;
+  animation: popUp 0.5s ease-out;
 }
+#game-over.hidden {
+  display: none !important;
+}
+#game-over h2 {
+  font-size: 2vw;
+  color: #fffb00;
+  margin: 1rem 0;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#final-score {
+  font-size: 4vw;
+  font-weight: bold;
+  color: #ffee00;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#btn {
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 5vh;
+  width: 7vw;
+  text-align: center;
+  text-decoration: none;
+  color: #0077ff;
+  border-radius: 5em;
+  margin-top: 1.5rem;
+  font-weight: 900;
+  font-family: 'Open Sans', sans-serif;
+}
+
+#star-container { margin-top: 15px; }
+.star {
+  font-size: 50px;
+  color: gold;
+  display: inline-block;
+  animation: floatStar 1.5s ease-out forwards;
+}
+
+@keyframes floatStar {
+  0% { transform: translateY(20px) scale(0.5); opacity: 0; }
+  50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+  100% { transform: translateY(-40px) scale(1); opacity: 0; }
+}
+@keyframes popUp {
+  0% { transform: translate(-50%, -60%) scale(0.5); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+

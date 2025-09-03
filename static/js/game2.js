@@ -29,7 +29,7 @@ targets.forEach(target => {
       score += 5; // +5 ұпай әр дұрыс жауап үшін
 
       if (correct === 3) {
-        showGameOver();
+        setTimeout(showGameOver, 1000);
       }
     } else {
       target.style.background = '#ffcdd2';

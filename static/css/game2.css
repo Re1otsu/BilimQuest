@@ -2,56 +2,65 @@
       margin: 0;
       font-family: sans-serif;
       background:no-repeat center/cover; /* картинка с мальчиком, рекой, школой */
-      height: 100%;
-      width: auto;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
+    }
+
+    .game{
+      position: relative;
+      transform: translate(5%, 10%);
+      display: table-column;
+      justify-content: center;
+      align-items: center;
+      
     }
 
     .targets {
       display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateX(10%);
+      width: 30vw;
+      height: 8vh;
       gap: 1rem;
-      margin-top: 2rem;
     }
     .target {
-      padding: 1rem 2rem;
+      display: flex;
+      width: 7vw;
+      height: 6vh;
+      font-size: 1vw;
+      text-align: center;
+      justify-content: center;
+      align-items: center;
       background: #fff;
-      border-radius: 10px;
+      border-radius: 0.5em;
       font-weight: bold;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
     .bridge {
-      position: relative;
       display: flex;
-      top: 15%;
-      left:-4%;
+      position: relative;
+      align-items:center;
+      justify-content: center;
+
+      transform: translate(-15%, 80%);
       width: 40vw;
-      height: 30vh;
-      margin: 2rem 0;
+      height: 8vh;
+      margin: 30% 0%;
     }
 
-    #p1 {
+    .bridge img {
       display: flex;
-      position: relative;
-      right: 2%;
+      width: 15vw;
+      height: 25vh;
     }
-    #p2 { 
-      display: flex;
-      position: relative;
-      right: 60%;
-    }
-    
-    #p3 { 
-      display: flex;
-      position: relative;
-      right: 120%;
-    }
+
+
     .plank {
-      position: absolute;
-      top: 40px;
       opacity: 0;
       transition: opacity 0.4s;
     }
@@ -60,15 +69,22 @@
 
     .items {
       display: flex;
+      width: 35vw;
+      height: 10vh;
+      transform: translateX(0%);
+      align-items: center;
+      justify-content: center;
       gap: 2rem;
       margin-bottom: 2rem;
     }
     .item {
       background: #fff;
-      border-radius: 10px;
-      padding: 1rem;
+      border-radius: 0.7rem;
+      padding: 2%;
       text-align: center;
-      width: 90px;
+      width: 5vw;
+      height: 9vh;
+      font-size: 1vw;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       cursor: grab;
     }
@@ -99,7 +115,7 @@
   width: 100vw;
   height: 100vh;
   background: rgb(9, 143, 233);
-  padding: 30px 20px;
+  padding: 3rem 2rem;
   display: flex;                 /* включаем flex */
   flex-direction: column;        /* вертикально */
   align-items: center;           /* по центру по горизонтали */
@@ -112,14 +128,14 @@
 #game-over.hidden { display: none; }
 
 #game-over h2 {
-  font-size: 24px;
+  font-size: 2vw;
   color: #fffb00;
   margin: 1rem 0; /* отступы сверху/снизу */
   text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
 }
 
 #final-score {
-  font-size: 20px;
+  font-size: 4vw;
   font-weight: bold;
   color: #ffee00;
   margin-bottom: 1rem;

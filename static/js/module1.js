@@ -1,25 +1,28 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const words = document.querySelectorAll('.word');
-  const targets = document.querySelectorAll('.target');
-  const checkBtn = document.getElementById('check-btn');
-  const wordsContainer = document.getElementById('words-container');
-  const targetsContainer = document.getElementById('targets-container');
-  const timerEl = document.getElementById('timer');
+document.addEventListener("DOMContentLoaded", () => {
+  const words = document.querySelectorAll(".word");
+  const targets = document.querySelectorAll(".target");
+  const checkBtn = document.getElementById("check-btn");
+  const wordsContainer = document.getElementById("words-container");
+  const targetsContainer = document.getElementById("targets-container");
+  const timerEl = document.getElementById("timer");
+  const gameOverBox = document.getElementById("game-over");
+  const finalScore = document.getElementById("final-score");
+  const starContainer = document.getElementById("star-container");
 
-  let totalTime = 90; // 60 секунд на игру
+  let totalTime = 90;
   let timeLeft = totalTime;
   let timerId = null;
-  let finished = false; // чтобы не отправлять дважды
+  let finished = false;
 
   function formatTime(s) {
-    const mm = Math.floor(s / 60).toString().padStart(2,'0');
-    const ss = (s % 60).toString().padStart(2,'0');
+    const mm = String(Math.floor(s / 60)).padStart(2, "0");
+    const ss = String(s % 60).padStart(2, "0");
     return `${mm}:${ss}`;
   }
 
   function updateTimer() {
     timerEl.textContent = `Таймер: ${formatTime(timeLeft)}`;
-    if (timeLeft <= 10) timerEl.classList.add('low');
+    if (timeLeft <= 10) timerEl.classList.add("low");
   }
 
   function startTimer() {
@@ -27,123 +30,85 @@ document.addEventListener('DOMContentLoaded', () => {
     timerId = setInterval(() => {
       timeLeft--;
       updateTimer();
-      if (timeLeft <= 0) {
-        clearInterval(timerId);
-        if (!finished) {
-          finished = true;
-          alert("Уақыт бітті!");
-          autoSubmitScore();
-        }
-      }
+      if (timeLeft <= 0) endGame("Уақыт бітті!");
     }, 1000);
   }
 
-  function autoSubmitScore() {
-    // считаем сколько правильных, как в checkBtn
-    let correctCount = 0;
+  function shuffleElements(container) {
+    [...container.children]
+      .sort(() => Math.random() - 0.5)
+      .forEach(el => container.appendChild(el));
+  }
+
+  function checkCompletion() {
+    const placedCount = [...targets].filter(t => t.children.length > 0).length;
+    checkBtn.disabled = placedCount !== words.length;
+  }
+
+  function calcScore() {
+    let correct = 0;
     targets.forEach(target => {
       const expected = target.dataset.word;
-      const placed = target.firstChild ? target.firstChild.id : null;
-      if (placed === expected) correctCount++;
+      const placed = target.firstChild?.id;
+      if (placed === expected) correct++;
     });
-    const score = correctCount * 10;
+    return correct * 10;
+  }
 
+  function sendResult(score) {
     fetch("/game_result", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        game_name: "words_match",
-        score: score,
-        completed: true
-      })
-    }).then(r=>r.json()).then(data=>{
-      const percentage = Math.round((correctCount / words.length) * 100);
-      document.getElementById('result-score').innerText = `Ұпай: ${score} (${percentage}%)`;
-      document.getElementById('result-comment').innerText = "Уақыт аяқталды!";
-      document.getElementById('result-box').style.display = 'block';
-    }).catch(()=>alert("Серверге қосыла алмады."));
+      body: JSON.stringify({ game_name: "words_match", score, completed: true })
+    }).catch(() => alert("Серверге қосыла алмады."));
   }
 
-  startTimer();
+  function endGame(message = "") {
+    if (finished) return;
+    clearInterval(timerId);
+    finished = true;
 
-  // --- далее твоя логика dnd ---
-  function shuffleElements(container) {
-    const elements = Array.from(container.children);
-    elements.sort(() => Math.random() - 0.5);
-    elements.forEach(el => container.appendChild(el));
+    const score = calcScore();
+    finalScore.textContent = `Ұпай: ${score}`;
+    gameOverBox.classList.remove("hidden");
+
+
+    if (message) alert(message);
+    sendResult(score);
   }
-  shuffleElements(targetsContainer);
-  shuffleElements(wordsContainer);
 
-  checkBtn.disabled = true;
-
+  // --- Drag&Drop ---
   words.forEach(word => {
-    word.addEventListener('dragstart', e => {
-      e.dataTransfer.setData('text/plain', e.target.id);
-      e.dataTransfer.effectAllowed = 'move';
+    word.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("text/plain", e.target.id);
     });
   });
 
   targets.forEach(target => {
-    target.addEventListener('dragover', e => {
+    target.addEventListener("dragover", e => e.preventDefault());
+    target.addEventListener("drop", e => {
       e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    });
-    target.addEventListener('drop', e => {
-      e.preventDefault();
-      const wordId = e.dataTransfer.getData('text/plain');
+      const wordId = e.dataTransfer.getData("text/plain");
       const dragged = document.getElementById(wordId);
       if (!dragged) return;
-      const existing = target.querySelector('img');
+
+      const existing = target.firstChild;
       if (existing && existing !== dragged) {
         wordsContainer.appendChild(existing);
       }
-      target.innerHTML = '';
+
+      target.innerHTML = "";
       target.appendChild(dragged);
       checkCompletion();
     });
   });
 
-  function checkCompletion() {
-    const placedCount = Array.from(targets).filter(t => t.children.length > 0).length;
-    checkBtn.disabled = placedCount !== words.length;
-  }
+  checkBtn.addEventListener("click", () => endGame());
 
-  checkBtn.addEventListener('click', () => {
-    if (finished) return;
-    clearInterval(timerId);
-    finished = true;
+  document.getElementById("restart-btn")?.addEventListener("click", () => location.reload());
 
-    let correctCount = 0;
-    targets.forEach(target => {
-      const expected = target.dataset.word;
-      const placed   = target.firstChild ? target.firstChild.id : null;
-
-      if (placed === expected) {
-        target.classList.add('correct');
-        target.classList.remove('incorrect');
-        correctCount++;
-      } else {
-        target.classList.add('incorrect');
-        target.classList.remove('correct');
-      }
-    });
-
-    const score = correctCount * 10;
-
-    fetch("/game_result", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        game_name: "words_match",
-        score: score,
-        completed: true
-      })
-    }).then(res => res.json()).then(data => {
-      const percentage = Math.round((correctCount / words.length) * 100);
-      document.getElementById('result-score').innerText = `Ұпай: ${score} (${percentage}%)`;
-      document.getElementById('result-comment').innerText = `Дұрыс ${correctCount}/${words.length}`;
-      document.getElementById('result-box').style.display = 'block';
-    });
-  });
+  shuffleElements(wordsContainer);
+  shuffleElements(targetsContainer);
+  checkBtn.disabled = true;
+  startTimer();
 });

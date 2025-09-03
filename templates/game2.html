@@ -9,30 +9,36 @@
 </head>
 <body style="background-image: url('{{ url_for('static', filename='img/bg2.jpg') }}');">
 
-  <!-- Жоғарыдағы "Мәтін, Дыбыс, Бейне" -->
-  <div class="targets">
-    <div class="target" data-match="мәтін">Мәтін</div>
-    <div class="target" data-match="дыбыс">Дыбыс</div>
-    <div class="target" data-match="бейне">Бейне</div>
-  </div>
 
-  <!-- Көпір тақталары -->
-  <div class="bridge">
-    <div class="plank" id="p1"><img src="static/img/wood.png"></div>
-    <div class="plank" id="p2"><img src="static/img/wood.png"></div>
-    <div class="plank" id="p3"><img src="static/img/wood.png"></div>
-  </div>
+  <div class="game">
+    <!-- Жоғарыдағы "Мәтін, Дыбыс, Бейне" -->
+    <div class="targets">
+      <div class="target" data-match="мәтін">Мәтін</div>
+      <div class="target" data-match="дыбыс">Дыбыс</div>
+      <div class="target" data-match="бейне">Бейне</div>
+    </div>
 
-  <!-- Төмендегі карточкалар -->
-  <div class="items">
-    <div class="item" draggable="true" data-answer="мәтін">
-      <img src="static/img/newspaper.png" alt=""><span>Газет</span>
+    <!-- Көпір тақталары -->
+    <div class="bridge">
+      <div class="plank" id="p1"><img src="static/img/wood.png"></div>
+      <div class="plank" id="p2"><img src="static/img/wood.png"></div>
+      <div class="plank" id="p3"><img src="static/img/wood.png"></div>
     </div>
-    <div class="item" draggable="true" data-answer="дыбыс">
-      <img src="static/img/music.png" alt=""><span>Ән</span>
-    </div>
-    <div class="item" draggable="true" data-answer="бейне">
-      <img src="static/img/film.png" alt=""><span>Фильм</span>
+
+    <!-- Төмендегі карточкалар -->
+    <div class="items">
+      <div class="item" draggable="true" data-answer="мәтін">
+        <img src="static/img/newspaper.png" style="width:3vw; height:5vh;" alt="">
+        <span>Газет</span>
+      </div>
+      <div class="item" draggable="true" data-answer="дыбыс">
+        <img src="static/img/music.png" style="width:3vw; height:5vh;" alt="">
+        <span>Ән</span>
+      </div>
+      <div class="item" draggable="true" data-answer="бейне">
+        <img src="static/img/film.png" style="width:3vw; height:5vh;" alt="">
+        <span>Фильм</span>
+      </div>
     </div>
   </div>
 
