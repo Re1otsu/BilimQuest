@@ -1,243 +1,172 @@
-/* Фон */
-html, body {
-  height: 100%;
-  margin: 0;
-}
+    body {
+      margin: 0;
+      font-family: "Open Sans", system-ui, -apple-system, Arial, sans-serif;
+      background: #dde9f8;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    header {
+      background: #1e4fa8;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4vh 1vw;
+      border-radius: 1em 1em 0 0;
 
-* {
-  box-sizing: border-box;
-}
-body {
-  font-family: 'Open Sans', sans-serif;
-  background: linear-gradient(135deg, #48a1ee, #a08bff);
-  color: #2c3e50;
-  display: flex;
-  flex-direction: column;
-  padding: 2vh; /* вместо px *//
-}
+    }
+    .main{
+      background-color: #ffffff;
+      position: relative;
+      margin-top: 5vh;
+      width: 90vw;
+      height: auto;
+      border-radius: 1em;
+    }
+    header .logo {
+      display: flex;
+      align-items: center;
+      font-size: 2vw;
+      font-weight: 700;
+    }
+    header nav {
+      display: flex;
+      gap: 5vw;
+    }
+    header nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 400;
+      font-size: 1.2vw;
+      padding: 1.2vh 1vw;
+      border-radius: 0.5em;
+      background-color:#1e4fa8;
+      box-shadow: 0 0.1em 0.5em rgba(0,0,0,0.1);
+    }
 
-/* Верхняя панель */
-.top-bar {
+    header nav a:hover{
+      transform:scale(1.05);
+      filter: brightness(1.05);
+    }
+    .user {
+      display: flex;
+      align-items: center;
+      justify-content:space-between;
+      text-align: center;
+      width: 18vw;
+      height: 5vh;
+
+    }
+
+    .user .ava{
+      height: 6vh;
+    }
+
+    #name{
+      font-size: 1.7vw;
+      font-weight: 500;
+      padding-bottom: 0.2em;
+    }
+
+    #logoutText{
+      display: flex;
+      cursor: pointer;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 400;
+      font-size: 1.2vw;
+
+    }
+
+    .container {
+      padding: 2em;
+    }
+    
+    .info{
+      background-color: rgb(213, 247, 247);
+      padding: 1.5em;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 1.5em;
+      border-radius: 0.5em;
+    }
+
+    .info h2{
+      font-size: 1.5vw;
+    }
+    .info p{
+      font-size: 1vw;
+    }
+
+.info-content {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5em;
+}
+.info-text {
+  flex: 2; /* текст занимает больше места */
+}
+
+.info-images {
+  flex: 1;
+  display: flex;
+  flex-direction: row; /* ← теперь по горизонтали */
+  gap: 3vw;
+  justify-content: center; /* выравнивание по центру */
   align-items: center;
-  color: #fff;
-  font-size: 1.5vw;
-  font-weight: bold;
-}
-
-.top-bar h1 {
-  margin: 0;
-}
-
-.top-bar .icons {
-  display: flex;
-  gap: 1rem;
-  font-size: 2vw;
-  cursor: pointer;
-}
-
-/* Дашборд */
-.dashboard {
-  background-color: #fff;
-  width: 70vw;          /* вместо 60em */
-  height: 80vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-left: 6vw;
-  padding-top: 1vh;
-  border-radius: 2rem;
-  margin: 5vh auto 0; /* по центру, убираем margin-left */
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  width: 100vw;
-  height: 65vh;
-  padding-top: 1vh;
-}
-
-.grid img{
-  width: 6vw;
-  height: 12vh;
 
 }
 
-/* Карточки */
-.card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 1.5rem;
-  text-decoration: none;
-  text-align: center;
-  font-weight: bold;
-  font-size: 1.2vw;
-  color: #333;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.info-images img {
+  width: 6vw;   /* можно настроить размер */
+  height: auto;
+  transform: translateY(-25%);
+
+}
+    .info button{
+      margin-top: 1vh;
+      border-radius: 0.5em;
+      background-color: #ffffff;
+      color:#1e4fa8;
+      font-size: 0.9vw;
+      font-weight: 600;
+      display: flex;
+      border: none;
+      padding: 0.6em 1.2em;
+      cursor: pointer;
+    }
+    .info button:hover {
+      background:#1e4fa8;
+      color:white;
+    }
+    .card {
+      background: rgb(255, 255, 255);
+      padding: 1vh 1.5vw;
+      box-shadow: 0 0.2em 0.6em rgba(0,0,0,0.2);
+      margin-bottom: 2vh;
+      width: 12vw;
+    }
+    .flex {
+      display: flex;
+      gap: 1em;
+      flex-wrap: wrap;
+      font-size: 0.9vw;
+      
+    }
+    .card h2 {
+      margin-top: 0;
+    }
+.chart-container {
+  width: 30vw;
+  height: 40vh;     /* высота в зависимости от окна */
+  padding-bottom: 2.5vh;
+}
+h2{
+  font-size: 1.7vw;
+}
+h3{
+  font-size:1vw;
 }
 
-.icons {
-  display: flex;
-  justify-content: center;
-}
-
-.icons .icon {
-  width: 5vw;
-  height: 6vh;
-  object-fit: contain;
-  padding: 0.2rem 0.5rem;
-  border-radius: 1.1rem;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
-}
-
-.icons .icon:hover {
-  transform: translateY(2px);
-}
-
-.card .icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Цвета карточек */
-.card.red { 
-  background: #ffe5e5; 
-  color: #a33; 
-  width: 15vw;
-  height: 28vh;
-}
-.card.green { 
-  background: #e5ffe5; 
-  color: rgb(6, 182, 85);
-  width: 15vw;
-  height: 28vh;
-}
-.card.blue { 
-  background: #e5f0ff; 
-  color: #36f;
-  width: 15vw;
-  height: 28vh; 
-}
-.card.yellow { 
-  background: #fff6d5; 
-  color: rgb(204, 156, 0);
-  width: 15vw;
-  height: 28vh;  
-}
-.card.orange { 
-  background: #ffe9d5; 
-  color: hsl(26, 80%, 24%);
-  width: 15vw;
-  height: 28vh; 
-}
-.card.gray { 
-  background: #f0f0f0; 
-  color: #555; 
-  width: 15vw;
-  height: 28vh;  
-}
-
-/* Эффект наведения */
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-}
-
-/* Модальное окно */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 1em;
-    padding: 2vw;
-    width: 40vw;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 1vw;
-    animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-    from { transform: translateY(-50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-.close-btn {
-    position: absolute;
-    top: 1vh;
-    right: 1.5vw;
-    font-size: 2vw;
-    cursor: pointer;
-    color: #888;
-    transition: color 0.2s ease;
-}
-.close-btn:hover {
-    color: #333;
-}
-
-.modal-content h2 {
-    font-family: 'Open Sans', sans-serif;
-    font-weight: 700;
-    color: #3367d6;
-    margin-bottom: 0.5rem;
-}
-
-.modal-content select,
-.modal-content textarea {
-    width: 100%;
-    padding: 0.6rem 0.8rem;
-    border-radius: 0.6rem;
-    border: 1px solid #ccc;
-    font-family: 'Open Sans', sans-serif;
-    margin-bottom: 0.8rem;
-}
-
-.modal-content button.btn {
-    background-color: #0840fa;
-    color: #fff;
-    font-size: 1vw;
-    font-weight: 600;
-    padding: 1vh 1.5vw;
-    border: none;
-    border-radius: 0.6em;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-}
-.modal-content button.btn:hover {
-    background-color: #3367d6;
-    transform: scale(1.05);
-}
-
-  .modal-content .history-btn { 
-    position: relative;  
-    background-color: #6a5af9;
-    text-align: center; 
-    width: 14vw;
-    color: white; 
-    padding: 1vh 0.3vw; 
-    border-radius: 0.6em; 
-    text-decoration: none; 
-    font-size: 1vw; 
-    font-weight: 600; 
-    transition: background 0.3s ease, transform 0.2s ease; 
-  } 
-  .modal-content .history-btn:hover { 
-    background-color: #5a4de0; 
-    transform: scale(1.05); 
-  }

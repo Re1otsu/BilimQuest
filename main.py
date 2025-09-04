@@ -14,6 +14,20 @@ app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv("SECRET_KEY")
 
+def format_name_initials(full_name):
+    if not full_name:
+        return ""
+    # разбиваем на слова, убираем лишние пробелы
+    parts = [p for p in full_name.split() if p]
+    if len(parts) == 1:
+        return parts[0]  # только одно слово — оставляем как есть
+    # составляем инициалы от всех слов кроме последнего
+    initials = " ".join(f"{p[0]}." for p in parts[:-1])
+    last = parts[-1]
+    return f"{initials} {last}"
+
+# зарегистрировать фильтр в Jinja
+app.jinja_env.filters["initials"] = format_name_initials
 #app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 
 db_url = os.getenv("DATABASE_URL")
@@ -127,16 +141,6 @@ def login_required(role):
     return decorator
 
 
-app.route("/delete_announcement/<int:id>", methods=["POST"])
-@login_required("teacher")
-def delete_announcement(id):
-    announcement = Announcement.query.get(id)
-    if announcement:
-        db.session.delete(announcement)
-        db.session.commit()
-        flash("Хабарлама өшірілді.")
-    return redirect("/teacher")
-
 @app.route("/edit_announcement/<int:id>", methods=["GET", "POST"])
 @login_required("teacher")
 def edit_announcement(id):
@@ -169,10 +173,11 @@ def home():
 def teacher():
     user_email = session.get("email")
     announcements = Announcement.query.order_by(Announcement.timestamp.desc()).all()
+    teacher = Teacher.query.get(session.get("user_id"))
 
     # Егер қандай да бір student керек болса (мысалы, тест үшін)
     student = Student.query.first()  # Немесе нақты ID арқылы
-    return render_template("teacher.html", email=user_email, announcements=announcements, student=student)
+    return render_template("teacher.html", email=user_email, announcements=announcements, student=student, teacher=teacher)
 
 
 # Негізгі бет оқушы үшін
@@ -294,6 +299,7 @@ def login_teacher():
             session["user_id"] = teacher.id
             session["email"] = teacher.email
             session["role"] = "teacher"
+            session["user_name"] = teacher.name
             return redirect("/teacher")
         else:
             return "Қате: Есім, почта немесе құпиясөз дұрыс емес."
