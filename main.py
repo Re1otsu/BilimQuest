@@ -521,6 +521,25 @@ def game2():
 
     return render_template("game2.html")
 
+
+@app.route("/game3")
+@login_required("student")
+def game3():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Марсқа хабар") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Марсқа хабар").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template("game3.html")
+
 @app.route("/module1")
 @login_required("student")
 def module1():
