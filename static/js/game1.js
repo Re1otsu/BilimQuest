@@ -5,6 +5,9 @@ const gameOverModal = document.getElementById("game-over");
 const finalScore = document.getElementById("final-score");
 
 let score = 0;
+let mistakes = 0;
+let missed = 0;
+
 const infoSources = ["кітап", "телефон", "газет", "компьютер", "теледидар"];
 const items = [
   {name: "кітап", img: "static/img/book.png"},
@@ -20,6 +23,9 @@ const items = [
 ];
 
 let remainingItems = [...items];
+
+const maxScore = 0.3;
+const scoreIncrement = maxScore / infoSources.length; // дробное значение за каждую правильную картинку
 
 function spawnItem() {
   if (!remainingItems.length) return;
@@ -44,25 +50,24 @@ function spawnItem() {
     if (y < -100) {
       clearInterval(interval);
       item.remove();
+      if (infoSources.includes(itemData.name)) {
+        missed++;
+        score = 0; // обнуляем сразу
+      }
       checkGameEnd();
     }
   }, 20);
 
   item.onclick = () => {
     if (infoSources.includes(itemData.name)) {
-      score++;
-
-      const star = document.createElement("div");
-      star.textContent = "⭐";
-      star.classList.add("star");
-      star.style.left = item.offsetLeft + "px";
-      star.style.top = item.offsetTop + "px";
-      gameArea.appendChild(star);
-
-      setTimeout(() => star.remove(), 1000);
-      message.textContent = "";
+      score += scoreIncrement;
+      if (score > maxScore) score = maxScore;
     } else {
-      message.textContent = "❌ Бұл ақпарат көзі емес!";
+      mistakes++;
+    }
+
+    if (mistakes >= 2 || missed >= 1) {
+      score = 0;
     }
 
     clearInterval(interval);
@@ -71,31 +76,35 @@ function spawnItem() {
   };
 }
 
-// Ойын аяқталғанын тексеру
 function checkGameEnd() {
   if (!remainingItems.length && !gameArea.querySelector(".item")) {
     clearInterval(gameInterval);
     showGameOver();
   }
 }
+
 function showGameOver() {
-  finalScore.textContent = `Ұпай: ${score}`;
+  finalScore.textContent = `Ұпай: ${score.toFixed(2)}`;
   gameOverModal.classList.remove("hidden");
 
+  let stars = (score === maxScore) ? 1 : 0;
+  const starElement = document.getElementById("star");
+  starElement.style.display = stars === 1 ? "block" : "none";
+
   fetch("/game_result", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        game_name: "Ақпарат-алу",
-        score: score,
-        completed: true
-      })
-    }).then(res => res.json()).then(data => {
-      document.getElementById('result-box').style.display = 'block';
-    });
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      game_name: "Ақпарат-алу",
+      score: score.toFixed(2),
+      stars: stars,
+      completed: true
+    })
+  }).then(res => res.json()).then(data => {
+    document.getElementById('result-box').style.display = 'block';
+  });
 }
 
-// Әр 1.5 секундта жаңа сурет шығару
 const gameInterval = setInterval(() => {
   if (remainingItems.length) spawnItem();
 }, 1500);

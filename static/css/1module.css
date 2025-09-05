@@ -110,17 +110,17 @@ body {
 }
 
 #saturn {
-  position: relative;
-  display: flex;
+  display: table-row;
   align-items:center;
   justify-content: center;
-  top:5vh;
-  left: 80vw;
-  transform: rotate(50deg);
+  top:38vh;
+  left: 85vw;
+  word-wrap: break-word;
+  width: 15vw;
+  color: aliceblue;
 }
 
 #saturn:hover {
-  transform: scale(1.2); 
   filter: brightness(1.05);
 }
 

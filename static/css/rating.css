@@ -1,71 +1,87 @@
-body {
-    margin: 0;
-    font-family: 'Open Sans', sans-serif;
-    background: linear-gradient(to right, #eef2f3, #cfd9df);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    body {
+      margin: 0;
+      font-family: 'Open Sans', sans-serif;
+      background: #e0e0e0; /* серый фон */
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 4vh 0;
+    }
+
+    .container {
+      background: #fff; /* белый прямоугольник */
+      border-radius: 1em;
+      padding: 2vw;
+      width: 90%;
+      max-width: 60vw;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2vw;
+      font-weight: 600;
+      color: #333;
+    }
+
+.student-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1vh 1vw;
+  margin-bottom: 0.5vh;
+  border-radius: 1em;
+  background: #f9f9f9;
+  transition: background 0.2s;
 }
 
-.container {
-    text-align: center;
-    padding: 40px;
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 900px;
+.student-card:hover {
+  background: #f0f0f0;
 }
 
-h1 {
-    color: #333;
-    margin-bottom: 30px;
+.avatar img {
+  width: 3vw;
+  border-radius: 50%;
+  margin-right: 15px;
 }
 
-.rating-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 30px;
-    border-radius: 12px;
-    overflow: hidden;
+.student-name {
+  flex-grow: 1;
+  font-size: 1vw;
+  font-weight: 600;
+  color: #333;
 }
 
-.rating-table th {
-    background-color: #4682B4;
-    color: white;
-    padding: 14px;
-    font-size: 16px;
+.student-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 14px;
+  color: #333;
 }
 
-.rating-table td {
-    background-color: #f9f9f9;
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
-    transition: background 0.2s ease-in-out;
+.stars {
+  color: #f5b700;
+  margin-bottom: 0.4em;
+  font-size: 1vw;
 }
 
-.rating-table tr:hover td {
-    background-color: #e3f1ff;
+.average {
+  display: flex;
+  align-items: center;
+  font-size: 1vw;
+  font-weight: 600;
+  gap: 4px; /* расстояние между иконкой и цифрой */
 }
 
-/* Рейтинг түсі */
-.gold td { background-color: #fff8dc; font-weight: bold; }
-.silver td { background-color: #f0f8ff; font-weight: bold; }
-.bronze td { background-color: #fdf5e6; font-weight: bold; }
-
-/* Артқа батырма */
-.btn_back {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #4682B4;
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+.rating-icon {
+  width: 1.2vw;
 }
 
-.btn_back:hover {
-    background-color: #3561a8;
+.student-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  margin-bottom: 12px; /* чтобы был отступ между карточками */
 }

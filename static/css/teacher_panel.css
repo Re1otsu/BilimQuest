@@ -1,0 +1,249 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b1f4a;
+  color: #fff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1em 2em;
+  background: #0a1b3d;
+}
+
+.logo{
+    display: flex;
+    font-size: 3vw;
+    font-weight: 600;
+}
+
+.user{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    font-size: 1.8vw;
+    font-family: "Open Sans", system-ui, -apple-system, Arial, sans-serif;
+    gap: 0.5vw;
+
+}
+
+.header img{
+    display: flex;
+    align-items: center;
+    width: 2vw;
+}
+
+
+.dashboard {
+  display: grid;
+  gap: 1.5em;
+  padding: 2em;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* контейнеры-строки: делают по 2 блока в ряд, но разрешают перенос */
+.line1,
+.line2 {
+  display: flex;
+  gap: 1vw;
+  align-items: stretch;     /* одинаковая высота карточек в строке */
+  flex-wrap: wrap;          /* на маленьких экранах — перенос */
+  margin-bottom: 1vh;
+}
+
+/* сами "диаграммы" — займут равные колонки и будут адаптивны */
+.diagram1,
+.diagram2 {
+  width: 40vw;
+  height: 40vh;         /* grow | shrink | basis */     /* не ужимать меньше */
+  background: #fff;
+  color: #000;
+  border-radius: 1em;
+  padding: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+
+/* небольшой отступ для заголовков */
+.diagram1 h3,
+.diagram2 h3,
+.diagram3 h3,
+.diagram4 h3 {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.05rem;
+}
+
+.diagram3 {
+  width: 25vw;
+  background: #fff;
+  color: #000;
+  border-radius: 16px;
+  padding: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.diagram3 img{
+    display: flex;
+    width: 11vw;
+    margin-left: 8vw;
+}
+
+.diagram-link {
+  width: 25vw;            /* ширина как у .diagram3 */
+  text-decoration: none;  /* убираем подчеркивание */
+  color: inherit;         /* сохраняем цвет текста */
+}
+
+
+/* делаем canvas адаптивным: займёт ширину и высоту контейнера */
+.diagram1 canvas,
+.diagram3 canvas {
+    transform: translate(40%, 10%);
+  width: 55% !important;
+  height: 80% !important;
+  display: block;
+}
+
+/* темы — список прогрессбаров внутри карточки */
+.topic {
+  margin: 0.6em 0;
+  color: #1f2d3d;
+}
+.topic span { display: inline-block; }
+.topic .bar {
+  height: 8px;
+  background: #eef6fb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.topic .bar div {
+  height: 100%;
+  background: linear-gradient(90deg,#1e4fa8,#4db6ff);
+}
+
+/* студент-карточка справа — стили для выравнивания */
+.diagram4 {
+
+  min-height: 25vh;
+  background: #dcf8ff;
+  color: #000;
+  border-radius: 16px;
+  padding-right: 12em;
+  padding-left: 1em;
+  padding-bottom: 1em;
+  padding-top: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.diagram4 .avatar img {
+  width: 7em;
+  height: 7em;
+  border-radius: 50%;
+  margin-right: 2em;
+  margin-bottom: 4em;
+}
+
+.diagram4 .info {
+  flex: 1;
+  margin-bottom: 4em;
+}
+
+.diagram4 h4 {
+  margin: 0 0 0.5em;
+  font-size: 2em;
+}
+
+.diagram4 p {
+  font-size: 1.5em;
+}
+
+.diagram4 .progress {
+  width: 130%;
+  height: 0.7em;
+  background: #cce7f5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 0.3em 0;
+}
+
+.diagram4 .progress-bar {
+  height: 100%;
+  background: #1e4fa8;
+}
+
+.diagram4 .medal {
+  position: absolute;
+  bottom: 0.8em;
+  left: 0.8em;
+}
+
+.diagram4 .medal img {
+  width: 3.2em;
+  height: 3.2em;
+  margin-left: 2em;
+}
+
+/* Навигация — пусть остаётся в одну строку, но переносится на маленьких экранах */
+.nav-panel {
+  display: flex;
+  gap: 5vw;
+  justify-content: center;
+  align-items: center;
+  background: #0a1b3d;
+  padding: 1em 2em;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-wrap: wrap;
+}
+
+nav a{
+    text-decoration: none;
+    color: #fff;
+    font-size: 1vw;
+}
+
+nav select{
+    padding: 0.5vw;
+    border-radius: 0.5em;
+    font-size: 1.5vw;
+    font-weight: 600;
+}
+
+/* лучше делать логотип и пользовательские элементы поменьше на мобилках */
+@media (max-width: 900px) {
+  .diagram1,
+  .diagram2,
+  .diagram3,
+  .diagram4 {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .diagram1 .chart-wrap,
+  .diagram3 .chart-wrap {
+    height: 260px;
+  }
+  .logo { font-size: 1.25rem; }
+  .user { font-size: 0.95rem; }
+}
+
+/* насытим мобильный вид небольшим паддингом */
+@media (max-width: 480px) {
+  .diagram1 .chart-wrap,
+  .diagram3 .chart-wrap {
+    height: 220px;
+  }
+  .nav-panel { padding: .6em 1em; gap: .8em; }
+}

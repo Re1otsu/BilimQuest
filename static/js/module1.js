@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let timeLeft = totalTime;
   let timerId = null;
   let finished = false;
+  let mistakes = 0;
 
   function formatTime(s) {
     const mm = String(Math.floor(s / 60)).padStart(2, "0");
@@ -45,15 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
     checkBtn.disabled = placedCount !== words.length;
   }
 
-  function calcScore() {
-    let correct = 0;
-    targets.forEach(target => {
-      const expected = target.dataset.word;
-      const placed = target.firstChild?.id;
-      if (placed === expected) correct++;
-    });
-    return correct * 10;
-  }
+    function calcScore() {
+      let correct = 0;
+      targets.forEach(target => {
+        const expected = target.dataset.word;
+        const placed = target.firstChild?.id;
+        if (placed === expected) correct++;
+      });
+      return correct;
+    }
 
   function sendResult(score) {
     fetch("/game_result", {
@@ -62,21 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({ game_name: "words_match", score, completed: true })
     }).catch(() => alert("Серверге қосыла алмады."));
   }
-
-  function endGame(message = "") {
-    if (finished) return;
-    clearInterval(timerId);
-    finished = true;
-
-    const score = calcScore();
-    finalScore.textContent = `Ұпай: ${score}`;
-    gameOverBox.classList.remove("hidden");
-
-
-    if (message) alert(message);
-    sendResult(score);
-  }
-
   // --- Drag&Drop ---
   words.forEach(word => {
     word.addEventListener("dragstart", e => {
@@ -84,24 +70,71 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  targets.forEach(target => {
-    target.addEventListener("dragover", e => e.preventDefault());
-    target.addEventListener("drop", e => {
-      e.preventDefault();
-      const wordId = e.dataTransfer.getData("text/plain");
-      const dragged = document.getElementById(wordId);
-      if (!dragged) return;
+    targets.forEach(target => {
+      target.addEventListener("dragover", e => e.preventDefault()); // ОБЯЗАТЕЛЬНО
+      target.addEventListener("drop", e => {
+        e.preventDefault();
+        const wordId = e.dataTransfer.getData("text/plain");
+        const dragged = document.getElementById(wordId);
+        if (!dragged) return;
 
-      const existing = target.firstChild;
-      if (existing && existing !== dragged) {
-        wordsContainer.appendChild(existing);
-      }
+        const existing = target.firstChild;
+        if (existing && existing !== dragged) {
+          wordsContainer.appendChild(existing);
+        }
 
-      target.innerHTML = "";
-      target.appendChild(dragged);
-      checkCompletion();
+        target.innerHTML = "";
+        target.appendChild(dragged);
+        checkCompletion();
+
+        if (target.dataset.word !== dragged.id) mistakes++;
+      });
     });
+
+function endGame(message = "") {
+  if (finished) return;
+  clearInterval(timerId);
+  finished = true;
+
+  let correct = 0;
+  targets.forEach(target => {
+    const expected = target.dataset.word;
+    const placed = target.firstChild?.id;
+    if (placed === expected) correct++;
   });
+
+  let maxScore = 0.4; // вместо 4
+  let score = 0;
+
+  if (mistakes === 0) {
+    score = ((correct / targets.length) * maxScore).toFixed(2); // дробный результат
+    score = parseFloat(score); // приводим к числу
+  }
+
+  finalScore.textContent = `Ұпай: ${score}`;
+  gameOverBox.classList.remove("hidden");
+
+  // звезда, если набрали максимум
+  starContainer.innerHTML = "";
+  if (score === maxScore && mistakes === 0) {
+      const star = document.createElement("img");
+      star.src = "static/img/star.png";
+      star.style.width = "30vw";
+      starContainer.appendChild(star);
+  }
+
+  fetch("/game_result", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      game_name: "words_match",
+      score: score,
+      stars: score === maxScore && mistakes === 0 ? 1 : 0,
+      completed: true
+    })
+  });
+}
+
 
   checkBtn.addEventListener("click", () => endGame());
 

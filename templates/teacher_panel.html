@@ -1,25 +1,127 @@
-<!-- templates/teacher_panel.html -->
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-    <meta charset="UTF-8">
-    <title>Мұғалім панелі</title>
+  <meta charset="UTF-8">
+  <title>BilimQuest - Геймификация</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>Оқушылар тізімі</h1>
-    <ul>
-        {% for s in students %}
-            <li>
-                {{ s.name }} - {{ s.student_class }} - {{ s.score }} ұпай
-                <form method="POST" action="/unlock_game" style="display:inline;">
-                    <input type="hidden" name="student_id" value="{{ s.id }}">
-                    <input type="hidden" name="game_name" value="words_match">
-                    <button type="submit">Қайта өтуге рұқсат беру</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+  <header class="header">
+    <div class="logo">BilimQuest Analytics</div>
 
-    <a href="/teacher">← Артқа</a>
+    <div class="user">
+      <i class="icon"><img src="static/img/user2.png"></i>
+        Нұсқаулық
+    </div>
+  </header>
+
+  <main>
+      <nav class="nav-panel">
+        <select id="classSelect">
+            {% for cls in class_list %}
+              <option value="{{ cls }}" {% if selected_class == cls %}selected{% endif %}>{{ cls }}-сынып</option>
+            {% endfor %}
+        </select>
+        <a href="#">Сынып бойынша</a>
+        <a href="#">Тақырып бойынша</a>
+        <a href="#">Оқушылар бойынша</a>
+      </nav>
+
+        <script>
+          document.getElementById("classSelect").addEventListener("change", function() {
+            const cls = this.value;
+            window.location.href = "/teacher_panel?student_class=" + cls;
+          });
+        </script>
+
+
+      <section class="dashboard">
+
+        <div class="line1">
+            <div class="diagram1">
+                <h3>Сынып бойынша</h3>
+                <canvas id="classChart"></canvas>
+                <script>
+                  // Диаграмма "по классам" → делаем столбчатую по главам
+                  new Chart(document.getElementById('classChart'), {
+                    type: 'bar',
+                    data: {
+                      labels: {{ labels|tojson }},
+                      datasets: [{
+                        label: 'Средний балл по главам',
+                        data: {{ scores|tojson }},
+                        backgroundColor: 'rgba(30, 79, 168, 0.7)'
+                      }]
+                    },
+                    options: {
+                      responsive: true,
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: 100
+                        }
+                      },
+                      plugins: {
+                        legend: { display: false }
+                      }
+                    }
+                  });
+                </script>
+            </div>
+
+            <div class="diagram2">
+              <h3>Тақырып бойынша</h3>
+              <div class="topic">
+                <span>Біздің айналымыздағы ақпарат</span><span>75%</span>
+                <div class="bar"><div style="width:75%"></div></div>
+              </div>
+              <div class="topic">
+                <span>Ақпарат беру, ақпараттың түрлері</span><span>90%</span>
+                <div class="bar"><div style="width:90%"></div></div>
+              </div>
+              <div class="topic">
+                <span>Ақпаратты шифрлау</span><span>65%</span>
+                <div class="bar"><div style="width:65%"></div></div>
+              </div>
+              <div class="topic">
+                <span>Екілік ақпаратты ұсыну</span><span>80%</span>
+                <div class="bar"><div style="width:80%"></div></div>
+              </div>
+            </div>
+        </div>
+
+        <div class="line2">
+                <a href="/rating" class="diagram-link">
+                    <div class="diagram3">
+                        <h3>По ученикам</h3>
+                        <img src="static/img/rating2.png">
+                    </div>
+                </a>
+
+              <div class="diagram4">
+                <div class="avatar">
+                  <img src="{{ url_for('static', filename='img/avatar.png') }}" alt="avatar">
+                </div>
+                <div class="info">
+                  <h4>Ахмет</h4>
+                  <p>Бағалау 1.8/2</p>
+                  <div class="progress">
+                    <div class="progress-bar" style="width: 80%"></div>
+                  </div>
+                </div>
+                <span class="medal">
+                  <img src="{{ url_for('static', filename='img/first.png') }}" alt="1st">
+                </span>
+              </div>
+
+        </div>
+      </section>
+  </main>
+
+
+
 </body>
 </html>

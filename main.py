@@ -8,6 +8,8 @@ from flask_migrate import Migrate
 from functools import wraps
 from datetime import datetime
 import pytz
+from sqlalchemy import text
+from sqlalchemy import func
 
 app = Flask(__name__)
 
@@ -48,7 +50,7 @@ class Student(db.Model):
     name = db.Column(db.String(100), nullable=False)
     student_class = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    score = db.Column(db.Integer, default=0)
+    score = db.Column(db.Float, default=0)
 
     progress = db.relationship('StudentProgress', backref='student', lazy=True)
 
@@ -94,7 +96,8 @@ class GameProgress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
     game_name = db.Column(db.String(100), nullable=False)
-    score = db.Column(db.Integer, default=0)
+    score = db.Column(db.Float, default=0)   # лучше float, т.к. 0.3 балла
+    stars = db.Column(db.Integer, default=0) # ⭐ счётчик звёзд
     completed = db.Column(db.Boolean, default=False)
     attempt = db.Column(db.Integer, nullable=False, default=1)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
@@ -305,19 +308,77 @@ def login_teacher():
             return "Қате: Есім, почта немесе құпиясөз дұрыс емес."
     return render_template("login_tchr.html")
 
-@app.route("/student_dashboard")
-def student_dashboard():
-    student_id = session.get("user_id")
-    if not student_id:
-        return redirect("/login")
-
+@app.route("/student_dashboard/<int:student_id>")
+def student_dashboard(student_id):
     student = Student.query.get(student_id)
-    progress_count = StudentProgress.query.filter_by(student_id=student_id).count()
-    game_results = GameProgress.query.filter_by(student_id=student_id).all()
-    return render_template("dashboard.html",
-                           student=student,
-                           progress_count=progress_count,
-                           games=game_results)
+    if not student:
+        return "Студент не найден", 404
+
+    games = GameProgress.query.filter_by(student_id=student_id, completed=True).all()
+
+    # Таксономия Bloom по главам
+    GAME_TO_CHAPTER = {
+        "Ақпарат-алу": "Білу",
+        "Көпір": "Білу",
+        "words_match": "Білу",
+        "game1_3": "Түсіну",
+        "game2_2": "Түсіну",
+        "game2_3": "Түсіну",
+        "game3_1": "Қолдану",
+        "game3_2": "Қолдану",
+        "game3_3": "Қолдану",
+        "game4_1": "Анализ",
+        "game4_2": "Анализ",
+        "game4_3": "Анализ",
+        "game5_1": "Синтез",
+        "game5_2": "Синтез",
+        "game5_3": "Синтез",
+        "game6_1": "Бағалау",
+        "game6_2": "Бағалау",
+        "game6_3": "Бағалау",
+    }
+
+    CHAPTER_MAX_SCORE = {
+        "Білу": 1,  # 3 игры по 0,3 каждая
+        "Түсіну": 1,  # тоже 3 игры
+        "Қолдану": 2,  # 3 игры по 0,4
+        "Анализ": 2,
+        "Синтез": 2,
+        "Бағалау": 2
+    }
+    # Подсчет прогресса по категориям
+    chapters = {}
+    for game_name, chapter in GAME_TO_CHAPTER.items():
+        if chapter not in chapters:
+            chapters[chapter] = {"score_sum": 0, "max_score": CHAPTER_MAX_SCORE.get(chapter, 1)}
+
+        game = next((g for g in games if g.game_name == game_name), None)
+        if game:
+            chapters[chapter]["score_sum"] += game.score
+
+    chapters_progress = {
+        chapter: f"{data['score_sum']} / {data['max_score']}"
+        for chapter, data in chapters.items()
+    }
+
+    # Добавляем главу к каждой игре
+    for g in games:
+        g.chapter = GAME_TO_CHAPTER.get(g.game_name, "—")  # если нет в словаре, ставим "—"
+
+    # Считаем сумму звезд студента
+    stars_sum = sum(g.stars for g in games)
+
+    # Общий балл
+    total_score = sum(g.score for g in games)
+
+    return render_template(
+        "dashboard.html",
+        student=student,
+        games=games,
+        chapters_progress=chapters_progress,
+        stars_sum=stars_sum,
+        total_score=total_score
+    )
 
 @app.route("/game_result", methods=["POST"])
 def game_result():
@@ -327,41 +388,49 @@ def game_result():
     student_id = session["user_id"]
     data = request.get_json()
     game_name = data.get("game_name")
-    score = int(data.get("score", 0))
+    score = float(data.get("score", 0))  # дробное значение
+    stars = int(data.get("stars", 0))
     completed = bool(data.get("completed", True))
 
-    # Бұрын қанша рет өткенін тексеру
+    # максимальные очки для игры
+    MAX_SCORE = {
+        "words_match": 0.4,
+        "Көпір": 0.3,
+        "Ақпарат-алу": 0.3
+    }
+
+    max_score = MAX_SCORE.get(game_name)
+    score = min(score, max_score)  # ограничение максимальным
+    stars = 1 if score == max_score else 0  # звезда, если набрали максимум
+
     attempts = GameProgress.query.filter_by(student_id=student_id, game_name=game_name).count()
     access = GameAccess.query.filter_by(student_id=student_id, game_name=game_name).first()
 
-    # Егер бір рет өткен және рұқсат жоқ болса – тыйым
     if attempts >= 1 and not (access and access.is_unlocked):
         return {"status": "denied", "message": "Мұғалім рұқсат бермейінше қайта өтуге болмайды."}, 403
 
-    # Егер рұқсат болса – тек 1 рет қолданамыз, кейін is_unlocked = False
     allow_score_add = False
     if access and access.is_unlocked:
         allow_score_add = True
         access.is_unlocked = False
 
-    # Нәтижені сақтау
+    # Сохраняем результат
     new_result = GameProgress(
         student_id=student_id,
         game_name=game_name,
         score=score,
+        stars=stars,
         completed=completed,
         attempt=attempts + 1
     )
     db.session.add(new_result)
 
-    # Жалпы балл қосу (тек 1-рет немесе рұқсат болса)
     student = Student.query.get(student_id)
     if attempts == 0 or allow_score_add:
         student.score += score
 
     db.session.commit()
-    return {"status": "ok"}
-
+    return {"status": "ok", "score": score, "stars": stars}
 
 
 @app.route("/create_announcement", methods=["POST"])
@@ -391,11 +460,23 @@ def announcement_history():
     return render_template("announcement_history.html", announcements=announcements)
 
 @app.route("/rating")
-@login_required("student")
 def rating():
-    students = Student.query.order_by(Student.score.desc()).limit(20).all()  # топ 20
+    students = (
+        db.session.query(
+            Student.id,
+            Student.name,
+            Student.student_class,
+            func.coalesce(func.sum(GameProgress.stars), 0).label("stars_sum"),
+            func.count(GameProgress.id).label("completed_games"),
+            func.coalesce(func.sum(GameProgress.score), 0).label("score_sum")  # максимальный балл за игру
+        )
+        .outerjoin(GameProgress, GameProgress.student_id == Student.id)
+        .group_by(Student.id)
+        .order_by(func.coalesce(func.sum(GameProgress.stars), 0).desc())
+        .limit(20)
+        .all()
+    )
     return render_template("rating.html", students=students)
-
 
 @app.route("/reset_module/<int:student_id>")
 @login_required("teacher")
@@ -440,11 +521,61 @@ def unlock_game():
 @app.route("/teacher_panel")
 @login_required("teacher")
 def teacher_panel():
-    students = Student.query.all()
-    return render_template("teacher_panel.html", students=students)
+    selected_class = request.args.get("student_class", "5А")  # по умолчанию 5А
 
+    students = Student.query.filter_by(student_class=selected_class).all()
 
-from sqlalchemy import text  # добавить импорт в начале файла
+    all_progress = (
+        GameProgress.query.join(Student)
+        .filter(Student.student_class == selected_class, GameProgress.completed == True)
+        .all()
+    )
+    # словарь "игра → глава"
+    GAME_TO_CHAPTER = {
+        "Ақпарат-алу": "Білу",
+        "Көпір": "Білу",
+        "words_match": "Білу",
+        "game1_3": "Түсіну",
+        "game2_2": "Түсіну",
+        "game2_3": "Түсіну",
+        "game3_1": "Қолдану",
+        "game3_2": "Қолдану",
+        "game3_3": "Қолдану",
+        "game4_1": "Анализ",
+        "game4_2": "Анализ",
+        "game4_3": "Анализ",
+        "game5_1": "Синтез",
+        "game5_2": "Синтез",
+        "game5_3": "Синтез",
+        "game6_1": "Бағалау",
+        "game6_2": "Бағалау",
+        "game6_3": "Бағалау",
+    }
+
+    chapter_scores, chapter_max_scores = {}, {}
+    for gp in all_progress:
+        chapter = GAME_TO_CHAPTER.get(gp.game_name, "Прочее")
+        chapter_scores[chapter] = chapter_scores.get(chapter, 0) + gp.score
+        chapter_max_scores[chapter] = chapter_max_scores.get(chapter, 0) + getattr(gp, 'max_score', 1)
+
+    labels = list(chapter_scores.keys())
+    scores = [
+        round((chapter_scores[c] / chapter_max_scores[c] * 100) if chapter_max_scores[c] > 0 else 0, 2)
+        for c in labels
+    ]
+
+    # Получаем все уникальные классы для выпадающего списка
+    class_list = [row[0] for row in db.session.query(Student.student_class).distinct().all()]
+
+    return render_template(
+        "teacher_panel.html",
+        students=students,
+        labels=labels,
+        scores=scores,
+        selected_class=selected_class,
+        class_list=class_list
+    )
+
 
 @app.route("/1module")
 @login_required("student")

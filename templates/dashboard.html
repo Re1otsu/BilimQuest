@@ -3,32 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <title>Жеке парақша</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+
+  </style>
 </head>
 <body>
-  <div class="container">
-    <a href="/student" class="back-btn">Басты бетке</a>
-    <h1>Сәлем, {{ student.name }}!</h1>
-    <p>Сынып: {{ student.student_class }}</p>
-    <p>Жалпы балл: <strong>{{ student.score }}</strong></p>
+  <div class="dashboard-container">
+    <div class="header">
+      <div class="avatar">
+        <img src="{{ url_for('static', filename='img/user.png') }}">
+      </div>
+      <div class="user-info">
+        <h2>{{ student.name }}</h2>
+        <p>Сынып: {{ student.student_class }}</p>
+      </div>
+    </div>
 
-    <h2>🕹 Ойын нәтижелері</h2>
-    {% if games %}
-      <ul>
-        {% for game in games %}
-          <li>
-            {{ game.game_name }} — {{ game.score }} балл ({{ "✓" if game.completed else "○" }})
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Әзірге ойын нәтижелері жоқ.</p>
-    {% endif %}
+    <div class="progress-section">
+      <div class="bloom-container">
+        <h2>Bloom таксаномиясы</h2>
+        <canvas id="bloomRadar"></canvas>
+        <script>
+          const ctx = document.getElementById('bloomRadar').getContext('2d');
+          const bloomRadar = new Chart(ctx, {
+            type: 'radar',
+            data: {
+              labels: [{% for chapter in chapters_progress.keys() %}'{{ chapter }}',{% endfor %}],
+              datasets: [{
+                label: '{{ student.name }}',
+                data: [
+                  {% for chapter, progress in chapters_progress.items() %}
+                    {% if progress.split(' / ')[1]|int > 0 %}
+                      {{ (progress.split(' / ')[0]|float / progress.split(' / ')[1]|float * 100) }},
+                    {% else %}
+                      0,
+                    {% endif %}
+                  {% endfor %}
+                ],
+                fill: true,
+                backgroundColor: 'rgba(70,130,180,0.2)',
+                borderColor: 'rgba(70,130,180,1)',
+                pointBackgroundColor: 'rgba(70,130,180,1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(70,130,180,1)'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: true,
+              scales: {
+                r: {
+                  angleLines: { color: '#ccc' },
+                  suggestedMin: 0,
+                  suggestedMax: 100,
+                  ticks: {
+                    stepSize: 20,
+                    callback: function(value) { return value + '%'; },
+                    font: { size: 10 }
+                  },
+                  pointLabels: { font: { size: 10 } }
+                }
+              },
+              plugins: { legend: { display: false } }
+            }
+          });
+        </script>
+      </div>
+        <div class="games-progress-container">
+          <h2>Тақырыптар прогрессі</h2>
+          <canvas id="gamesProgress"></canvas>
+            <script>
+            const ctx2 = document.getElementById('gamesProgress').getContext('2d');
+            const gamesProgress = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: [{% for chapter, progress in chapters_progress.items() %}'{{ chapter }}',{% endfor %}],
+                    datasets: [{
+                        label: 'Пройдено %',
+                        data: [
+                          {% for chapter, progress in chapters_progress.items() %}
+                            {% if progress.split(' / ')[1]|int > 0 %}
+                              {{ (progress.split(' / ')[0]|int / progress.split(' / ')[1]|int * 100) }},
+                            {% else %}
+                              0,
+                            {% endif %}
+                          {% endfor %}
+                        ],
+                        backgroundColor: 'rgba(70,130,180,0.6)',
+                        borderColor: 'rgba(70,130,180,1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // горизонтальные столбцы
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) { return value + '%'; }
+                            }
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            </script>
+        </div>
+    </div>
 
-    <form action="/logout" method="POST" class="logout-form">
-      <button type="submit">Шығу</button>
-    </form>
+    <div class="games-section">
+      <div class="stars-summary">
+        <h3>Вейдждер</h3>
+        <p>{% for i in range(stars_sum|int) %}⭐{% endfor %}
+    {{ stars_sum|int }}</p>
+      </div>
+      <div class="games-history">
+        <h3>Ойын нәтижелері</h3>
+        {% if games %}
+          <ul>
+            {% for game in games %}
+              <li class="game-item">
+                <span class="game-name">{{ game.game_name }}</span>
+                <span class="game-chapter">{{ game.chapter }}</span>
+                <span class="game-score">{{ game.score }} балл</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>Әзірге ойын нәтижелері жоқ.</p>
+        {% endif %}
+      </div>
   </div>
+    <div class="actions">
+      <a href="/student" class="back-btn">Басты бетке</a>
+      <form action="/logout" method="POST" class="logout-form">
+        <button type="submit">Шығу</button>
+      </form>
+    </div>
 </body>
 </html>
