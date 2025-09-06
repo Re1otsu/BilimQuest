@@ -33,14 +33,17 @@
     }
     header nav {
       display: flex;
-      gap: 5vw;
+      gap: 2vw;
+      text-align: center;
+      align-items: center;
     }
     header nav a {
       color: white;
       text-decoration: none;
+      max-width: 20vw;
       font-weight: 400;
-      font-size: 1.2vw;
-      padding: 1.2vh 1vw;
+      font-size: 0.9vw;
+      padding: 1.2vh 0.5vw;
       border-radius: 0.5em;
       background-color:#1e4fa8;
       box-shadow: 0 0.1em 0.5em rgba(0,0,0,0.1);
