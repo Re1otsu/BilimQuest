@@ -1,0 +1,50 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f0f0;
+}
+
+#message {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+#input-container input {
+  font-size: 18px;
+  padding: 5px;
+  margin: 5px;
+  width: 60px;
+  text-align: center;
+}
+
+#image-container {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 5px;
+  justify-content: center;
+  margin: 20px auto;
+}
+
+.piece {
+  width: 100px;
+  height: 100px;
+  background-image: url('hidden_image.jpg'); /* замените на свой файл */
+  background-size: 300px 300px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+#feedback {
+  font-size: 18px;
+  margin-top: 10px;
+  height: 24px;
+}
+
+.hidden {
+  display: none;
+}
+
+#star-container img {
+  width: 50px;
+}

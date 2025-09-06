@@ -1,67 +1,155 @@
+/* game8.css */
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: #eef;
-    padding: 10px;
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  text-align: center;
 }
 
+/* Лабиринт */
 #maze {
-    position: relative;
-    margin: 20px auto;
-    width: 400px;
-    height: 400px;
-    background: #ccc;
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    grid-template-rows: repeat(10, 1fr);
-    gap: 2px;
+  position: relative;
+  margin: 20px auto;
+  display: grid;
+  width: 35vw;        /* адаптивная ширина */
+  max-width: 35vw;   /* максимум для десктопа */
+  aspect-ratio: 1;    /* сохраняем квадрат */
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: repeat(12, 1fr);
+  border: 2px solid #000;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
 
-#maze div {
-    border: 1px solid #999;
+.cell {
+  border: 1px solid #aaa;
+  width: 100%;
+  height: 100%;
+}
+.wall {
+  background: #222;
 }
 
-#robot {
-    position: absolute;
-    font-size: 2rem;
-    transition: all 0.3s ease;
-    top: 0;
-    left: 0;
+/* Робот и батарейка */
+#robot, #battery {
+  position: absolute;
+  width: calc(100% / 12);   /* размер клетки */
+  height: calc(100% / 12);
+  font-size: calc(100% / 12 * 0.8); /* адаптивный размер иконки */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
 }
 
-#battery {
-    position: absolute;
-    font-size: 2rem;
-    bottom: 0;
-    right: 0;
-}
-
+/* Контролы и feedback */
 #controls {
-    margin-top: 10px;
-}
-
-input {
-    padding: 5px;
-    width: 200px;
-    text-align: center;
-}
-
-button {
-    padding: 5px 10px;
-    margin-left: 5px;
+  margin-top: 10px;
 }
 
 #feedback {
-    margin-top: 10px;
-    font-weight: bold;
-    min-height: 24px;
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 1.2em;
+  color: red;
 }
 
-#game-over {
-    margin-top: 20px;
+#robot img{
+    width: 35em;
 }
 
+#battery img{
+    width:35em;
+}
+#instructions {
+  max-width: 600px;
+  margin: 10px auto;
+  padding: 10px 15px;
+  background: #e0f7fa;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 1em;
+}
+#instructions h3 {
+  text-align: center;
+  margin-bottom: 5px;
+}
+#instructions ul {
+  margin-left: 20px;
+}
+#instructions code {
+  background: #ccc;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+#instructions-modal {
+  display: none; /* скрыто по умолчанию */
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+
+#instructions-modal .modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+.hidden {
+  display: none;
+}
+
+  #game-over {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: rgb(9, 143, 233);
+  padding: 3rem 2rem;
+  display: flex;                 /* включаем flex */
+  flex-direction: column;        /* вертикально */
+  align-items: center;           /* по центру по горизонтали */
+  justify-content: center;       /* по центру по вертикали */
+  text-align: center;
+  z-index: 1000;
+  animation: popUp 0.5s ease-out;
+}
+
+#game-over.hidden { display: none; }
+
+#game-over h2 {
+  font-size: 2vw;
+  color: #fffb00;
+  margin: 1rem 0; /* отступы сверху/снизу */
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#final-score {
+  font-size: 4vw;
+  font-weight: bold;
+  color: #ffee00;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+#star-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
 #star-container img {
-    width: 50px;
+    width: 6vw;
+    height: auto;
 }
-.hidden { display: none; }

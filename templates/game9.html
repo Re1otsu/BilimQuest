@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Двоичное → Десятичное</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game9.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+</head>
+<body>
+<h1>Символ → Ондық </h1>
+<p>Символдарды дұрыс ондық кодпен сәйкестендір!</p>
+
+<div id="game-container"></div>
+
+<div id="controls">
+  <p id="feedback"></p>
+</div>
+
+<div id="game-over" class="hidden">
+  <h2>Ойын аяқталды!</h2>
+  <div id="final-score"></div>
+  <div id="star-container"></div>
+</div>
+
+<script src="static/js/game9.js"></script>
+</body>
+</html>

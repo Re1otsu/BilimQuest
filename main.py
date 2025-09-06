@@ -327,8 +327,8 @@ def student_dashboard(student_id):
         "Қамал": "Қолдану",
         "Шифр": "Қолдану",
         "Агент Шифр": "Қолдану",
-        "game4_1": "Анализ",
-        "game4_2": "Анализ",
+        "Робот": "Анализ",
+        "Сиқырлы шарлар": "Анализ",
         "game4_3": "Анализ",
         "game5_1": "Синтез",
         "game5_2": "Синтез",
@@ -402,7 +402,9 @@ def game_result():
         "Хабаршы":0.3,
         "Қамал":0.6,
         "Шифр":0.7,
-        "Агент Шифр":0.7
+        "Агент Шифр":0.7,
+        "Робот": 0.6,
+        "Сиқырлы шарлар": 0.7
     }
 
     max_score = MAX_SCORE.get(game_name)
@@ -547,8 +549,8 @@ def teacher_panel():
         "Қамал": "Қолдану",
         "Шифр": "Қолдану",
         "Агент Шифр": "Қолдану",
-        "game4_1": "Анализ",
-        "game4_2": "Анализ",
+        "Робот": "Анализ",
+        "Сиқырлы шарлар": "Анализ",
         "game4_3": "Анализ",
         "game5_1": "Синтез",
         "game5_2": "Синтез",
@@ -560,7 +562,7 @@ def teacher_panel():
 
     chapter_scores, chapter_max_scores = {}, {}
     for gp in all_progress:
-        chapter = GAME_TO_CHAPTER.get(gp.game_name, "Прочее")
+        chapter = GAME_TO_CHAPTER.get(gp.game_name, "Басқада")
         chapter_scores[chapter] = chapter_scores.get(chapter, 0) + gp.score
         chapter_max_scores[chapter] = chapter_max_scores.get(chapter, 0) + getattr(gp, 'max_score', 1)
 
@@ -699,7 +701,7 @@ def bolim1_4():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['Шифр', 'Агент Шифр']
+    default_modules = ['Шифр', 'Агент Шифр',  'Робот', 'Сиқырлы шарлар']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -852,6 +854,42 @@ def game8():
             return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
 
     return render_template("game8.html")
+
+@app.route("/game9")
+@login_required("student")
+def game9():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Сиқырлы шарлар") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Сиқырлы шарлар").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template("game9.html")
+
+@app.route("/game10")
+@login_required("student")
+def game10():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Екілік код") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Екілік код").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template("game10.html")
 
 @app.route("/module1")
 @login_required("student")

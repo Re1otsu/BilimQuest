@@ -9,19 +9,32 @@
 <body>
 <h1>Роботты батарейкаға жеткізіңіз</h1>
 <div id="maze">
-    <div id="robot">🤖</div>
-    <div id="battery">🔋</div>
+    <div id="robot"><img src="static/img/robot.png"></div>
+    <div id="battery"><img src="static/img/battery.png"></div>
 </div>
 <div id="controls">
     <label>Бинарлық код енгізіңіз:</label>
-    <input type="text" id="code-input" placeholder="0001, 0010, 0011, 0100">
+    <input type="text" id="code-input" placeholder="0001 3, 0010 2 , 0011 1, 0100 3">
     <button id="submit-btn">Жіберу</button>
 </div>
-<div id="feedback"></div>
-<div id="game-over" class="hidden">
-    <p id="final-score"></p>
-    <div id="star-container"></div>
+<button id="show-instructions">Нұсқаулық</button>
+
+<div id="instructions-modal" class="hidden">
+  <div class="modal-content">
+    <span id="close-instructions" style="cursor:pointer; float:right;">&times;</span>
+    <h3>Нұсқаулық</h3>
+    <p>Сіз роботты лабиринт арқылы батарейкаға жеткізуіңіз керек. Кодыңызды төрт биттік бинарлық түрде және қадам санын жазасыз. Мысалы: <b>0010 3</b>.</p>
+    <p>Кодтар: <br>0001 – жоғары<br>0010 – төмен<br>0011 – оңға<br>0100 – солға</p>
+    <p>Егер қадамдар саны қабырғаға соғылғанда қысқарса немесе қате болса, ол қате саналады.</p>
+  </div>
 </div>
+<div id="feedback"></div>
+
+    <div id="game-over" class="hidden">
+        <h2>Ойын аяқталды!</h2>
+        <p id="final-score">Ұпай: 0</p>
+        <div id="star-container"></div>
+    </div>
 
 <script src="static/js/game8.js"></script>
 </body>
