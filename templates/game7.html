@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<title>Агент және Шифр</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game7.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+</head>
+<body>
+
+<img id="agent" src="static/img/agent.png" alt="Agent">
+<img id="envelope" class="object" src="static/img/envelope.png" alt="Envelope">
+<img id="computer" class="object" src="static/img/pc.png" alt="Computer">
+<img id="safe" class="object" src="static/img/safe.png" alt="Safe">
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <div id="modal-task"></div>
+    <input type="text" id="modal-input" placeholder="Жауапты енгіз">
+    <button id="modal-submit">Тексеру</button>
+    <div id="modal-feedback"></div>
+  </div>
+</div>
+
+      <div id="game-over" class="hidden">
+        <h2>Ойын аяқталды!</h2>
+        <p id="final-score">Ұпай: 0</p>
+        <div id="star-container"></div>
+      </div>
+<script src="static/js/game7.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/bolim1_1.css">
+    <link rel="stylesheet" href="/static/css/normalize.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="top-bar">
+        <h1>BilimQuest</h1>
+        <h2>Екілік ақпарат</h2>
+        <a href="/1module">Артқа</a>
+    </div>
+    <div id="game-container"></div>
+    <div class="announcement-box">
+    <div class="container">
+        <a href="/game8" class="module {% if not completed['Агент Шифр'] %}disabled{% endif %}">
+            <img src="static/img/g2.png" style="width: 10vw; height: 20vh;">
+            <span>Робот</span>
+        </a>
+        <a href="/game9" class="module {% if not completed['Робот'] %}disabled{% endif %}">
+            <img src="static/img/g2.png" style="width: 10vw; height: 20vh;">
+            <span>Шарлар</span>
+        </a>
+        <a href="/game10" class="module {% if not completed['Шарлар'] %}disabled{% endif %}">
+            <img src="static/img/g3.png" style="width: 10vw; height: 20vh;">
+            <span>Хабаршы</span>
+        </a>
+    <div id="module-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <iframe id="module-frame" src="" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+        </div>
+    </div>
+<script src="static/js/moduls.js"></script>
+</body>
+</html>

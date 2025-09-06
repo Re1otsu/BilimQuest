@@ -326,7 +326,7 @@ def student_dashboard(student_id):
         "Хабаршы": "Түсіну",
         "Қамал": "Қолдану",
         "Шифр": "Қолдану",
-        "game3_3": "Қолдану",
+        "Агент Шифр": "Қолдану",
         "game4_1": "Анализ",
         "game4_2": "Анализ",
         "game4_3": "Анализ",
@@ -401,7 +401,8 @@ def game_result():
         "Ғарыш хабаршысы":0.3,
         "Хабаршы":0.3,
         "Қамал":0.6,
-        "Шифр":0.7
+        "Шифр":0.7,
+        "Агент Шифр":0.7
     }
 
     max_score = MAX_SCORE.get(game_name)
@@ -545,7 +546,7 @@ def teacher_panel():
         "Хабаршы": "Түсіну",
         "Қамал": "Қолдану",
         "Шифр": "Қолдану",
-        "game3_3": "Қолдану",
+        "Агент Шифр": "Қолдану",
         "game4_1": "Анализ",
         "game4_2": "Анализ",
         "game4_3": "Анализ",
@@ -684,6 +685,28 @@ def bolim1_3():
             completed[row.game_name] = bool(row.completed)
 
     return render_template("bolim1_3.html", completed=completed, student=student)
+
+@app.route("/bolim1_4")
+@login_required("student")
+def bolim1_4():
+    student_id = session.get("user_id")
+    student = Student.query.get(student_id)
+
+    # Загружаем прогресс из GameProgress
+    progress = db.session.execute(
+        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
+        {"sid": student_id}
+    ).fetchall()
+
+    # Определяем порядок модулей и создаём словарь completed
+    default_modules = ['Шифр', 'Агент Шифр']
+    completed = {m: False for m in default_modules}
+    for row in progress:
+        if row.game_name in completed:
+            completed[row.game_name] = bool(row.completed)
+
+    return render_template("bolim1_4.html", completed=completed, student=student)
+
 @app.route("/game1")
 @login_required("student")
 def game1():
@@ -701,6 +724,7 @@ def game1():
             return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
 
     return render_template("game1.html")
+
 
 @app.route("/game2")
 @login_required("student")
@@ -793,6 +817,41 @@ def game6():
 
     return render_template("game6.html")
 
+@app.route("/game7")
+@login_required("student")
+def game7():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Агент Шифр") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Агент Шифр").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template("game7.html")
+
+@app.route("/game8")
+@login_required("student")
+def game8():
+    student_id = session.get("user_id")
+
+    # Соңғы attempt-ті табамыз
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Робот") \
+                                 .order_by(GameProgress.attempt.desc()).first()
+
+    # Егер бұрын тапсырған болса
+    if progress:
+        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Робот").first()
+        if not (access and access.is_unlocked):
+            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+
+    return render_template("game8.html")
 
 @app.route("/module1")
 @login_required("student")

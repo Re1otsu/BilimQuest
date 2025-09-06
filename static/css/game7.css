@@ -1,0 +1,126 @@
+body {
+  margin: 0;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background: url('../img/office.jpg') no-repeat center/cover;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+#agent {
+  position: absolute;
+  width: 12vw;
+  bottom: 2vh;
+  left: 2vw;
+  transition: all 0.5s ease;
+  z-index: 1;
+}
+
+
+.object {
+  position: absolute;
+  width: 5vw;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+#safe { 
+  width:12vw;
+  top: 42%; 
+  left: 12%; 
+  z-index: 0;
+}
+#safe:hover{
+  transform: scale(1.1);
+}
+#computer { 
+  top: 38%; 
+  left: 50%; 
+  box-shadow: 0 0 1em rgba(3, 154, 255, 0.7);
+  border-radius: 3em;
+  z-index: 0;
+}
+#computer:hover{
+  transform: scale(1.1);
+}
+
+#envelope { 
+  top: 48%; 
+  right: 6%;
+  border-radius: 3em;
+  box-shadow: 0 0 1em rgba(3, 154, 255, 0.7);
+  z-index: 0;
+}
+#envelope:hover{
+  transform: scale(1.1);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal-content {
+  background: #222;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  color: #fff;
+  width: 35vw;
+  font-size: 1.4vw;
+}
+
+input { padding: 8px; border-radius: 6px; border: none; margin-top: 10px; width: 80%; text-align: center; }
+button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; background: gold; margin-top: 10px; font-weight: bold; }
+
+
+  #game-over {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: rgb(9, 143, 233);
+  padding: 3rem 2rem;
+  display: flex;                 /* включаем flex */
+  flex-direction: column;        /* вертикально */
+  align-items: center;           /* по центру по горизонтали */
+  justify-content: center;       /* по центру по вертикали */
+  text-align: center;
+  z-index: 1000;
+  animation: popUp 0.5s ease-out;
+}
+
+#game-over.hidden { display: none; }
+
+#game-over h2 {
+  font-size: 2vw;
+  color: #fffb00;
+  margin: 1rem 0; /* отступы сверху/снизу */
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#final-score {
+  font-size: 4vw;
+  font-weight: bold;
+  color: #ffee00;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+#star-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+#star-container img {
+    width: 50px;
+    height: auto;
+}

@@ -1,0 +1,67 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #eef;
+    padding: 10px;
+}
+
+#maze {
+    position: relative;
+    margin: 20px auto;
+    width: 400px;
+    height: 400px;
+    background: #ccc;
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    gap: 2px;
+}
+
+#maze div {
+    border: 1px solid #999;
+}
+
+#robot {
+    position: absolute;
+    font-size: 2rem;
+    transition: all 0.3s ease;
+    top: 0;
+    left: 0;
+}
+
+#battery {
+    position: absolute;
+    font-size: 2rem;
+    bottom: 0;
+    right: 0;
+}
+
+#controls {
+    margin-top: 10px;
+}
+
+input {
+    padding: 5px;
+    width: 200px;
+    text-align: center;
+}
+
+button {
+    padding: 5px 10px;
+    margin-left: 5px;
+}
+
+#feedback {
+    margin-top: 10px;
+    font-weight: bold;
+    min-height: 24px;
+}
+
+#game-over {
+    margin-top: 20px;
+}
+
+#star-container img {
+    width: 50px;
+}
+.hidden { display: none; }

@@ -78,13 +78,6 @@ button#submit-btn:hover {
 }
 
 /* Финальное окно */
-#game-over {
-    margin-top: 20px;
-    font-size: 1.5rem;
-    color: #ffd700;
-    font-weight: bold;
-    text-align: center;
-}
 
 /* Адаптивность */
 @media (max-width: 600px) {

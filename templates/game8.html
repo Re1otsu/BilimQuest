@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<title>Робот Лабиринт</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game8.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+</head>
+<body>
+<h1>Роботты батарейкаға жеткізіңіз</h1>
+<div id="maze">
+    <div id="robot">🤖</div>
+    <div id="battery">🔋</div>
+</div>
+<div id="controls">
+    <label>Бинарлық код енгізіңіз:</label>
+    <input type="text" id="code-input" placeholder="0001, 0010, 0011, 0100">
+    <button id="submit-btn">Жіберу</button>
+</div>
+<div id="feedback"></div>
+<div id="game-over" class="hidden">
+    <p id="final-score"></p>
+    <div id="star-container"></div>
+</div>
+
+<script src="static/js/game8.js"></script>
+</body>
+</html>
