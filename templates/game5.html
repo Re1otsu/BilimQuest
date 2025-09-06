@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<title>Castle Lock Game</title>
+    <link rel="stylesheet" href="/static/css/game5.css">
+    <link rel="stylesheet" href="/static/css/normalize.css">
+</head>
+<body>
+    <img src="static/img/lock1.png" id="lock1" class="lock">
+    <img src="static/img/lock1.png" id="lock2" class="lock">
+    <img src="static/img/lock1.png" id="lock3" class="lock">
+
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3>Введи код:</h3>
+      <input type="text" id="answer">
+      <br>
+      <button id="submit">OK</button>
+    </div>
+  </div>
+
+      <!-- Модальное окно окончания -->
+      <div id="game-over" class="hidden">
+        <h2>Ойын аяқталды!</h2>
+        <p id="final-score">Ұпай: 0</p>
+        <div id="star-container"></div>
+      </div>
+  <script src="{{ url_for('static', filename='js/game5.js') }}"></script>
+</body>
+</html>

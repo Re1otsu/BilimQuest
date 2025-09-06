@@ -1,37 +1,40 @@
-    body {
-      margin: 0;
-      font-family: 'Open Sans', sans-serif;
-      background: #e0e0e0; /* серый фон */
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 4vh 0;
-    }
+body {
+  margin: 0;
+  font-family: 'Open Sans', sans-serif;
+  background: #e0e0e0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 0;
+}
 
-    .container {
-      background: #fff; /* белый прямоугольник */
-      border-radius: 1em;
-      padding: 2vw;
-      width: 90%;
-      max-width: 60vw;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-    }
+.container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 2vw;
-      font-weight: 600;
-      color: #333;
-    }
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.student-card-link {
+  text-decoration: none;
+}
 
 .student-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1vh 1vw;
-  margin-bottom: 0.5vh;
-  border-radius: 1em;
+  padding: 10px 15px;
+  margin-bottom: 12px;
+  border-radius: 8px;
   background: #f9f9f9;
   transition: background 0.2s;
 }
@@ -41,14 +44,15 @@
 }
 
 .avatar img {
-  width: 3vw;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   margin-right: 15px;
 }
 
 .student-name {
   flex-grow: 1;
-  font-size: 1vw;
+  font-size: 16px;
   font-weight: 600;
   color: #333;
 }
@@ -64,24 +68,16 @@
 .stars {
   color: #f5b700;
   margin-bottom: 0.4em;
-  font-size: 1vw;
 }
 
 .average {
   display: flex;
   align-items: center;
-  font-size: 1vw;
+  gap: 4px;
   font-weight: 600;
-  gap: 4px; /* расстояние между иконкой и цифрой */
 }
 
 .rating-icon {
-  width: 1.2vw;
-}
-
-.student-card-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  margin-bottom: 12px; /* чтобы был отступ между карточками */
+  width: 16px;
+  height: 16px;
 }

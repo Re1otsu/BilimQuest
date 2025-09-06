@@ -1,0 +1,118 @@
+  body {
+    margin: 0;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+    color: #fff;
+    background-image: url('../img/bg3.jpg');
+    background-size: 100%;  /* растягиваем на весь блок */
+    background-repeat: no-repeat; /* центрирование */
+  }
+
+.morse {
+  font-family: monospace;
+  font-size: 1.2rem;
+  letter-spacing: 0.3em; /* больше интервал между точками и тире */
+  margin: 10px 0;
+  color: #ffeb3b;
+}
+  .lock {
+    position: absolute;
+    width: 4vw;
+    min-width: 3vw;
+    min-height: 3vh;
+    cursor: pointer;
+    transition: transform 0.3s;
+  }
+  .lock:hover { transform: scale(1.1); }
+
+  #lock1 { top: 50%; left:45%; }
+  #lock2 { top: 60%; left: 50%; }
+  #lock3 { top: 50%; right: 40%; }
+
+  /* Анимация падения */
+  .unlock {
+    animation: fall 1s forwards;
+  }
+  @keyframes fall {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(300px) rotate(90deg); opacity: 0; }
+  }
+
+  /* Модалка */
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal.active { display: flex; }
+  .modal-content {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  input {
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    margin-top: 10px;
+  }
+  button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background: gold;
+  }
+  #game-over {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: rgb(9, 143, 233);
+  padding: 3rem 2rem;
+  display: flex;                 /* включаем flex */
+  flex-direction: column;        /* вертикально */
+  align-items: center;           /* по центру по горизонтали */
+  justify-content: center;       /* по центру по вертикали */
+  text-align: center;
+  z-index: 1000;
+  animation: popUp 0.5s ease-out;
+}
+
+#game-over.hidden { display: none; }
+
+#game-over h2 {
+  font-size: 2vw;
+  color: #fffb00;
+  margin: 1rem 0; /* отступы сверху/снизу */
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#final-score {
+  font-size: 4vw;
+  font-weight: bold;
+  color: #ffee00;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+#star-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+#star-container img {
+    width: 50px;
+    height: auto;
+}

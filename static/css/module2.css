@@ -1,36 +1,36 @@
 body {
   font-family: Arial, sans-serif;
   background: #e0e4e8; /* чуть темнее, чем был #f9f9f9 */
-  padding: 20px;
+
   text-align: center;
   user-select: none;
 }
 
 
 h1 {
-  margin-bottom: 15px;
+  margin-bottom: 1vh;
   color: #333;
 }
 
 .info {
-  margin-bottom: 10px;
-  font-size: 18px;
+  margin-bottom: 1vh;
+  font-size: 100%;
   color: #555;
-  min-height: 24px;
+  min-height: 1em;
 }
 
 .score {
-  margin-bottom: 20px;
+  margin-bottom: 1em;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 100%;
   color: #222;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(8, 50px);
-  grid-template-rows: repeat(8, 50px);
-  gap: 5px;
+  grid-template-columns: repeat(8, 4vw);
+  grid-template-rows: repeat(8, 4vw);
+  gap: 0.2vw;
   justify-content: center;
   margin: 0 auto;
 }
@@ -40,8 +40,8 @@ h1 {
   align-items: center;
   justify-content: center;
   background-color: #f5f7fa; /* светлее, почти белый */
-  border-radius: 6px;
-  font-size: 24px;
+  border-radius: 0.2em;
+  font-size: 1.5vw;
   cursor: pointer;
   transition: background-color 0.3s ease;
   user-select: none;
@@ -78,7 +78,7 @@ h1 {
   margin: 0.5em auto;
   background: linear-gradient(180deg,#fff,#f3f3f3);
   color: #2c3e50;
-  padding: 6px 10px;
+  padding: 0.5em 0.5em;
   border-radius: 999px;
   width:9em;
   font-weight: 700;
@@ -95,4 +95,39 @@ h1 {
   0% { opacity: 1; transform: scale(1); }
   50% { opacity: .5; transform: scale(1.03); }
   100% { opacity: 1; transform: scale(1); }
+}
+/* module2.css */
+#game-over {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: rgb(9, 143, 233);
+  padding: 3rem 2rem;
+  display: flex;                 /* включаем flex */
+  flex-direction: column;        /* вертикально */
+  align-items: center;           /* по центру по горизонтали */
+  justify-content: center;       /* по центру по вертикали */
+  text-align: center;
+  z-index: 1000;
+  animation: popUp 0.5s ease-out;
+}
+
+#game-over.hidden { display: none; }
+
+#game-over h2 {
+  font-size: 2vw;
+  color: #fffb00;
+  margin: 1rem 0; /* отступы сверху/снизу */
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#final-score {
+  font-size: 4vw;
+  font-weight: bold;
+  color: #ffee00;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
 }

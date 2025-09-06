@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<title>Шифр Сөздер</title>
+    <link rel="stylesheet" href="/static/css/game6.css">
+    <link rel="stylesheet" href="/static/css/normalize.css">
+</head>
+<body>
+<h1>Қазақша Шифрлау Ойыны</h1>
+<img src="static/img/word.png" alt="Кодтау кестесі" class="table">
+<div class="word-box" id="word-box"></div>
+<input type="text" id="code-input" placeholder="Сандарды енгіз">
+<button id="submit-btn">Тексеру</button>
+<div id="feedback"></div>
+
+      <!-- Модальное окно окончания -->
+      <div id="game-over" class="hidden">
+        <h2>Ойын аяқталды!</h2>
+        <p id="final-score">Ұпай: 0</p>
+        <div id="star-container"></div>
+      </div>
+  <script src="{{ url_for('static', filename='js/game6.js') }}"></script>
+</body>
+</html>

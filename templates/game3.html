@@ -1,36 +1,39 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/game3.css') }}">
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
-  <meta charset="UTF-8">
-  <title>Ғарыш хабаршысы</title>
+<meta charset="UTF-8">
+<title>Ғарыш хабаршысы</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game3.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="stars"></div>
+  <div class="game-screen">
+    <h1>Ғарыш хабаршысы 🌌</h1>
 
-  <!-- ===== Предыстория как окно ===== -->
-  <div class="modal" id="intro">
-    <div class="modal-content">
-      <h1>🌌 Ғарыш хабаршысы 🚀</h1>
-      <p id="intro-text"></p>
-      <button id="start-btn">Бастау</button>
+    <!-- Игровая сцена -->
+    <div class="space">
+      <img src="{{ url_for('static', filename='img/earth.png') }}" class="planet" id="earth">
+      <img src="{{ url_for('static', filename='img/mars.png') }}" class="planet" id="mars">
+      <img src="{{ url_for('static', filename='img/rocket.png') }}" id="rocket">
     </div>
-  </div>
 
-  <!-- ===== Игровой экран ===== -->
-  <div class="game-screen" id="game">
-    <h1>🌌 Ғарыш хабаршысы 🌌</h1>
     <div id="message">Бастау үшін батырманы бас!</div>
+
     <div class="choices" id="choices">
-      <button type="button" data-answer="audio">📞</button>
-      <button type="button" data-answer="text">📜</button>
-      <button type="button" data-answer="video">📺</button>
+      <button data-answer="audio">📞</button>
+      <button data-answer="text">📜</button>
+      <button data-answer="video">📺</button>
     </div>
-    <div class="rocket" id="rocket">🚀</div>
-    <div id="result"></div>
+
+    <!-- Модальное окно окончания -->
+    <div id="game-over" class="hidden">
+      <h2>Ойын аяқталды!</h2>
+      <p id="final-score">Ұпай: 0</p>
+      <div id="star-container"></div>
+    </div>
   </div>
 
-<script src="static/js/game3.js"></script>
+<script src="{{ url_for('static', filename='js/game3.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,62 @@
+  <!DOCTYPE html>
+  <html lang="kk">
+  <head>
+  <meta charset="UTF-8">
+  <title>Детектив хабаршысы</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game4.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="game-screen">
+      <div class="background">
+        <!-- Персонажи -->
+      <img src="static/img/friend.png" class="character" id="friend"
+           data-task="Қандай әдіспен досыңды футболға шақырасың?"
+           data-correct="speech"
+           data-dialog="Жақсы, анаңнан қоңырау шалып рұқсат сұра!">
+
+      <img src="static/img/phone-booth.png" class="character" id="mother"
+           data-task="Анаңа қоңырау шалып, футболға баруға рұқсат сұра"
+           data-correct="phone"
+           data-dialog="Жақсы балам, бірақ жолда атаңа сәлем айтуды ұмытпа!">
+
+      <img src="static/img/grandpa.png" class="character" id="grandpa"
+           data-task="Атаң саябақта сурет салып отыр. Ол сенен мұғаліміңе сурет арқылы хабар жеткізуді өтінді. Қалай жеткізесің?"
+           data-correct="image"
+           data-dialog="Жақсы, балам! Мына суретті мұғаліміңе апарып бер. Ол бәрін түсінеді.">
+
+      <img src="static/img/teacher.png" class="character" id="teacher"
+           data-task="Мұғалімге тапсырмаңды қалай көрсетесің?"
+           data-correct="letter"
+           data-dialog="Жарайсың, өте жауапты екенсің!">
+
+        <!-- Детектив -->
+        <img src="static/img/detective.png" id="detective">
+      </div>
+
+      <div class="modal" id="dialog-modal">
+        <div class="modal-content">
+          <p id="task-text">Кейіпкерге жақында!</p>
+          <div class="choices" id="choices">
+            <button data-answer="phone">Телефон</button>
+            <button data-answer="letter">Жазбаша</button>
+            <button data-answer="image">Бейне</button>
+            <button data-answer="speech">Ауызша</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Модальное окно окончания -->
+      <div id="game-over" class="hidden">
+        <h2>Ойын аяқталды!</h2>
+        <p id="final-score">Ұпай: 0</p>
+        <div id="star-container"></div>
+      </div>
+
+    </div>
+
+  <script src="{{ url_for('static', filename='js/game4.js') }}"></script>
+  </body>
+  </html>

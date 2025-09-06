@@ -1,0 +1,140 @@
+/* Общие стили */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0b1f4a;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1vw;
+}
+
+h1 {
+    margin-bottom: 1vh;
+    font-size: 2vw;
+    text-align: center;
+    color: #ffeb3b;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Таблица с кодами */
+img.table {
+    max-width: 90%;
+    height: 50vh;
+    margin-bottom: 1.2vh;
+    border: 3px solid #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+/* Слово для шифрования */
+.word-box {
+    font-size: 2vw;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding: 1vh 1vw;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.5em;
+    text-align: center;
+    min-width: 1vw;
+}
+
+/* Поле ввода */
+input#code-input {
+    padding: 12px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 15px;
+    width: 20vw;
+    text-align: center;
+}
+
+/* Кнопка */
+button#submit-btn {
+    padding: 1vh 1vw;
+    font-size: 1rem;
+    border-radius: 0.5em;
+    border: none;
+    cursor: pointer;
+    background: gold;
+    color: #000;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button#submit-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px gold;
+}
+
+/* Обратная связь */
+#feedback {
+    margin-top: 0.5vh;
+    font-size: 1.3rem;
+    min-height: 10vw;
+    text-align: center;
+}
+
+/* Финальное окно */
+#game-over {
+    margin-top: 20px;
+    font-size: 1.5rem;
+    color: #ffd700;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Адаптивность */
+@media (max-width: 600px) {
+    h1 { font-size: 2rem; }
+    .word-box { font-size: 1.5rem; min-width: 180px; }
+    input#code-input { font-size: 1rem; width: 180px; }
+    button#submit-btn { font-size: 0.9rem; padding: 10px 20px; }
+}
+  #game-over {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100vw;
+  height: 100vh;
+  background: rgb(9, 143, 233);
+  padding: 3rem 2rem;
+  display: flex;                 /* включаем flex */
+  flex-direction: column;        /* вертикально */
+  align-items: center;           /* по центру по горизонтали */
+  justify-content: center;       /* по центру по вертикали */
+  text-align: center;
+  z-index: 1000;
+  animation: popUp 0.5s ease-out;
+}
+
+#game-over.hidden { display: none; }
+
+#game-over h2 {
+  font-size: 2vw;
+  color: #fffb00;
+  margin: 1rem 0; /* отступы сверху/снизу */
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#final-score {
+  font-size: 4vw;
+  font-weight: bold;
+  color: #ffee00;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+#star-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+}
+#star-container img {
+    width: 50px;
+    height: auto;
+}

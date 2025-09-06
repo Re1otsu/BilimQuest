@@ -106,13 +106,7 @@ body {
 
 
 /* делаем canvas адаптивным: займёт ширину и высоту контейнера */
-.diagram1 canvas,
-.diagram3 canvas {
-    transform: translate(40%, 10%);
-  width: 55% !important;
-  height: 80% !important;
-  display: block;
-}
+
 
 /* темы — список прогрессбаров внутри карточки */
 .topic {
@@ -220,6 +214,16 @@ nav select{
     border-radius: 0.5em;
     font-size: 1.5vw;
     font-weight: 600;
+}
+
+.diagram1 canvas{
+  width: 90% !important;
+  height: 95% !important;
+  display: block; 
+}
+.diagram2 canvas {
+    height: 95% !important; /* уменьшаем высоту */
+    width: 95% !important;   /* ширина по контейнеру */
 }
 
 /* лучше делать логотип и пользовательские элементы поменьше на мобилках */

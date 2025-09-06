@@ -14,7 +14,7 @@ body {
 /* Кнопка рейтинга */
 .btn-rating {
     display: flex;
-    width: 8vw;
+    width: auto;
     height: 8vh;
     align-items: center;
     justify-content: center;

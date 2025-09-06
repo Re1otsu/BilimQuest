@@ -51,18 +51,27 @@
                     data: {
                       labels: {{ labels|tojson }},
                       datasets: [{
-                        label: 'Средний балл по главам',
+                        label: 'Cәтті менгеру',
                         data: {{ scores|tojson }},
                         backgroundColor: 'rgba(30, 79, 168, 0.7)'
                       }]
                     },
                     options: {
-                      responsive: true,
+                    responsive: true,
+                    maintainAspectRatio: false,
                       scales: {
-                        y: {
-                          beginAtZero: true,
-                          max: 100
-                        }
+                          y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                              font: { size: 14, family: 'Arial', weight: 'bold' } // шрифт оси Y
+                            }
+                          },
+                          x: {
+                            ticks: {
+                              font: { size: 14, family: 'Arial', weight: 'bold' } // шрифт оси X
+                            }
+                          }
                       },
                       plugins: {
                         legend: { display: false }
@@ -74,22 +83,55 @@
 
             <div class="diagram2">
               <h3>Тақырып бойынша</h3>
-              <div class="topic">
-                <span>Біздің айналымыздағы ақпарат</span><span>75%</span>
-                <div class="bar"><div style="width:75%"></div></div>
-              </div>
-              <div class="topic">
-                <span>Ақпарат беру, ақпараттың түрлері</span><span>90%</span>
-                <div class="bar"><div style="width:90%"></div></div>
-              </div>
-              <div class="topic">
-                <span>Ақпаратты шифрлау</span><span>65%</span>
-                <div class="bar"><div style="width:65%"></div></div>
-              </div>
-              <div class="topic">
-                <span>Екілік ақпаратты ұсыну</span><span>80%</span>
-                <div class="bar"><div style="width:80%"></div></div>
-              </div>
+              <canvas id="allStudentsChart"></canvas>
+              <script>
+                new Chart(document.getElementById('allStudentsChart'), {
+                  type: 'bar',
+                  data: {
+                    labels: {{ labels_all|tojson }},
+                    datasets: [{
+                      label: 'Средний балл по главам (все ученики)',
+                      data: {{ scores_all|tojson }},
+                      backgroundColor: 'rgba(70,130,180,0.7)',
+                      borderRadius: 6,      // закругление углов
+                      barPercentage: 0.1,   // толщина полоски
+                      categoryPercentage: 0.8
+                    }]
+                  },
+                  options: {
+                    indexAxis: 'y',         // горизонтальная
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                      x: {
+                        beginAtZero: true,
+                        display: false,
+                        max: 100,
+                        ticks: {
+                          font: { size: 12, weight: 'bold' },
+                        },
+                        grid: { drawTicks: false, drawBorder: false }
+                      },
+                      y: {
+                        ticks: {
+                          font: { size: 12, weight: 'bold' }
+                        },
+                        grid: { drawTicks: false, drawBorder: false }
+                      }
+                    },
+                    plugins: {
+                      legend: { display: false },
+                      tooltip: {
+                        callbacks: {
+                          label: function(context) {
+                            return context.parsed.x + '%';
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              </script>
             </div>
         </div>
 
