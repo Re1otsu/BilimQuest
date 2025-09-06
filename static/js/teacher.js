@@ -2,7 +2,7 @@ const ctx1 = document.getElementById('classChart');
 new Chart(ctx1, {
   type: 'bar',
   data: {
-    labels: ['ВПУ', 'Түзету', 'Қ-ңдрау', 'Анауне', 'Ситтеу', 'Ғзалау'],
+    labels: ['Білу', 'Түсіну', 'Қолдану', 'Анализ', 'Синтез', 'Бағалау'],
     datasets: [{
       label: 'Ұпай',
       data: [70, 35, 45, 60, 40, 55],
