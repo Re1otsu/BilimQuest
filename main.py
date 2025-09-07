@@ -316,58 +316,60 @@ def student_dashboard(student_id):
 
     games = GameProgress.query.filter_by(student_id=student_id, completed=True).all()
 
-    # Таксономия Bloom по главам
+    # Таксономия Bloom по главам — теперь список для игр с несколькими главами
     GAME_TO_CHAPTER = {
-        "Ақпарат-алу": "Білу",
-        "Көпір": "Білу",
-        "words_match": "Білу",
-        "Лабиринт": "Түсіну",
-        "Ғарыш хабаршысы": "Түсіну",
-        "Хабаршы": "Түсіну",
-        "Қамал": "Қолдану",
-        "Шифр": "Қолдану",
-        "Агент Шифр": "Қолдану",
-        "Робот": "Анализ",
-        "Сиқырлы шарлар": "Анализ",
-        "Блоктар": "Анализ",
-        "game5_1": "Синтез",
-        "game5_2": "Синтез",
-        "game5_3": "Синтез",
-        "game6_1": "Бағалау",
-        "game6_2": "Бағалау",
-        "game6_3": "Бағалау",
+        "Ақпарат-алу": ["Білу"],
+        "Көпір": ["Білу"],
+        "words_match": ["Білу"],
+        "Лабиринт": ["Түсіну"],
+        "Ғарыш хабаршысы": ["Түсіну"],
+        "Хабаршы": ["Түсіну"],
+        "Қамал": ["Қолдану"],
+        "Шифр": ["Қолдану"],
+        "Агент Шифр": ["Қолдану"],
+        "Робот": ["Анализ", "Синтез"],
+        "Сиқырлы шарлар": ["Анализ", "Синтез"],
+        "Блоктар": ["Анализ", "Синтез"],
+        "game6_1": ["Бағалау"],
+        "game6_2": ["Бағалау"],
+        "game6_3": ["Бағалау"],
     }
 
     CHAPTER_MAX_SCORE = {
-        "Білу": 1,  # 3 игры по 0,3 каждая
-        "Түсіну": 1,  # тоже 3 игры
-        "Қолдану": 2,  # 3 игры по 0,4
-        "Анализ": 2,
-        "Синтез": 2,
-        "Бағалау": 2
+        "Білу": 1,
+        "Түсіну": 1,
+        "Қолдану": 2,
+        "Анализ": 4,
+        "Синтез": 4,
+        "Бағалау": 4
     }
-    # Подсчет прогресса по категориям
+
+    # Подсчет прогресса по главам
     chapters = {chapter: {"score_sum": 0, "max_score": max_score}
                 for chapter, max_score in CHAPTER_MAX_SCORE.items()}
 
     for g in games:
-        chapter = GAME_TO_CHAPTER.get(g.game_name)
-        if chapter:
-            chapters[chapter]["score_sum"] += g.score
+        chapters_list = GAME_TO_CHAPTER.get(g.game_name, [])
+        for chapter in chapters_list:
+            if chapter in chapters:
+                chapters[chapter]["score_sum"] += g.score  # добавляем очки игры к каждой главе
 
+    # Процент прогресса
     chapters_progress = {
-        chapter: f"{data['score_sum']} / {data['max_score']}"
+        chapter: {
+            "score": data["score_sum"],
+            "max_score": data["max_score"],
+            "percent": round(data["score_sum"] / data["max_score"] * 100, 1) if data["max_score"] > 0 else 0
+        }
         for chapter, data in chapters.items()
     }
 
-    # Добавляем главу к каждой игре
+    # Добавляем список глав к каждой игре для отображения
     for g in games:
-        g.chapter = GAME_TO_CHAPTER.get(g.game_name, "—")  # если нет в словаре, ставим "—"
+        chapters_list = GAME_TO_CHAPTER.get(g.game_name, [])
+        g.chapter = ", ".join(chapters_list) if chapters_list else "—"
 
-    # Считаем сумму звезд студента
     stars_sum = sum(g.stars for g in games)
-
-    # Общий балл
     total_score = sum(g.score for g in games)
 
     return render_template(
@@ -549,43 +551,42 @@ def teacher_panel():
         "Қамал": "Қолдану",
         "Шифр": "Қолдану",
         "Агент Шифр": "Қолдану",
-        "Робот": "Анализ",
-        "Сиқырлы шарлар": "Анализ",
-        "Блоктар": "Анализ",
-        "game5_1": "Синтез",
-        "game5_2": "Синтез",
-        "game5_3": "Синтез",
+        "Робот": ["Анализ", "Синтез"],
+        "Сиқырлы шарлар": ["Анализ", "Синтез"],
+        "Блоктар": ["Анализ", "Синтез"],
         "game6_1": "Бағалау",
         "game6_2": "Бағалау",
         "game6_3": "Бағалау",
     }
 
     GAME_TO_CHAPTER_NAME = {
-        "Ақпарат-алу": "Біздің айналамыздағы ақпарат",
-        "Көпір": "Біздің айналамыздағы ақпарат",
-        "words_match": "Біздің айналамыздағы ақпарат",
-        "Лабиринт": "Ақпарат беру",
-        "Ғарыш хабаршысы": "Ақпарат беру",
-        "Хабаршы": "Ақпарат беру",
-        "Қамал": "Ақпаратты шифрлау",
-        "Шифр": "Ақпаратты шифрлау",
-        "Агент Шифр": "Ақпаратты шифрлау",
-        "Робот": "Екілік ақпаратты ұсыну",
-        "Сиқырлы шарлар": "Екілік ақпаратты ұсыну",
-        "Блоктар": "Екілік ақпаратты ұсыну",
-        "game5_1": "Екілік ақпаратты ұсыну. Практикум",
-        "game5_2": "Екілік ақпаратты ұсыну. Практикум",
-        "game5_3": "Екілік ақпаратты ұсыну. Практикум",
-        "game6_1": "Бірінші бөлім бойынша қорытынды тапсырмалар",
-        "game6_2": "Бірінші бөлім бойынша қорытынды тапсырмалар",
-        "game6_3": "Бірінші бөлім бойынша қорытынды тапсырмалар",
+        "Ақпарат-алу": ["Біздің айналамыздағы ақпарат"],
+        "Көпір": ["Біздің айналамыздағы ақпарат"],
+        "words_match": ["Біздің айналамыздағы ақпарат"],
+        "Лабиринт": ["Ақпарат беру"],
+        "Ғарыш хабаршысы": ["Ақпарат беру"],
+        "Хабаршы": ["Ақпарат беру"],
+        "Қамал": ["Ақпаратты шифрлау"],
+        "Шифр": ["Ақпаратты шифрлау"],
+        "Агент Шифр": ["Ақпаратты шифрлау"],
+        "Робот": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
+        "Сиқырлы шарлар": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
+        "Блоктар": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
+        "game6_1": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
+        "game6_2": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
+        "game6_3": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
     }
 
     chapter_scores, chapter_max_scores = {}, {}
     for gp in all_progress:
-        chapter = GAME_TO_CHAPTER.get(gp.game_name, "Басқада")
-        chapter_scores[chapter] = chapter_scores.get(chapter, 0) + gp.score
-        chapter_max_scores[chapter] = chapter_max_scores.get(chapter, 0) + getattr(gp, 'max_score', 1)
+        chapters_list = GAME_TO_CHAPTER.get(gp.game_name, [])
+        # если в словаре одна строка, превращаем в список
+        if not isinstance(chapters_list, list):
+            chapters_list = [chapters_list]
+
+        for chapter in chapters_list:
+            chapter_scores[chapter] = chapter_scores.get(chapter, 0) + gp.score
+            chapter_max_scores[chapter] = chapter_max_scores.get(chapter, 0) + getattr(gp, 'max_score', 1)
 
     labels = list(chapter_scores.keys())
     scores = [
@@ -597,9 +598,10 @@ def teacher_panel():
 
     chapter_scores_all, chapter_max_all = {}, {}
     for gp in all_progress_all:
-        chapter = GAME_TO_CHAPTER_NAME.get(gp.game_name, "Баскада")
-        chapter_scores_all[chapter] = chapter_scores_all.get(chapter, 0) + gp.score
-        chapter_max_all[chapter] = chapter_max_all.get(chapter, 0) + getattr(gp, 'max_score', 1)
+        chapters_list = GAME_TO_CHAPTER_NAME.get(gp.game_name, ["Басқада"])
+        for chapter in chapters_list:
+            chapter_scores_all[chapter] = chapter_scores_all.get(chapter, 0) + gp.score
+            chapter_max_all[chapter] = chapter_max_all.get(chapter, 0) + getattr(gp, 'max_score', 1)
 
     labels_all = list(chapter_scores_all.keys())
     scores_all = [

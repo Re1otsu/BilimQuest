@@ -35,12 +35,8 @@
               datasets: [{
                 label: '{{ student.name }}',
                 data: [
-                  {% for chapter, progress in chapters_progress.items() %}
-                    {% if progress.split(' / ')[1]|int > 0 %}
-                      {{ (progress.split(' / ')[0]|float / progress.split(' / ')[1]|float * 100) }},
-                    {% else %}
-                      0,
-                    {% endif %}
+                  {% for chapter, data in chapters_progress.items() %}
+                    {{ data.percent }},
                   {% endfor %}
                 ],
                 fill: true,
@@ -85,12 +81,8 @@
                     datasets: [{
                         label: 'Қамтыды %',
                         data: [
-                          {% for chapter, progress in chapters_progress.items() %}
-                            {% if progress.split(' / ')[1]|int > 0 %}
-                              {{ (progress.split(' / ')[0]|float / progress.split(' / ')[1]|float * 100) }},
-                            {% else %}
-                              0,
-                            {% endif %}
+                          {% for chapter, data in chapters_progress.items() %}
+                            {{ data.percent }},
                           {% endfor %}
                         ],
                         backgroundColor: 'rgba(70,130,180,0.6)',
