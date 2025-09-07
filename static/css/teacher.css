@@ -128,8 +128,9 @@
   transform: translateY(-25%);
 
 }
-    .info button{
+#toggleBtn{
       margin-top: 1vh;
+      width:7vw;
       border-radius: 0.5em;
       background-color: #ffffff;
       color:#1e4fa8;
@@ -139,8 +140,10 @@
       border: none;
       padding: 0.6em 1.2em;
       cursor: pointer;
+      text-decoration: none;
+      text-align: center;
     }
-    .info button:hover {
+#toggleBtn:hover {
       background:#1e4fa8;
       color:white;
     }

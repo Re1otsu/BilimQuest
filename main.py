@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
@@ -602,6 +602,25 @@ def teacher_panel():
         class_list=class_list
     )
 
+
+
+@app.route("/instruction-t")
+@login_required("teacher")
+def instruction_p():
+    # Показываем страницу с текстом инструкции и кнопкой
+    return render_template("instruction-t.html")
+
+@app.route("/download-t")
+@login_required("teacher")
+def download_t():
+    # Файл будет скачиваться
+    return send_from_directory("static", "Portal_Mugalim_Nuskau.pdf", as_attachment=True)
+
+@app.route("/download-g")
+@login_required("teacher")
+def download_g():
+    # Скачивание второго файла
+    return send_from_directory("static", "Anykhtama_Geymifikatsiya_portal.pdf", as_attachment=True)
 
 @app.route("/1module")
 @login_required("student")
