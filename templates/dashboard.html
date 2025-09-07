@@ -141,11 +141,18 @@
         {% endif %}
       </div>
   </div>
-    <div class="actions">
+  <div class="actions">
+    {% if session.get('user_id') == student.id and session.get('role') == 'student' %}
+      <!-- Если это сам ученик -->
       <a href="/student" class="back-btn">Басты бетке</a>
       <form action="/logout" method="POST" class="logout-form">
         <button type="submit">Шығу</button>
       </form>
-    </div>
+    {% else %}
+      <!-- Если кто-то другой зашёл -->
+      <a href="javascript:history.back()" class="back-btn">⬅ Артқа</a>
+    {% endif %}
+  </div>
+
 </body>
 </html>

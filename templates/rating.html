@@ -8,6 +8,7 @@
 </head>
 <body>
   <div class="container">
+    <a href="javascript:history.back()" class="back-btn">⬅ Артқа</a>
     <h1>Оқушылар рейтингі</h1>
     {% for student in students %}
       <a href="{{ url_for('student_dashboard', student_id=student.id) }}" class="student-card-link">
