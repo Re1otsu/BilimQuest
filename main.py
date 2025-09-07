@@ -347,14 +347,13 @@ def student_dashboard(student_id):
         "Бағалау": 2
     }
     # Подсчет прогресса по категориям
-    chapters = {}
-    for game_name, chapter in GAME_TO_CHAPTER.items():
-        if chapter not in chapters:
-            chapters[chapter] = {"score_sum": 0, "max_score": CHAPTER_MAX_SCORE.get(chapter, 1)}
+    chapters = {chapter: {"score_sum": 0, "max_score": max_score}
+                for chapter, max_score in CHAPTER_MAX_SCORE.items()}
 
-        game = next((g for g in games if g.game_name == game_name), None)
-        if game:
-            chapters[chapter]["score_sum"] += game.score
+    for g in games:
+        chapter = GAME_TO_CHAPTER.get(g.game_name)
+        if chapter:
+            chapters[chapter]["score_sum"] += g.score
 
     chapters_progress = {
         chapter: f"{data['score_sum']} / {data['max_score']}"

@@ -1,5 +1,5 @@
 const mazeSize = 12;
-let robotPos = {x:10,y:11};
+let robotPos = {x:0,y:0};
 const robot = document.getElementById("robot");
 const battery = document.getElementById("battery");
 const input = document.getElementById("code-input");

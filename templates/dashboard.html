@@ -83,11 +83,11 @@
                 data: {
                     labels: [{% for chapter, progress in chapters_progress.items() %}'{{ chapter }}',{% endfor %}],
                     datasets: [{
-                        label: 'Пройдено %',
+                        label: 'Қамтыды %',
                         data: [
                           {% for chapter, progress in chapters_progress.items() %}
                             {% if progress.split(' / ')[1]|int > 0 %}
-                              {{ (progress.split(' / ')[0]|int / progress.split(' / ')[1]|int * 100) }},
+                              {{ (progress.split(' / ')[0]|float / progress.split(' / ')[1]|float * 100) }},
                             {% else %}
                               0,
                             {% endif %}
