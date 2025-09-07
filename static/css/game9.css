@@ -1,4 +1,6 @@
 body {
+    width:100vw;
+    height:100vh;
   font-family: Arial, sans-serif;
   text-align: center;
   background: #f0f8ff;
@@ -60,4 +62,33 @@ body {
 #star-container img {
   width: 40vw;
   margin-top: 1rem;
+}
+.timer-badge {
+    position:relative;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg,#fff,#f3f3f3);
+  color: #2c3e50;
+  padding: 0.5em 1em;
+  border-radius: 999px;
+  width: 8em;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  z-index: 9999;
+}
+
+.timer-badge.low {
+  background: linear-gradient(135deg,#ff5a5a,#ff3b3b);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
 }

@@ -41,8 +41,40 @@ function openModal(key) {
   modalSubmit.onclick = () => checkAnswer(key);
 }
 
+let totalTime = 180; // 60 секунд на всю игру
+let timeLeft = totalTime;
+const timeValue = document.getElementById('time-value');
+let timerEnded = false;
+
+function updateTimer() {
+  let minutes = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+  let seconds = (timeLeft % 60).toString().padStart(2,'0');
+  timeValue.textContent = `${minutes}:${seconds}`;
+
+  const timerBadge = document.getElementById('timer');
+  if(timeLeft <= 10) timerBadge.classList.add('low');
+}
+
+const timerInterval = setInterval(() => {
+  timeLeft--;
+  updateTimer();
+  if(timeLeft <= 0){
+    clearInterval(timerInterval);
+    alert("⏰ Уақыт аяқталды!");
+    timerEnded = true;
+    endGame(); // завершение игры
+  }
+}, 1000);
+
+updateTimer();
+
 // Проверка ответа
 function checkAnswer(key) {
+  if(timerEnded){
+    modal.style.display = "none";
+    return; // не начисляем очки, если время вышло
+  }
+
   const user = modalInput.value.trim().toUpperCase();
   const correct = puzzles[key].answer.toUpperCase();
   if(user === correct){
@@ -58,13 +90,30 @@ function checkAnswer(key) {
   }
 }
 
+const modalClose = document.getElementById("modal-close");
+
+// Клик по крестику закрывает модалку
+modalClose.onclick = () => {
+  modal.style.display = "none";
+  modalFeedback.textContent = "";
+}
+
+// Также можно закрывать кликом по фону модалки
+modal.onclick = (e) => {
+  if(e.target === modal) {
+    modal.style.display = "none";
+    modalFeedback.textContent = "";
+  }
+}
 // Завершение игры
 function endGame() {
-  const finalScore = mistakes >= maxMistakes ? 0 : Math.round(score * 1000) / 1000;
+  // Если таймер закончился, счет всегда 0
+  const finalScore = timerEnded ? 0 : (mistakes >= maxMistakes ? 0 : Math.round(score * 1000) / 1000);
+
   let stars = 0;
   starContainer.innerHTML = "";
 
-  if (Math.abs(finalScore - maxScore) < 0.001) {
+  if (!timerEnded && Math.abs(finalScore - maxScore) < 0.001) {
     stars = 1;
     const star = document.createElement("img");
     star.src = "static/img/star.png";
@@ -81,7 +130,7 @@ function endGame() {
     method:"POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      game_name: "Агент Шифр",
+      game_name: "Агент",
       score: finalScore,
       stars: stars,
       completed: true

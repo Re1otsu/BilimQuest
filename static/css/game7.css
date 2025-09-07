@@ -16,7 +16,14 @@ body {
   transition: all 0.5s ease;
   z-index: 1;
 }
-
+.modal-close {
+  position: absolute;
+  top: 42vh;
+  right: 34vw;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+}
 
 .object {
   position: absolute;
@@ -76,7 +83,14 @@ body {
 }
 
 input { padding: 8px; border-radius: 6px; border: none; margin-top: 10px; width: 80%; text-align: center; }
-button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; background: gold; margin-top: 10px; font-weight: bold; }
+
+button {
+padding: 8px 16px;
+border-radius: 6px;
+border: none; cursor: pointer;
+background: gold;
+margin-top: 5vh;
+font-weight: bold; }
 
 
   #game-over {
@@ -123,4 +137,33 @@ button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; b
 #star-container img {
     width: 50px;
     height: auto;
+}
+.timer-badge {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg,#fff,#f3f3f3);
+  color: #2c3e50;
+  padding: 0.5em 1em;
+  border-radius: 999px;
+  width: 8em;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  z-index: 9999;
+}
+
+.timer-badge.low {
+  background: linear-gradient(135deg,#ff5a5a,#ff3b3b);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
 }

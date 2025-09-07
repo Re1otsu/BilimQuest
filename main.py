@@ -200,7 +200,7 @@ def student():
                      .all())
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all']
+    default_modules = ['Сәйкестік', 'maze', 'cipher_game', 'push_blocks_all']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -318,21 +318,20 @@ def student_dashboard(student_id):
 
     # Таксономия Bloom по главам — теперь список для игр с несколькими главами
     GAME_TO_CHAPTER = {
-        "Ақпарат-алу": ["Білу"],
+        "Қағып ал": ["Білу"],
         "Көпір": ["Білу"],
-        "words_match": ["Білу"],
+        "Сәйкестік": ["Білу"],
         "Лабиринт": ["Түсіну"],
         "Ғарыш хабаршысы": ["Түсіну"],
         "Хабаршы": ["Түсіну"],
         "Қамал": ["Қолдану"],
         "Шифр": ["Қолдану"],
-        "Агент Шифр": ["Қолдану"],
+        "Агент": ["Қолдану"],
         "Робот": ["Анализ", "Синтез"],
         "Сиқырлы шарлар": ["Анализ", "Синтез"],
         "Блоктар": ["Анализ", "Синтез"],
-        "game6_1": ["Бағалау"],
-        "game6_2": ["Бағалау"],
-        "game6_3": ["Бағалау"],
+        "Пазл": ["Бағалау"]
+
     }
 
     CHAPTER_MAX_SCORE = {
@@ -341,7 +340,7 @@ def student_dashboard(student_id):
         "Қолдану": 2,
         "Анализ": 4,
         "Синтез": 4,
-        "Бағалау": 4
+        "Бағалау": 2
     }
 
     # Подсчет прогресса по главам
@@ -395,18 +394,19 @@ def game_result():
 
     # максимальные очки для игры
     MAX_SCORE = {
-        "words_match": 0.4,
+        "Сәйкестік": 0.4,
         "Көпір": 0.3,
-        "Ақпарат-алу": 0.3,
+        "Қағып ал": 0.3,
         "Лабиринт": 0.3,
         "Ғарыш хабаршысы":0.3,
         "Хабаршы":0.3,
         "Қамал":0.6,
         "Шифр":0.7,
-        "Агент Шифр":0.7,
+        "Агент":0.7,
         "Робот": 1.2,
         "Сиқырлы шарлар": 1.4,
-        "Блоктар":1.4
+        "Блоктар":1.4,
+        "Пазл":2
     }
 
     max_score = MAX_SCORE.get(game_name)
@@ -540,80 +540,106 @@ def teacher_panel():
         .filter(Student.student_class == selected_class, GameProgress.completed == True)
         .all()
     )
-    # словарь "игра → глава"
+
     GAME_TO_CHAPTER = {
-        "Ақпарат-алу": "Білу",
+        "Қағып ал": "Білу",
         "Көпір": "Білу",
-        "words_match": "Білу",
+        "Сәйкестік": "Білу",
         "Лабиринт": "Түсіну",
         "Ғарыш хабаршысы": "Түсіну",
         "Хабаршы": "Түсіну",
         "Қамал": "Қолдану",
         "Шифр": "Қолдану",
-        "Агент Шифр": "Қолдану",
+        "Агент": "Қолдану",
         "Робот": ["Анализ", "Синтез"],
         "Сиқырлы шарлар": ["Анализ", "Синтез"],
         "Блоктар": ["Анализ", "Синтез"],
-        "game6_1": "Бағалау",
-        "game6_2": "Бағалау",
-        "game6_3": "Бағалау",
+        "Пазл": "Бағалау",
     }
 
+    CHAPTER_MAX_SCORE = {
+        "Білу": 1,
+        "Түсіну": 1,
+        "Қолдану": 2,
+        "Анализ": 4,
+        "Синтез": 4,
+        "Бағалау": 2
+    }
+
+    # Переворачиваем: глава → список игр
+    from collections import defaultdict
+    chapter_to_games = defaultdict(list)
+    for game, chapter in GAME_TO_CHAPTER.items():
+        if isinstance(chapter, list):
+            for ch in chapter:
+                chapter_to_games[ch].append(game)
+        else:
+            chapter_to_games[chapter].append(game)
+
+    # ---- ПРОГРЕСС ПО ВЫБРАННОМУ КЛАССУ ----
+    chapter_scores = {}
+    for chapter, games_in_ch in chapter_to_games.items():
+        total_score = 0
+        for gp in all_progress:
+            if gp.game_name in games_in_ch:
+                total_score += gp.score
+        chapter_scores[chapter] = total_score / CHAPTER_MAX_SCORE[chapter] * 100
+        if chapter_scores[chapter] > 100:
+            chapter_scores[chapter] = 100
+
+    labels = list(chapter_scores.keys())
+    scores = [round(chapter_scores[ch], 2) for ch in labels]
+
     GAME_TO_CHAPTER_NAME = {
-        "Ақпарат-алу": ["Біздің айналамыздағы ақпарат"],
+        "Қағып ал": ["Біздің айналамыздағы ақпарат"],
         "Көпір": ["Біздің айналамыздағы ақпарат"],
-        "words_match": ["Біздің айналамыздағы ақпарат"],
+        "Сәйкестік": ["Біздің айналамыздағы ақпарат"],
         "Лабиринт": ["Ақпарат беру"],
         "Ғарыш хабаршысы": ["Ақпарат беру"],
         "Хабаршы": ["Ақпарат беру"],
         "Қамал": ["Ақпаратты шифрлау"],
         "Шифр": ["Ақпаратты шифрлау"],
-        "Агент Шифр": ["Ақпаратты шифрлау"],
+        "Агент": ["Ақпаратты шифрлау"],
         "Робот": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
         "Сиқырлы шарлар": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
         "Блоктар": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
-        "game6_1": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
-        "game6_2": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
-        "game6_3": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
+        "Пазл": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
+
     }
-
-    chapter_scores, chapter_max_scores = {}, {}
-    for gp in all_progress:
-        chapters_list = GAME_TO_CHAPTER.get(gp.game_name, [])
-        # если в словаре одна строка, превращаем в список
-        if not isinstance(chapters_list, list):
-            chapters_list = [chapters_list]
-
-        for chapter in chapters_list:
-            chapter_scores[chapter] = chapter_scores.get(chapter, 0) + gp.score
-            chapter_max_scores[chapter] = chapter_max_scores.get(chapter, 0) + getattr(gp, 'max_score', 1)
-
-    labels = list(chapter_scores.keys())
-    scores = [
-        round((chapter_scores[c] / chapter_max_scores[c] * 100) if chapter_max_scores[c] > 0 else 0, 2)
-        for c in labels
-    ]
-
+    CHAPTER_NAME_MAX_SCORE = {
+        "Біздің айналамыздағы ақпарат": 1,
+        "Ақпарат беру": 1,
+        "Ақпаратты шифрлау": 2,
+        "Екілік ақпаратты ұсыну": 4,
+        "Екілік ақпаратты ұсыну. Практикум": 4,
+        "Бірінші бөлім бойынша қорытынды тапсырмалар": 2
+    }
+    # ---- ПРОГРЕСС ПО ВСЕМ КЛАССАМ ----
     all_progress_all = GameProgress.query.filter(GameProgress.completed == True).all()
 
-    chapter_scores_all, chapter_max_all = {}, {}
-    for gp in all_progress_all:
-        chapters_list = GAME_TO_CHAPTER_NAME.get(gp.game_name, ["Басқада"])
-        for chapter in chapters_list:
-            chapter_scores_all[chapter] = chapter_scores_all.get(chapter, 0) + gp.score
-            chapter_max_all[chapter] = chapter_max_all.get(chapter, 0) + getattr(gp, 'max_score', 1)
+    from collections import defaultdict
+
+    chapter_to_games_name = defaultdict(list)
+    for game, chapters in GAME_TO_CHAPTER_NAME.items():
+        for ch in chapters:
+            chapter_to_games_name[ch].append(game)
+
+    chapter_scores_all = {}
+    for chapter, games_in_ch in chapter_to_games_name.items():
+        total_score = 0
+        total_max = 0
+        for gp in all_progress_all:
+            if gp.game_name in games_in_ch:
+                total_score += gp.score
+                total_max += getattr(gp, 'max_score', 1)  # берём реальный макс балл игры
+        if total_max > 0:
+            chapter_scores_all[chapter] = min(total_score / CHAPTER_NAME_MAX_SCORE[chapter] * 100, 100)
+        else:
+            chapter_scores_all[chapter] = 0
 
     labels_all = list(chapter_scores_all.keys())
-    scores_all = [
-        round((chapter_scores_all[c] / chapter_max_all[c] * 100) if chapter_max_all[c] > 0 else 0, 2)
-        for c in labels_all
-    ]
-
-
-    # Получаем все уникальные классы для выпадающего списка
+    scores_all = [round(chapter_scores_all[ch], 2) for ch in labels_all]
     class_list = [row[0] for row in db.session.query(Student.student_class).distinct().all()]
-
-
     return render_template(
         "teacher_panel.html",
         students=students,
@@ -658,7 +684,7 @@ def module_1():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all']
+    default_modules = ['Сәйкестік', 'maze', 'cipher_game', 'push_blocks_all']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -680,7 +706,7 @@ def bolim1_1():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all', 'Ақпарат-алу', 'Көпір']
+    default_modules = ['Сәйкестік', 'maze', 'cipher_game', 'push_blocks_all', 'Қағып ал', 'Көпір']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -701,7 +727,7 @@ def bolim1_2():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all', 'Ақпарат-алу', 'Көпір', 'Лабиринт', 'Ғарыш хабаршысы']
+    default_modules = ['Сәйкестік', 'maze', 'cipher_game', 'push_blocks_all', 'Қағып ал', 'Көпір', 'Лабиринт', 'Ғарыш хабаршысы']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -722,7 +748,7 @@ def bolim1_3():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['words_match', 'maze', 'cipher_game', 'push_blocks_all', 'Ақпарат-алу', 'Көпір', 'Лабиринт', 'Ғарыш хабаршысы', 'Хабаршы', 'Қамал', 'Шифр']
+    default_modules = ['Сәйкестік', 'maze', 'cipher_game', 'push_blocks_all', 'Қағып ал', 'Көпір', 'Лабиринт', 'Ғарыш хабаршысы', 'Хабаршы', 'Қамал', 'Шифр']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -743,7 +769,7 @@ def bolim1_4():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['Шифр', 'Агент Шифр',  'Робот', 'Сиқырлы шарлар']
+    default_modules = ['Шифр', 'Агент',  'Робот', 'Сиқырлы шарлар']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -764,7 +790,7 @@ def bolim1_5():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['Шифр', 'Агент Шифр',  'Робот', 'Сиқырлы шарлар','Блоктар']
+    default_modules = ['Шифр', 'Агент',  'Робот', 'Сиқырлы шарлар','Блоктар']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -778,13 +804,13 @@ def game1():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Ақпарат-алу") \
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Қағып ал") \
                                  .order_by(GameProgress.attempt.desc()).first()
 
     # Егер бұрын тапсырған болса
     if progress:
         # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Ақпарат-алу").first()
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Қағып ал").first()
         if not (access and access.is_unlocked):
             return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
 
@@ -888,13 +914,13 @@ def game7():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Агент Шифр") \
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Агент") \
                                  .order_by(GameProgress.attempt.desc()).first()
 
     # Егер бұрын тапсырған болса
     if progress:
         # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Агент Шифр").first()
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Агент").first()
         if not (access and access.is_unlocked):
             return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
 
@@ -942,13 +968,13 @@ def game10():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Екілік код") \
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Пазл") \
                                  .order_by(GameProgress.attempt.desc()).first()
 
     # Егер бұрын тапсырған болса
     if progress:
         # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Екілік код").first()
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Пазл").first()
         if not (access and access.is_unlocked):
             return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
 
@@ -960,13 +986,13 @@ def module1():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="words_match") \
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Сәйкестік") \
                                  .order_by(GameProgress.attempt.desc()).first()
 
     # Егер бұрын тапсырған болса
     if progress:
         # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="words_match").first()
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Сәйкестік").first()
         if not (access and access.is_unlocked):
             return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
 

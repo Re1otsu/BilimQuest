@@ -53,7 +53,7 @@ function sendResultToServer() {
 }
 
 // --- Таймер ---
-let timeLeft = 180;
+let timeLeft = 90;
 let timerInterval = null;
 
 function formatTime(s) {

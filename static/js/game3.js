@@ -54,6 +54,34 @@ function showChoices() {
     choicesEl.appendChild(btn);
   }
 }
+let timeLeft = 60; // время в секундах
+const timeValueEl = document.getElementById("time-value");
+const timerBadge = document.getElementById("timer");
+
+function updateTimer() {
+  const minutes = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+  const seconds = (timeLeft % 60).toString().padStart(2,'0');
+  timeValueEl.textContent = `${minutes}:${seconds}`;
+
+  // Меняем стиль при критическом времени
+  if(timeLeft <= 10) timerBadge.classList.add("low");
+
+  if(timeLeft <= 0) {
+    clearInterval(timerInterval);
+    endGameWithZero(); // вызываем завершение игры с 0 баллов
+  } else {
+    timeLeft--;
+  }
+}
+
+const timerInterval = setInterval(updateTimer, 1000);
+
+function endGameWithZero() {
+  // Принудительно завершить игру с нулем
+  score = 0;
+  mistakes = messages.length; // чтобы все считалось неверно
+  endGame();
+}
 
 function nextMessage() {
   index++;

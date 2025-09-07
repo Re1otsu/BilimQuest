@@ -8,9 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+
   <div class="game-screen">
     <h1>Ғарыш хабаршысы 🌌</h1>
-
+    <div id="timer" class="timer-badge">Уақыт: <span id="time-value">01:00</span></div>
     <!-- Игровая сцена -->
     <div class="space">
       <img src="{{ url_for('static', filename='img/earth.png') }}" class="planet" id="earth">

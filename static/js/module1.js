@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const finalScore = document.getElementById("final-score");
   const starContainer = document.getElementById("star-container");
 
-  let totalTime = 90;
+  let totalTime = 60;
   let timeLeft = totalTime;
   let timerId = null;
   let finished = false;
@@ -127,7 +127,7 @@ function endGame(message = "") {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      game_name: "words_match",
+      game_name: "Сәйкестік",
       score: score,
       stars: score === maxScore && mistakes === 0 ? 1 : 0,
       completed: true

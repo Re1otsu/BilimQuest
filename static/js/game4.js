@@ -35,6 +35,49 @@ document.addEventListener("keydown", (e) => {
   checkCollision();
 });
 
+let totalTime = 120; // время в секундах
+const timeValueEl = document.getElementById("time-value");
+const timerEl = document.getElementById("timer");
+
+const timerInterval = setInterval(() => {
+  const minutes = Math.floor(totalTime / 60);
+  const seconds = totalTime % 60;
+  timeValueEl.textContent = `${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+
+  if (totalTime <= 10) {
+    timerEl.classList.add("low"); // меняем стиль на красный
+  }
+
+  if (totalTime <= 0) {
+    clearInterval(timerInterval);
+    timeValueEl.textContent = "00:00";
+    endGameTimeUp(); // функция окончания игры при таймауте
+  }
+  totalTime--;
+}, 1000);
+
+// Функция при окончании времени
+function endGameTimeUp() {
+  // Показываем модалку конца игры
+  const gameOverModal = document.getElementById("game-over");
+  const finalScore = document.getElementById("final-score");
+
+  finalScore.textContent = "Ұпай: 0"; // обнуляем счёт
+  gameOverModal.style.display = "flex";
+
+  // Можно отправить на сервер результат
+  fetch("/game_result", {
+    method:"POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      game_name: "Хабаршы",
+      score: 0,
+      stars: 0,
+      completed: false
+    })
+  }).then(res => res.json()).then(data => console.log("Отправлено:", data));
+}
+
 // Жақындағанын тексеру
 function checkCollision() {
   const dRect = detective.getBoundingClientRect();

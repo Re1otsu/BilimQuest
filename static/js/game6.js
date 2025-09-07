@@ -22,6 +22,7 @@ const btn = document.getElementById("submit-btn");
 const feedback = document.getElementById("feedback");
 const gameOver = document.getElementById("game-over");
 
+
 function showWord() {
   if(currentIndex >= words.length || mistakes >= maxMistakes) {
     endGame();
@@ -59,36 +60,64 @@ input.addEventListener('input', () => {
   input.value = formatted;
 });
 
-function endGame() {
-    let finalScore = mistakes >= maxMistakes ? 0 : Math.round(score * 1000) / 1000; // округление до 3 знаков
-  let stars = 0;
+let totalTime = 150; // всего 60 секунд
+let timeLeft = totalTime;
+let timeOutEnded = false;
+const timeValue = document.getElementById('time-value');
 
-  const starContainer = document.getElementById('star-container');
-  starContainer.innerHTML = "";
+function updateTimer() {
+    let minutes = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+    let seconds = (timeLeft % 60).toString().padStart(2,'0');
+    timeValue.textContent = `${minutes}:${seconds}`;
 
-  // проверка на максимальный балл с учетом погрешности
-  if (Math.abs(finalScore - maxScore) < 0.001) {
-      stars = 1;
-      const star = document.createElement("img");
-      star.src = "static/img/star.png";
-      star.style.width = "30vw";
-      star.style.height = "auto";
-      starContainer.appendChild(star);
-  }
-
-  document.getElementById('final-score').textContent = `Ұпай: ${finalScore.toFixed(2)}`;
-  document.getElementById('game-over').classList.remove('hidden');
-
-  fetch("/game_result", {
-    method:"POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      game_name: "Шифр",
-      score: finalScore,
-      stars: stars,
-      completed: true
-    })
-  }).then(r=>r.json()).then(d=>console.log("Жіберілді:", d));
+    // если меньше 10 секунд - добавляем эффект low
+    const timerBadge = document.getElementById('timer');
+    if(timeLeft <= 10) timerBadge.classList.add('low');
 }
 
+const timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimer();
+    if(timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timeOutEnded = true; // игра закончилась по времени
+        alert("⏰ Уақыт аяқталды!");
+        endGame();
+    }
+}, 1000);
+
+// обновляем таймер сразу при старте игры
+updateTimer();
+
+function endGame() {
+    // если время вышло или количество ошибок превышено, очки = 0
+    let finalScore = (mistakes >= maxMistakes || timeOutEnded) ? 0 : Math.round(score * 1000) / 1000;
+    let stars = 0;
+
+    const starContainer = document.getElementById('star-container');
+    starContainer.innerHTML = "";
+
+    if (!timeOutEnded && Math.abs(finalScore - maxScore) < 0.001) {
+        stars = 1;
+        const star = document.createElement("img");
+        star.src = "static/img/star.png";
+        star.style.width = "30vw";
+        star.style.height = "auto";
+        starContainer.appendChild(star);
+    }
+
+    document.getElementById('final-score').textContent = `Ұпай: ${finalScore.toFixed(2)}`;
+    document.getElementById('game-over').classList.remove('hidden');
+
+    fetch("/game_result", {
+        method:"POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          game_name: "Шифр",
+          score: finalScore,
+          stars: stars,
+          completed: true
+        })
+    }).then(r=>r.json()).then(d=>console.log("Жіберілді:", d));
+}
 showWord();

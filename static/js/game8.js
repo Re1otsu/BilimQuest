@@ -79,39 +79,79 @@ function updateBattery(){
 updateBattery();
 updateRobot();
 
+let totalTime = 120; // 120 секунд на игру
+let timeLeft = totalTime;
+let timerEnded = false;
+
+const timeValue = document.getElementById('time-value');
+
+function updateTimer() {
+    let minutes = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+    let seconds = (timeLeft % 60).toString().padStart(2,'0');
+    timeValue.textContent = `${minutes}:${seconds}`;
+    if(timeLeft <= 10) timeValue.style.color = "red"; // подсветка
+}
+
+const timerInterval = setInterval(() => {
+    if(timerEnded) return;
+    timeLeft--;
+    updateTimer();
+    if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        timerEnded = true;
+        alert("⏰ Уақыт аяқталды!");
+        endGame(); // завершение игры
+    }
+}, 1000);
+
+updateTimer();
+
 // Конец игры
-function endGame() {
-  let finalScore = 0;
+function showFinal() {
+  let finalScore = state.scorePoints;
   let stars = 0;
 
-  // Если ошибок меньше максимума и робот дошёл до батарейки
-  if(mistakes < maxMistakes && robotPos.x===11 && robotPos.y===11){
-      finalScore = maxScore; // даём 0,6
-      stars = 1;
+  // Определяем количество звёзд по текущему score
+  if (Math.abs(state.scorePoints - maxPoints) < 0.001) {
+    stars = 2;
+  } else if (state.scorePoints >= 1.0) {
+    stars = 1;
   }
 
-  starContainer.innerHTML = "";
-  if(stars === 1){
-      const star = document.createElement("img");
-      star.src = "static/img/star.png";
-      star.style.width = "30vw";
-      starContainer.appendChild(star);
+  // Очистка и установка звёзд
+  star1.classList.remove('on', 'off');
+  star2.classList.remove('on', 'off');
+  star1.style.display = 'none';
+  star2.style.display = 'none';
+
+  if (stars >= 1) {
+    star1.style.display = 'inline-block';
+    star1.classList.add('on');
   }
+  // Показываем финальный блок
+  finalBox.style.display = 'flex';
+  document.getElementById('finalText').textContent = `Ұпай: ${finalScore.toFixed(1)}`;
 
-  finalScoreEl.textContent = `Ұпай: ${finalScore.toFixed(2)}`;
-  gameOver.classList.remove("hidden");
-
-  fetch("/game_result",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({game_name:"Робот", score:finalScore, stars:stars, completed:true})
-  }).then(r=>r.json()).then(d=>console.log("Жіберілді:",d));
+  // Отправка результата на сервер
+  fetch("/game_result", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      game_name: "Компьютер",
+      score: finalScore,
+      stars: stars,
+      completed: true
+    })
+  }).then(r => r.json()).then(d => console.log("Жіберілді:", d));
 }
 
 btn.addEventListener("click", () => {
     const inputValue = input.value.trim();
     const match = inputValue.match(/^([01]{4})\s*(\d+)$/);
-
+    if(timerEnded) {
+        feedback.textContent = "⏰ Уақыт аяқталды! Жауап қабылданбайды.";
+        return;
+    }
     if(!match){
         feedback.textContent = "❌ Қате формат! Мысалы: 0010 3";
         mistakes++;

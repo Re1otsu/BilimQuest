@@ -153,3 +153,15 @@ body {
     width: 6vw;
     height: auto;
 }
+
+.timer-badge.low {
+  background: linear-gradient(135deg,#ff5a5a,#ff3b3b);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}

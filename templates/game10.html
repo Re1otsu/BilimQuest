@@ -1,51 +1,57 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Орнына қой — Мини-пазл</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пазл из 4 частей</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/game10.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
-<div class="wrap">
-  <div class="monitor" role="application" aria-label="Орнына қой — монитор">
-    <div class="screen" id="screen">
-      <div class="header">
-        <div class="title">Орнына қой — Мини-пазл</div>
+<h1>Пазл Ойын</h1>
+<p>Пазл бөліктерін ашу үшін мини-тапсырмаларды орындаңыз!</p>
 
-        <div class="small">Алдымен пазлды шешіп, кейін затты орнына қойыңыз</div>
-      </div>
+<div id="timer">Уақыт: <span id="time-value">03:00</span></div>
 
-      <div class="zones" id="zones"></div>
-      <div class="inventory-wrap">
-        <div class="inv-title">Инвентарь</div>
-        <div class="inventory" id="inventory"></div>
-      </div>
-
-      <div class="final-box" id="finalBox">
-        <div style="font-weight:700;margin-bottom:8px" id="finalText">Ойын аяқталды</div>
-        <div class="stars" id="starsWrap">
-          <div class="star off" id="star1">★</div>
-          <div class="star off" id="star2">★</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<div id="puzzle-container">
+    <div class="puzzle-piece locked" id="piece1">1</div>
+    <div class="puzzle-piece locked" id="piece2">2</div>
+    <div class="puzzle-piece locked" id="piece3">3</div>
+    <div class="puzzle-piece locked" id="piece4">4</div>
 </div>
 
-<!-- modal template -->
-<template id="modalTpl">
-  <div class="modal-back">
-    <div class="modal" role="dialog" aria-modal="true">
-      <h3 id="modalTitle"></h3>
-      <div class="hint" id="modalHint"></div>
-      <div id="modalBody"></div>
-      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
-      </div>
+<div id="game-over" class="hidden">
+  <h2>Ойын аяқталды!</h2>
+  <div id="final-score"></div>
+  <div id="star-container"></div>
+</div>
+
+
+<!-- Модальные мини-задания -->
+<div id="modal" class="hidden">
+  <div class="modal-content">
+    <span id="close-modal">&times;</span>
+    <div id="mini-task"></div>
+
+    <!-- Контейнер для drag элементов -->
+    <div id="drag-container" class="hidden">
+      <img src="/static/img/book.png" class="drag-item" draggable="true" data-type="текст">
+      <img src="/static/img/film.png" class="drag-item" draggable="true" data-type="видео">
+      <img src="/static/img/call.png" class="drag-item" draggable="true" data-type="аудио">
     </div>
+
+    <!-- Контейнер для drop зон -->
+    <div id="drop-container" class="hidden">
+      <div class="drop-zone" data-type="видео">Бейне</div>
+        <div class="drop-zone" data-type="текст"> Мәтін</div>
+      <div class="drop-zone" data-type="аудио">Дыбыс</div>
+    </div>
+
+    <input type="text" id="task-answer" placeholder="Жауабыңызды енгізіңіз">
+    <button id="submit-task">Жіберу</button>
+    <p id="task-feedback"></p>
   </div>
-</template>
+</div>
 <script src="static/js/game10.js"></script>
 </body>
 </html>

@@ -9,8 +9,14 @@
 </head>
 <body style="background-image: url('{{ url_for('static', filename='img/bg2.jpg') }}');">
 
+  <div id="game-over" class="hidden">
+    <h2>Ойын аяқталды!</h2>
+    <p id="final-score">Ұпай: 0</p>
+    <div id="star-container"></div>
+  </div>
 
   <div class="game">
+
     <!-- Жоғарыдағы "Мәтін, Дыбыс, Бейне" -->
     <div class="targets">
       <div class="target" data-match="мәтін">Мәтін</div>
@@ -58,13 +64,8 @@
       </div>
     </div>
   </div>
-
+      <div id="timer" class="timer-badge" aria-live="polite">Уақыт: <span id="time-value"></span>
   <!-- Модальное окно результатов -->
-  <div id="game-over" class="hidden">
-    <h2>Ойын аяқталды!</h2>
-    <p id="final-score">Ұпай: 0</p>
-    <div id="star-container"></div>
-  </div>
 
   <script src="static/js/game2.js"></script>
 </body>

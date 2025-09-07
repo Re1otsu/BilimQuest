@@ -95,7 +95,7 @@ function showGameOver() {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      game_name: "Ақпарат-алу",
+      game_name: "Қағып ал",
       score: score.toFixed(2),
       stars: stars,
       completed: true

@@ -49,10 +49,39 @@ const totalPairs = binaryBalls.length;
 
 let firstSelected = null;
 
+let totalTime = 90; // 120 секунд
+let timeLeft = totalTime;
+let timerEnded = false;
+const timeValue = document.getElementById('time-value');
+
+function updateTimer() {
+    let minutes = Math.floor(timeLeft / 60).toString().padStart(2,'0');
+    let seconds = (timeLeft % 60).toString().padStart(2,'0');
+    timeValue.textContent = `${minutes}:${seconds}`;
+    if(timeLeft <= 10) timeValue.style.color = "red";
+}
+
+const timerInterval = setInterval(() => {
+    if(timerEnded) return;
+    timeLeft--;
+    updateTimer();
+    if(timeLeft <= 0){
+        clearInterval(timerInterval);
+        timerEnded = true;
+        alert("⏰ Уақыт аяқталды!");
+        endGame();
+    }
+}, 1000);
+
+updateTimer();
+
 // Обработка кликов
 function handleClick(ball, type) {
+  if(timerEnded){
+    feedback.textContent = "⏰ Уақыт аяқталды! Жауап қабылданбайды.";
+    return;
+  }
   if(ball.matched) return;
-
   if(!firstSelected) {
     firstSelected = {ball, type};
     ball.el.style.border = "3px solid gold";
@@ -142,20 +171,35 @@ function checkEnd(){
 }
 
 function endGame(){
-  stars = (mistakes < maxMistakes && score >= maxScore) ? 1 : 0;
-  finalScoreEl.textContent = `Ұпай: ${score.toFixed(2)}`;
+  clearInterval(timerInterval); // останавливаем таймер
+  let finalScore = 0;
+  let finalStars = 0;
+
+  // Начисляем очки только если ошибок меньше maxMistakes и время не вышло
+  if(!timerEnded && mistakes < maxMistakes){
+    finalScore = score;
+    finalStars = (score >= maxScore) ? 1 : 0;
+  }
+
+  finalScoreEl.textContent = `Ұпай: ${finalScore.toFixed(2)}`;
   starContainer.innerHTML = "";
-  if(stars === 1){
+  if(finalStars === 1){
     const star = document.createElement("img");
     star.src = "static/img/star.png";
     starContainer.appendChild(star);
   }
+
   gameOver.classList.remove("hidden");
 
   // Отправка на сервер
-  fetch("/game_result",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({game_name:"Сиқырлы шарлар", score:score.toFixed(2), stars:stars, completed:true})
-  }).then(r=>r.json()).then(d=>console.log("Жіберілді:",d));
+  fetch("/game_result", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      game_name: "Сиқырлы шарлар",
+      score: finalScore.toFixed(2),
+      stars: finalStars,
+      completed: true
+    })
+  }).then(r => r.json()).then(d => console.log("Жіберілді:", d));
 }

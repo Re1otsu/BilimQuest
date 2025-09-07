@@ -8,6 +8,10 @@ let score = 0;
 let mistakes = 0;
 const maxScore = 0.6; // 3 замка × 0.2
 
+// Таймер
+let timeLeft = 120; // секунд, можно изменить
+let timerInterval = null;
+
 // Задачи для каждого замка
 const puzzles = {
   lock1: {
@@ -25,6 +29,25 @@ const puzzles = {
 };
 const modalContent = document.querySelector(".modal-content h3");
 
+// Добавляем таймер в модальное окно
+const modalTimer = document.createElement('div');
+modalTimer.classList.add('modal-timer');
+modal.querySelector('.modal-content').prepend(modalTimer);
+
+function startTimer() {
+  modalTimer.textContent = `Уақыт: ${timeLeft}s`;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    modalTimer.textContent = `Уақыт: ${timeLeft}s`;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert("⏰ Уақыт аяқталды!");
+      endGame();
+    }
+  }, 1000);
+}
+
+// Запускаем таймер при открытии любого замка
 locks.forEach(lock => {
   lock.addEventListener('click', () => {
     if (lock.classList.contains("unlock")) return;
@@ -33,12 +56,16 @@ locks.forEach(lock => {
     answerInput.value = "";
     answerInput.focus();
 
+    // Запуск таймера один раз
+    if (!timerInterval) startTimer();
+
     // Вставляем красиво Морзе/код/шифр
     modalContent.innerHTML = puzzles[lock.id].task
       .replace("Морзе:", '<div class="morse">Морзе:')
       .replace("(Морзе)", '</div>');
   });
 });
+
 submitBtn.addEventListener('click', () => {
   const code = answerInput.value.trim().toLowerCase();
   if (code === puzzles[currentLock.id].answer.toLowerCase()) {
@@ -61,20 +88,20 @@ function checkEndGame() {
 }
 
 function endGame() {
+  clearInterval(timerInterval); // останавливаем таймер
   let finalScore = mistakes >= 2 ? 0 : score;
   let stars = 0;
 
-  // Добавляем звезду при максимальном балле
-    const starContainer = document.getElementById('star-container');
-    starContainer.innerHTML = "";
-    if (Math.abs(finalScore - maxScore) < 0.001) {  // проверка на макс. балл
-        stars = 1;
-        const star = document.createElement("img");
-        star.src = "static/img/star.png";
-        star.style.width = "30vw";
-        star.style.height = "auto";
-        starContainer.appendChild(star);
-    }
+  const starContainer = document.getElementById('star-container');
+  starContainer.innerHTML = "";
+  if (Math.abs(finalScore - maxScore) < 0.001) {  // проверка на макс. балл
+      stars = 1;
+      const star = document.createElement("img");
+      star.src = "static/img/star.png";
+      star.style.width = "30vw";
+      star.style.height = "auto";
+      starContainer.appendChild(star);
+  }
 
   document.getElementById('final-score').textContent = `Ұпай: ${finalScore.toFixed(2)}`;
   document.getElementById('game-over').classList.remove('hidden');

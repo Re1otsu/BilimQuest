@@ -111,7 +111,7 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, 0);
   width: 100vw;
   height: 100vh;
   background: rgb(9, 143, 233);
@@ -177,4 +177,32 @@
 @keyframes popUp {
   0% { transform: translate(-50%, -60%) scale(0.5); opacity: 0; }
   100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+.timer-badge {
+  display: flex;
+  position: relative;
+  margin: 0.5em auto;
+  text-align: center;
+  align-items: center;
+  transform: translateY(-80vh);
+  background: linear-gradient(180deg,#fff,#f3f3f3);
+  color: #2c3e50;
+  padding: 0.5em 1em;
+  border-radius: 999px;
+  width:8em;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  text-align: center;
+}
+
+.timer-badge.low {
+  background: linear-gradient(135deg,#ff5a5a,#ff3b3b);
+  color: white;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: .5; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
 }
