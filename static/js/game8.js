@@ -9,7 +9,7 @@ const gameOver = document.getElementById("game-over");
 const finalScoreEl = document.getElementById("final-score");
 const starContainer = document.getElementById("star-container");
 
-const maxScore = 0.6;
+const maxScore = 1.2;
 const maxMistakes = 2;
 let score = 0;
 let mistakes = 0;

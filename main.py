@@ -329,7 +329,7 @@ def student_dashboard(student_id):
         "Агент Шифр": "Қолдану",
         "Робот": "Анализ",
         "Сиқырлы шарлар": "Анализ",
-        "game4_3": "Анализ",
+        "Блоктар": "Анализ",
         "game5_1": "Синтез",
         "game5_2": "Синтез",
         "game5_3": "Синтез",
@@ -402,8 +402,9 @@ def game_result():
         "Қамал":0.6,
         "Шифр":0.7,
         "Агент Шифр":0.7,
-        "Робот": 0.6,
-        "Сиқырлы шарлар": 0.7
+        "Робот": 1.2,
+        "Сиқырлы шарлар": 1.4,
+        "Блоктар":1.4
     }
 
     max_score = MAX_SCORE.get(game_name)
@@ -550,13 +551,34 @@ def teacher_panel():
         "Агент Шифр": "Қолдану",
         "Робот": "Анализ",
         "Сиқырлы шарлар": "Анализ",
-        "game4_3": "Анализ",
+        "Блоктар": "Анализ",
         "game5_1": "Синтез",
         "game5_2": "Синтез",
         "game5_3": "Синтез",
         "game6_1": "Бағалау",
         "game6_2": "Бағалау",
         "game6_3": "Бағалау",
+    }
+
+    GAME_TO_CHAPTER_NAME = {
+        "Ақпарат-алу": "Біздің айналамыздағы ақпарат",
+        "Көпір": "Біздің айналамыздағы ақпарат",
+        "words_match": "Біздің айналамыздағы ақпарат",
+        "Лабиринт": "Ақпарат беру",
+        "Ғарыш хабаршысы": "Ақпарат беру",
+        "Хабаршы": "Ақпарат беру",
+        "Қамал": "Ақпаратты шифрлау",
+        "Шифр": "Ақпаратты шифрлау",
+        "Агент Шифр": "Ақпаратты шифрлау",
+        "Робот": "Екілік ақпаратты ұсыну",
+        "Сиқырлы шарлар": "Екілік ақпаратты ұсыну",
+        "Блоктар": "Екілік ақпаратты ұсыну",
+        "game5_1": "Екілік ақпаратты ұсыну. Практикум",
+        "game5_2": "Екілік ақпаратты ұсыну. Практикум",
+        "game5_3": "Екілік ақпаратты ұсыну. Практикум",
+        "game6_1": "Бірінші бөлім бойынша қорытынды тапсырмалар",
+        "game6_2": "Бірінші бөлім бойынша қорытынды тапсырмалар",
+        "game6_3": "Бірінші бөлім бойынша қорытынды тапсырмалар",
     }
 
     chapter_scores, chapter_max_scores = {}, {}
@@ -575,7 +597,7 @@ def teacher_panel():
 
     chapter_scores_all, chapter_max_all = {}, {}
     for gp in all_progress_all:
-        chapter = GAME_TO_CHAPTER.get(gp.game_name, "Прочее")
+        chapter = GAME_TO_CHAPTER_NAME.get(gp.game_name, "Баскада")
         chapter_scores_all[chapter] = chapter_scores_all.get(chapter, 0) + gp.score
         chapter_max_all[chapter] = chapter_max_all.get(chapter, 0) + getattr(gp, 'max_score', 1)
 
@@ -972,13 +994,13 @@ def module4():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="push_blocks_all") \
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Блоктар") \
         .order_by(GameProgress.attempt.desc()).first()
 
     # Егер бұрын тапсырған болса
     if progress:
         # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="push_blocks_all").first()
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Блоктар").first()
         if not (access and access.is_unlocked):
             return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
 

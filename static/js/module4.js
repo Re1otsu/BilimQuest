@@ -4,10 +4,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ========== Таймер ==========
-const totalTimeLimit = 240; // общее время на все уровни
+const totalTimeLimit = 120; // общее время на все уровни
 let timeLeft = totalTimeLimit;
 let timerInterval = null;
 let timerStarted = false;
+let mistakes = 0;
 
 function formatTime(s) {
   const mm = Math.floor(s / 60).toString().padStart(2, '0');
@@ -82,7 +83,7 @@ const levels = [
       { x: 5, y: 7, id: "m" },
     ],
     obstacles: [
-      { x: 3, y: 3 }, { x: 4, y: 4 }, { x: 6, y: 6 },
+      { x: 3, y: 2 }, { x: 4, y: 4 }, { x: 6, y: 6 },
       { x: 3, y: 8 }, { x: 7, y: 4 }, { x: 2, y: 6 }
     ]
   }
@@ -226,17 +227,20 @@ function moveCharacter(dx, dy) {
         }
 
         if (String(target.id) === charFromBlock) {
+          // блок поставлен верно
           score += 10;
+          // удаляем блок и цель
           blocks = blocks.filter(b => b !== block);
           targets = targets.filter(t => t !== target);
         } else {
+          // блок поставлен неверно
+          mistakes++;
           if (!firstWarningShown) {
             alert("Блоктарды бұрыс орындарға қоюға болмайды!");
             firstWarningShown = true;
           } else {
             alert("Блоктар бастапқы орындарына орналасты!");
           }
-
           block.x = block.startX;
           block.y = block.startY;
 
@@ -285,37 +289,66 @@ function handleKeyPress(event) {
 // ========== Отправка результата ==========
 async function sendProgress() {
   stopTimer();
-  const maxScore = levels.reduce((sum, level) => sum + level.blocks.length * 10, 0);
-  const percentage = (score / maxScore) * 100;
 
-  let comment = "";
-  if (percentage >= 90) {
-    comment = "🎉 Керемет жұмыс! Шифрларды өте жақсы меңгердің.";
-  } else if (percentage >= 70) {
-    comment = "👍 Жақсы нәтиже! Тағы да тәжірибе жасап көр.";
-  } else if (percentage >= 50) {
-    comment = "🙂 Орташа. Қайтадан өтіп көрсең, жақсырақ болады.";
+  const maxTotalScore = 1.4;
+  let normalizedScore = 0;
+  let stars = 0;
+
+  if (mistakes < 2) {
+    let clearedBlocks = 0;
+
+    levels.forEach((level, index) => {
+      if (index < currentLevelIndex) {
+        clearedBlocks += level.blocks.length;
+      } else if (index === currentLevelIndex) {
+        clearedBlocks += level.blocks.filter(b =>
+          !blocks.some(curr => curr.id === b.id && curr.x === b.x && curr.y === b.y)
+        ).length;
+      }
+    });
+
+    const totalBlocks = levels.reduce((sum, level) => sum + level.blocks.length, 0);
+
+    // Если все блоки пройдены, даём максимум, иначе сразу 0
+    normalizedScore = clearedBlocks === totalBlocks ? maxTotalScore : 0;
+
+    // Звёзды тоже только за полное прохождение
+    stars = normalizedScore === maxTotalScore ? 1 : 0;
   } else {
-    comment = "⚠️ Жетілдіру қажет. Сабыр сақтап, тағы байқап көр.";
+    normalizedScore = 0;
+    stars = 0;
   }
 
-  // Показ результата
-  document.getElementById("result-score").textContent = `Нәтиже: ${score} / ${maxScore} (${Math.round(percentage)}%)`;
-  document.getElementById("result-comment").textContent = comment;
-  document.getElementById("result-box").style.display = "block";
+  // отображение результата
+  const percentage = Math.round((normalizedScore / maxTotalScore) * 100);
+  document.getElementById("final-score").textContent = `Ұпай: ${normalizedScore.toFixed(2)}`;
 
-  // Отправка на сервер
+  // добавление звезды
+  const starContainer = document.getElementById("star-container");
+  starContainer.innerHTML = "";
+  if (stars === 1) {
+    const star = document.createElement("img");
+    star.src = "static/img/star.png";
+    star.style.width = "30vw";
+    starContainer.appendChild(star);
+  }
+
+  // показать блок
+  const gameOver = document.getElementById("game-over");
+  if (gameOver) gameOver.classList.remove("hidden");
+
+  // отправка на сервер
   await fetch("/game_result", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      game_name: "push_blocks_all",
-      score: score,
+      game_name: "Блоктар",
+      score: normalizedScore.toFixed(2),
+      stars: stars,
       completed: true
     })
   });
 }
-
 // ========== Горячие клавиши ==========
 document.addEventListener("keydown", (e) => {
   if (e.key === "r") resetPositions(); // R — ресет
