@@ -8,14 +8,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const items = document.querySelectorAll('.item');
   const targets = document.querySelectorAll('.target');
-  const planks = [
-      document.getElementById('p1'),
-      document.getElementById('p2'),
-      document.getElementById('p3')
-  ];
-
+    const correctCounts = { 'мәтін': 0, 'дыбыс': 0, 'бейне': 0 };
+    const planks = [document.getElementById('p1'), document.getElementById('p2'), document.getElementById('p3')];
+    let plankIndex = 0;
   const gameOverModal = document.getElementById("game-over");
   const finalScore = document.getElementById("final-score");
+
+const gameDuration = 60; // время игры в секундах
+let timeLeft = gameDuration;
+const timerEl = document.createElement('p');
+timerEl.id = 'timer';
+timerEl.style.fontSize = '2em';
+timerEl.style.color = '#fff';
+document.querySelector('.game').prepend(timerEl); // добавляем таймер в блок игры
+updateTimerDisplay();
+
+const timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+
+    if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        score = 0; // при истечении времени 0 баллов
+        showGameOver();
+    }
+}, 1000);
+
+function updateTimerDisplay() {
+    timerEl.textContent = `Уақыт: ${timeLeft} сек`;
+}
+
 
   function shuffleElements(container) {
     [...container.children]
@@ -32,32 +54,39 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   });
 
-  targets.forEach(target => {
-      target.addEventListener('dragover', e => e.preventDefault());
-      target.addEventListener('drop', e => {
-          e.preventDefault();
-          const ans = e.dataTransfer.getData('text');
-          if (target.dataset.match === ans && !target.classList.contains('done')) {
-              target.style.background = '#c8e6c9';
-              target.classList.add('done');
-              planks[correct].classList.add('active');
+targets.forEach(target => {
+    target.addEventListener('dragover', e => e.preventDefault());
+    target.addEventListener('drop', e => {
+        e.preventDefault();
+        const ans = e.dataTransfer.getData('text');
 
-              correct++;
-              score += scoreIncrement;
-              if (score > maxScore) score = maxScore; // ограничение максимумом
+        if (target.dataset.match === ans && !target.classList.contains('done')) {
+            target.style.background = '#c8e6c9';
+            correctCounts[ans]++;
 
-              if (correct === 3) {
-                  setTimeout(showGameOver, 1000);
-              }
-          } else {
-              target.style.background = '#ffcdd2';
-              mistakes++;
-              score = 0; // обнуляем при ошибке
-          }
-      });
-  });
+            // Доска появляется после 2 правильных картинок
+            if (correctCounts[ans] === 2) {
+                planks[plankIndex].classList.add('active');
+                plankIndex++;
+            }
+
+            score += scoreIncrement;
+            if (score > maxScore) score = maxScore;
+
+            // Игра окончена, когда все доски активны
+            if (plankIndex === planks.length) {
+                setTimeout(showGameOver, 1000);
+            }
+        } else {
+            target.style.background = '#ffcdd2';
+            mistakes++;
+            score = 0;
+        }
+    });
+});
 
   function showGameOver() {
+      clearInterval(timerInterval);
       finalScore.textContent = `Ұпай: ${score.toFixed(2)}`;
       gameOverModal.classList.remove("hidden");
 

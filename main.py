@@ -751,6 +751,27 @@ def bolim1_4():
 
     return render_template("bolim1_4.html", completed=completed, student=student)
 
+@app.route("/bolim1_5")
+@login_required("student")
+def bolim1_5():
+    student_id = session.get("user_id")
+    student = Student.query.get(student_id)
+
+    # Загружаем прогресс из GameProgress
+    progress = db.session.execute(
+        text("SELECT game_name, completed FROM game_progress WHERE student_id = :sid"),
+        {"sid": student_id}
+    ).fetchall()
+
+    # Определяем порядок модулей и создаём словарь completed
+    default_modules = ['Шифр', 'Агент Шифр',  'Робот', 'Сиқырлы шарлар','Блоктар']
+    completed = {m: False for m in default_modules}
+    for row in progress:
+        if row.game_name in completed:
+            completed[row.game_name] = bool(row.completed)
+
+    return render_template("bolim1_5.html", completed=completed, student=student)
+
 @app.route("/game1")
 @login_required("student")
 def game1():

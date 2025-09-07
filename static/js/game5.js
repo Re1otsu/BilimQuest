@@ -11,16 +11,16 @@ const maxScore = 0.6; // 3 замка × 0.2
 // Задачи для каждого замка
 const puzzles = {
   lock1: {
-    task: "Морзе:\n.... . .-.. .-.. ---",
-    answer: "hello"
+    task: "Морзе:\n-.- .-.. ..-- ---.",
+    answer: "ключ"
   },
   lock2: {
-    task: "Сандар коды:\n20-1-11-21-1 (A=1, B=2…)",
-    answer: "takua"
+    task: "Сандар коды:\n36-44-11-34 ",
+    answer: "отан"
   },
   lock3: {
-    task: "Цезарь +3:\nKhoor",
-    answer: "hello"
+    task: "Цезарь +3:\nЛэнұ",
+    answer: "кілт"
   }
 };
 const modalContent = document.querySelector(".modal-content h3");
