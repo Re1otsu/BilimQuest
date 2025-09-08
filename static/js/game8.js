@@ -9,7 +9,7 @@ const gameOver = document.getElementById("game-over");
 const finalScoreEl = document.getElementById("final-score");
 const starContainer = document.getElementById("star-container");
 
-const maxScore = 1.2;
+const maxScore = 0.6;
 const maxMistakes = 2;
 let score = 0;
 let mistakes = 0;
@@ -50,15 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-for (let y = 0; y < mazeSize; y++) {
-  for (let x = 0; x < mazeSize; x++) {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
-    if (maze[y][x] === 1) cell.classList.add("wall");
-    mazeContainer.appendChild(cell);
-  }
-}
-
 function getCellSize() {
   const mazeRect = mazeContainer.getBoundingClientRect();
   return { width: mazeRect.width / mazeSize, height: mazeRect.height / mazeSize };
@@ -70,88 +61,70 @@ function updateRobot(){
   robot.style.top  = robotPos.y * cellSize.height + "px";
 }
 
+for (let y = 0; y < mazeSize; y++) {
+  for (let x = 0; x < mazeSize; x++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    if (maze[y][x] === 1) cell.classList.add("wall");
+    mazeContainer.appendChild(cell);
+  }
+}
+
 function updateBattery(){
   const cellSize = getCellSize();
   battery.style.left = 11 * cellSize.width + "px";
   battery.style.top  = 11 * cellSize.height + "px";
 }
-
 updateBattery();
 updateRobot();
 
-let totalTime = 120; // 120 секунд на игру
-let timeLeft = totalTime;
-let timerEnded = false;
+let timeLeft = 30; // секунд
+const timerEl = document.getElementById("timer");
+let timerInterval = setInterval(() => {
+  timeLeft--;
+  timerEl.textContent = `Уақыт: ${timeLeft}`;
 
-const timeValue = document.getElementById('time-value');
-
-function updateTimer() {
-    let minutes = Math.floor(timeLeft / 60).toString().padStart(2,'0');
-    let seconds = (timeLeft % 60).toString().padStart(2,'0');
-    timeValue.textContent = `${minutes}:${seconds}`;
-    if(timeLeft <= 10) timeValue.style.color = "red"; // подсветка
-}
-
-const timerInterval = setInterval(() => {
-    if(timerEnded) return;
-    timeLeft--;
-    updateTimer();
-    if(timeLeft <= 0){
-        clearInterval(timerInterval);
-        timerEnded = true;
-        alert("⏰ Уақыт аяқталды!");
-        endGame(); // завершение игры
-    }
+  if(timeLeft <= 0){
+    clearInterval(timerInterval);
+    endGame(true); // true = окончание по таймеру
+  }
 }, 1000);
 
-updateTimer();
-
 // Конец игры
-function showFinal() {
-  let finalScore = state.scorePoints;
+function endGame(byTimer = false) {
+  let finalScore = 0;
   let stars = 0;
 
-  // Определяем количество звёзд по текущему score
-  if (Math.abs(state.scorePoints - maxPoints) < 0.001) {
-    stars = 2;
-  } else if (state.scorePoints >= 1.0) {
-    stars = 1;
+  if(!byTimer && mistakes < maxMistakes && robotPos.x===11 && robotPos.y===11){
+      finalScore = maxScore;
+      stars = 1;
   }
 
-  // Очистка и установка звёзд
-  star1.classList.remove('on', 'off');
-  star2.classList.remove('on', 'off');
-  star1.style.display = 'none';
-  star2.style.display = 'none';
-
-  if (stars >= 1) {
-    star1.style.display = 'inline-block';
-    star1.classList.add('on');
+  starContainer.innerHTML = "";
+  if(stars === 1){
+      const star = document.createElement("img");
+      star.src = "static/img/star.png";
+      star.style.width = "30vw";
+      starContainer.appendChild(star);
   }
-  // Показываем финальный блок
-  finalBox.style.display = 'flex';
-  document.getElementById('finalText').textContent = `Ұпай: ${finalScore.toFixed(1)}`;
 
-  // Отправка результата на сервер
-  fetch("/game_result", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      game_name: "Компьютер",
-      score: finalScore,
-      stars: stars,
-      completed: true
-    })
-  }).then(r => r.json()).then(d => console.log("Жіберілді:", d));
+  finalScoreEl.textContent = `Ұпай: ${finalScore.toFixed(2)}`;
+  gameOver.classList.remove("hidden");
+
+  fetch("/game_result",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({game_name:"Робот", score:finalScore, stars:stars, completed:true})
+  }).then(r=>r.json()).then(d=>console.log("Жіберілді:",d));
+
+  clearInterval(timerInterval); // таймер останавливаем
 }
 
+// Логика хода робота
 btn.addEventListener("click", () => {
     const inputValue = input.value.trim();
     const match = inputValue.match(/^([01]{4})\s*(\d+)$/);
-    if(timerEnded) {
-        feedback.textContent = "⏰ Уақыт аяқталды! Жауап қабылданбайды.";
-        return;
-    }
+
     if(!match){
         feedback.textContent = "❌ Қате формат! Мысалы: 0010 3";
         mistakes++;
