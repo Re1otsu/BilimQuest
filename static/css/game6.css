@@ -7,12 +7,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1vw;
+    font-size: 1.5vw;
+    height: 100vh;
 }
 
 h1 {
-    margin-bottom: 1vh;
-    font-size: 2vw;
+    margin-bottom: 0.5vh;
     text-align: center;
     color: #ffeb3b;
     text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
@@ -22,22 +22,24 @@ h1 {
 img.table {
     max-width: 90%;
     height: 50vh;
-    margin-bottom: 1.2vh;
+    margin-bottom: 1vh;
     border: 3px solid #fff;
     border-radius: 10px;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    transform: translateY(-6vh);
 }
 
 /* Слово для шифрования */
 .word-box {
     font-size: 2vw;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 1vh;
     padding: 1vh 1vw;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 0.5em;
     text-align: center;
     min-width: 1vw;
+    transform: translateY(-6vh);
 }
 
 /* Поле ввода */
@@ -46,15 +48,16 @@ input#code-input {
     font-size: 1.2rem;
     border-radius: 8px;
     border: none;
-    margin-bottom: 15px;
+    margin-bottom: 1.5vh;
     width: 20vw;
     text-align: center;
+    transform: translateY(-6vh);
 }
 
 /* Кнопка */
 button#submit-btn {
     padding: 1vh 1vw;
-    font-size: 1rem;
+    font-size: 2vw;
     border-radius: 0.5em;
     border: none;
     cursor: pointer;
@@ -62,19 +65,21 @@ button#submit-btn {
     color: #000;
     font-weight: bold;
     transition: transform 0.2s, box-shadow 0.2s;
+    transform: translateY(-6vh);
 }
 
 button#submit-btn:hover {
-    transform: scale(1.05);
+    transform: translateY(-6vh)scale(1.05);
     box-shadow: 0 0 10px gold;
 }
 
 /* Обратная связь */
 #feedback {
-    margin-top: 0.5vh;
-    font-size: 1.3rem;
-    min-height: 10vw;
+    margin-top: 1vh;
+    font-size: 2vw;
+
     text-align: center;
+    transform: translateY(-6vh);
 }
 
 /* Финальное окно */
@@ -132,9 +137,7 @@ button#submit-btn:hover {
     height: auto;
 }
 .timer-badge {
-  position: fixed;
-  top: 5vh;
-  left: 10vw;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,11 +145,11 @@ button#submit-btn:hover {
   color: #2c3e50;
   padding: 0.5em 1em;
   border-radius: 999px;
-  width: 8em;
   font-weight: 700;
+  font-size: 1.5vw;
   box-shadow: 0 6px 14px rgba(0,0,0,0.18);
   z-index: 9999;
-  font-size: 1.2rem;
+  transform: translate(40vw, -9vh);
 }
 
 .timer-badge.low {
