@@ -12,8 +12,19 @@ let stars = 0;
 
 const ballSize = 60;
 
+
+
 // Пример шариков: двоичное и десятичное
-const binaryBalls = [
+function convertBalls(oldBalls, isBinary) {
+  return oldBalls.map(b => {
+    const relX = b.x / gameContainer.clientWidth;
+    const relY = b.y / gameContainer.clientHeight;
+    return createBall(b.val, relX, relY, b.dx, b.dy, isBinary);
+  });
+}
+
+// старые массивы в пикселях
+const oldBinary = [
   {val: "E", x: 50, y: 50, dx: 1, dy: 1},
   {val: "S", x: 200, y: 100, dx: -1, dy: 1},
   {val: "c", x: 300, y: 200, dx: 1, dy: -1},
@@ -21,7 +32,7 @@ const binaryBalls = [
   {val: "H", x: 500, y: 150, dx: 1, dy: -1}
 ];
 
-const decimalBalls = [
+const oldDecimal = [
   {val: 69, x: 600, y: 50, dx: -1, dy: 1},
   {val: 83, x: 700, y: 100, dx: 1, dy: -1},
   {val: 99, x: 650, y: 200, dx: -1, dy: 1},
@@ -29,25 +40,41 @@ const decimalBalls = [
   {val: 72, x: 750, y: 50, dx: -1, dy: -1}
 ];
 
+// новые массивы с относительными координатами
+const binaryBalls = convertBalls(oldBinary, true);
+const decimalBalls = convertBalls(oldDecimal, false);
+
 const totalPairs = binaryBalls.length;
 
-// Создаём шарики
-[binaryBalls, decimalBalls].forEach(group => {
-  group.forEach((b, i) => {
-    const el = document.createElement("div");
-    el.classList.add("ball");
-    el.style.left = b.x + "px";
-    el.style.top = b.y + "px";
-    el.style.background = group === binaryBalls ? "#0077ff" : "#fff";
-    el.style.color = group === binaryBalls ? "#fff" : "#000";
-    el.style.fontSize = /^[A-Z]$/.test(b.val) ? "28px" : "20px";
-    el.textContent = b.val;
-    gameContainer.appendChild(el);
-    b.el = el;
-  });
-});
 
 let firstSelected = null;
+
+function createBall(val, relX, relY, dx, dy, isBinary) {
+  const el = document.createElement("div");
+  el.classList.add("ball");
+  el.style.position = "absolute";
+  el.style.width = ballSize + "px";
+  el.style.height = ballSize + "px";
+  el.style.borderRadius = "50%";
+  el.style.background = isBinary ? "#6cf" : "#fc6"; // разные цвета
+  el.style.display = "flex";
+  el.style.alignItems = "center";
+  el.style.justifyContent = "center";
+  el.style.fontWeight = "bold";
+  el.style.cursor = "pointer";
+
+  // координаты
+  const x = relX * gameContainer.clientWidth;
+  const y = relY * gameContainer.clientHeight;
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+
+  el.textContent = val;
+
+  gameContainer.appendChild(el);
+
+  return { val, x, y, dx, dy, el, matched:false };
+}
 
 let totalTime = 90; // 120 секунд
 let timeLeft = totalTime;
@@ -129,8 +156,11 @@ function moveBalls(){
     b.x += b.dx;
     b.y += b.dy;
 
-    if(b.x <= 0 || b.x + ballSize >= gameContainer.clientWidth) b.dx *= -1;
-    if(b.y <= 0 || b.y + ballSize >= gameContainer.clientHeight) b.dy *= -1;
+    // ограничение строго в пределах поля
+    if(b.x < 0) { b.x = 0; b.dx *= -1; }
+    if(b.x + ballSize > gameContainer.clientWidth) { b.x = gameContainer.clientWidth - ballSize; b.dx *= -1; }
+    if(b.y < 0) { b.y = 0; b.dy *= -1; }
+    if(b.y + ballSize > gameContainer.clientHeight) { b.y = gameContainer.clientHeight - ballSize; b.dy *= -1; }
 
     b.el.style.left = b.x + "px";
     b.el.style.top = b.y + "px";
@@ -138,6 +168,22 @@ function moveBalls(){
   requestAnimationFrame(moveBalls);
 }
 moveBalls();
+window.addEventListener("resize", () => {
+  [...binaryBalls, ...decimalBalls].forEach(b => {
+    // нормализуем координаты в относительные (0..1)
+    let relX = b.x / gameContainer.clientWidth;
+    let relY = b.y / gameContainer.clientHeight;
+
+    // пересчитываем новые координаты с учётом размеров
+    b.x = Math.min(gameContainer.clientWidth - ballSize, Math.max(0, relX * gameContainer.clientWidth));
+    b.y = Math.min(gameContainer.clientHeight - ballSize, Math.max(0, relY * gameContainer.clientHeight));
+
+    // обновляем CSS
+    b.el.style.left = b.x + "px";
+    b.el.style.top = b.y + "px";
+  });
+});
+
 
 // Линия между шарами
 function drawLine(b1, b2){
