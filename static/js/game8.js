@@ -80,7 +80,7 @@ function updateBattery(){
 updateBattery();
 updateRobot();
 
-let timeLeft = 30; // секунд
+let timeLeft = 180; // секунд
 const timerEl = document.getElementById("timer");
 let timerInterval = setInterval(() => {
   timeLeft--;
