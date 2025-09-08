@@ -29,8 +29,10 @@
     .target {
       display: flex;
       width: 7vw;
-      height: 6vh;
-      font-size: 1vw;
+      height: auto;
+      padding: 0.5em 2em;
+      gap:2vw;
+      font-size: 1.7vw;
       text-align: center;
       justify-content: center;
       align-items: center;
@@ -76,19 +78,21 @@
       margin-bottom: 2rem;
     }
     .item {
+      display: table-row;
       background: #fff;
       border-radius: 0.7rem;
-      padding: 2%;
       text-align: center;
-      width: 5vw;
-      height: 9vh;
-      font-size: 1vw;
+      padding: 0.3em 0.7em;
+      width: 10vw;
+      gap:2vw;
+      height: 10vh;
+      font-size: 1.7vw;
+      font-weight: 600;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       cursor: grab;
     }
     .item img {
-      width: 40px;
-      height: 40px;
+      width: 8vw;
       display: block;
       margin: auto;
     }
@@ -184,11 +188,11 @@
   color: #2c3e50;
   padding: 0.5em 1em;
   border-radius: 999px;
-  width:8vw;
-  font-size: 1vw;
+  width:12vw;
+  font-size: 1.5vw;
   font-weight: 700;
   box-shadow: 0 6px 14px rgba(0,0,0,0.18);
-  transform: translateX(-2vw);
+  transform: translate(-2vw, -2vh);
 
 }
 

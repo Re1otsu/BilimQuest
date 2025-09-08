@@ -5,7 +5,7 @@
 }
 html, body {
     width: 100%;
-    min-height: 100vh;
+    min-height: 100%;
     font-family: 'Open Sans', sans-serif;
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
     color: #333;
@@ -121,11 +121,11 @@ html, body {
 .modal {
     display: none;
     position: fixed;
-    left: 10%;
+    left: 5%;
     align-items: center;
     justify-content: center;
-    width: 62vw;
-    height: 65vh;
+    width: 65vw;
+    height: 70vh;
     background: #fff;
     border-radius: 1rem;
     box-shadow: 0 0 2em rgba(0,0,0,0.3);
