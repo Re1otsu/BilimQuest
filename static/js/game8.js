@@ -80,13 +80,29 @@ function updateBattery(){
 updateBattery();
 updateRobot();
 
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
 let timeLeft = 180; // секунд
 const timerEl = document.getElementById("timer");
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
+// бірден көрсету үшін
+timerEl.textContent = `Уақыт: ${formatTime(timeLeft)}`;
+
 let timerInterval = setInterval(() => {
   timeLeft--;
-  timerEl.textContent = `Уақыт: ${timeLeft}`;
+  timerEl.textContent = `Уақыт: ${formatTime(timeLeft)}`;
 
-  if(timeLeft <= 0){
+  if (timeLeft <= 0) {
     clearInterval(timerInterval);
     endGame(true); // true = окончание по таймеру
   }
@@ -173,4 +189,8 @@ btn.addEventListener("click", () => {
 
     if(robotPos.x === 11 && robotPos.y === 11) endGame();
     input.value = "";
+});
+window.addEventListener("resize", () => {
+  updateRobot();
+  updateBattery();
 });
