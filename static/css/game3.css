@@ -7,6 +7,8 @@ body {
   overflow-x: hidden;
   position: relative;
   height: 100vh;
+  width: 100vw;
+  font-size: 1.5vw;
 }
 
 /* ===== Звёздное небо ===== */
@@ -27,7 +29,6 @@ body::before {
 
 
 h1 {
-  font-size: 2.2rem;
   text-shadow: 0 0 10px #48a1ee;
   margin-top: 20px;
 }
@@ -35,7 +36,7 @@ h1 {
 /* ===== Звёздное небо ===== */
 .space {
   position: relative;
-  height: 65vh;
+  height: 60vh;
   width: 100%;
   overflow: hidden;
   z-index: 1;
@@ -101,24 +102,25 @@ h1 {
 .choices {
   display: flex;
   justify-content: center;
-  gap: 1em;
-  bottom: 10vh;
+  gap: 1vw;
+  bottom: 2vh;
 }
 
 .choices button {
-  font-size: 1.5rem;
-  padding: 15px 20px;
+  font-size: 1.5vw;
+  padding: 2vh 2vw;
   border: none;
-  border-radius: 10px;
+  border-radius: 0.7em;
   cursor: pointer;
   background: linear-gradient(90deg, #6a0dad, #48a1ee);
   color: white;
   box-shadow: 0 0 15px #48a1ee;
   transition: transform 0.2s, box-shadow 0.3s;
+  transform: translateY(-5vh);
 }
 
 .choices button:hover {
-  transform: scale(1.1);
+  transform: translateY(-5vh)scale(1.1);
   box-shadow: 0 0 25px #fff;
 }
 
