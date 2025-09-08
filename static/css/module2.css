@@ -25,6 +25,7 @@ h1 {
   font-weight: bold;
   font-size: 100%;
   color: #222;
+  display: none;
 }
 
 .grid {
