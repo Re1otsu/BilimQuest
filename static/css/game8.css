@@ -52,6 +52,16 @@ body {
   margin-top: 1vh;
 }
 
+#robot, #battery {
+  position: absolute;
+  aspect-ratio: 1 / 1;   /* всегда квадрат */
+  width: 8%;             /* вместо calc — просто процент */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
 #feedback {
   margin-top: 10px;
   font-weight: bold;

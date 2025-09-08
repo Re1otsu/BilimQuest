@@ -70,10 +70,12 @@ for (let y = 0; y < mazeSize; y++) {
   }
 }
 
+const batteryPos = {x: 11, y: 11};
+
 function updateBattery(){
   const cellSize = getCellSize();
-  battery.style.left = 11 * cellSize.width + "px";
-  battery.style.top  = 11 * cellSize.height + "px";
+  battery.style.left = batteryPos.x * cellSize.width + "px";
+  battery.style.top  = batteryPos.y * cellSize.height + "px";
 }
 updateBattery();
 updateRobot();
