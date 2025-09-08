@@ -121,11 +121,12 @@ html, body {
 .modal {
     display: none;
     position: fixed;
+    transform: translateY(4vh);
     left: 5%;
     align-items: center;
     justify-content: center;
     width: 65vw;
-    height: 70vh;
+    height: 75vh;
     background: #fff;
     border-radius: 1rem;
     box-shadow: 0 0 2em rgba(0,0,0,0.3);
