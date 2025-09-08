@@ -1,57 +1,61 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Пазл из 4 частей</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/game10.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Пазл из 4 частей</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game10.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
-<h1>Пазл Ойын</h1>
-<p>Пазл бөліктерін ашу үшін мини-тапсырмаларды орындаңыз!</p>
+  <h1>Пазл Ойын</h1>
+  <p>Пазл бөліктерін ашу үшін мини-тапсырмаларды орындаңыз!</p>
 
-<div id="timer">Уақыт: <span id="time-value">03:00</span></div>
+  <!-- Таймер -->
+  <div id="timer">Уақыт: <span id="time-value">03:00</span></div>
 
-<div id="puzzle-container">
+  <!-- Пазл контейнер -->
+  <div id="puzzle-container">
     <div class="puzzle-piece locked" id="piece1">1</div>
     <div class="puzzle-piece locked" id="piece2">2</div>
     <div class="puzzle-piece locked" id="piece3">3</div>
     <div class="puzzle-piece locked" id="piece4">4</div>
-</div>
-
-<div id="game-over" class="hidden">
-  <h2>Ойын аяқталды!</h2>
-  <div id="final-score"></div>
-  <div id="star-container"></div>
-</div>
-
-
-<!-- Модальные мини-задания -->
-<div id="modal" class="hidden">
-  <div class="modal-content">
-    <span id="close-modal">&times;</span>
-    <div id="mini-task"></div>
-
-    <!-- Контейнер для drag элементов -->
-    <div id="drag-container" class="hidden">
-      <img src="/static/img/book.png" class="drag-item" draggable="true" data-type="текст">
-      <img src="/static/img/film.png" class="drag-item" draggable="true" data-type="видео">
-      <img src="/static/img/call.png" class="drag-item" draggable="true" data-type="аудио">
-    </div>
-
-    <!-- Контейнер для drop зон -->
-    <div id="drop-container" class="hidden">
-      <div class="drop-zone" data-type="видео">Бейне</div>
-        <div class="drop-zone" data-type="текст"> Мәтін</div>
-      <div class="drop-zone" data-type="аудио">Дыбыс</div>
-    </div>
-
-    <input type="text" id="task-answer" placeholder="Жауабыңызды енгізіңіз">
-    <button id="submit-task">Жіберу</button>
-    <p id="task-feedback"></p>
   </div>
-</div>
-<script src="static/js/game10.js"></script>
+
+  <!-- Окно завершения игры -->
+  <div id="game-over" class="hidden">
+    <h2>Ойын аяқталды!</h2>
+    <div id="final-score"></div>
+    <div id="star-container"></div>
+  </div>
+
+  <!-- Модалка -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="close-modal">&times;</span>
+      <div id="mini-task"></div>
+
+      <!-- Drag элементы -->
+      <div id="drag-container" class="hidden">
+        <img src="/static/img/book.png" class="drag-item" draggable="true" data-type="текст">
+        <img src="/static/img/film.png" class="drag-item" draggable="true" data-type="видео">
+        <img src="/static/img/call.png" class="drag-item" draggable="true" data-type="аудио">
+      </div>
+
+      <!-- Drop зоны -->
+      <div id="drop-container" class="hidden">
+        <div class="drop-zone" data-type="видео">Бейне</div>
+        <div class="drop-zone" data-type="текст">Мәтін</div>
+        <div class="drop-zone" data-type="аудио">Дыбыс</div>
+      </div>
+
+      <!-- Поле ввода ответа -->
+      <input type="text" id="task-answer" placeholder="Жауабыңызды енгізіңіз">
+      <button id="submit-task">Жіберу</button>
+      <p id="task-feedback"></p>
+    </div>
+  </div>
+
+  <script src="static/js/game10.js"></script>
 </body>
 </html>
