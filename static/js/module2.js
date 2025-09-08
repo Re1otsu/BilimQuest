@@ -164,7 +164,7 @@ function showModalQuestion(index) {
         modal.style.left = '50%';
         modal.style.transform = 'translate(-50%, -50%)';
         modal.style.background = '#fff';
-        modal.style.padding = '20px';
+        modal.style.padding = '2vw';
         modal.style.borderRadius = '8px';
         modal.style.textAlign = 'center';
         modal.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';

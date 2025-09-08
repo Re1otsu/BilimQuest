@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
   background: #e0e4e8; /* чуть темнее, чем был #f9f9f9 */
-
+  font-size: 1vw;
   text-align: center;
   user-select: none;
 }
@@ -10,11 +10,12 @@ body {
 h1 {
   margin-bottom: 1vh;
   color: #333;
+
 }
 
 .info {
   margin-bottom: 1vh;
-  font-size: 100%;
+  font-size: 1.5vw;
   color: #555;
   min-height: 1em;
 }
@@ -28,8 +29,8 @@ h1 {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(8, 4vw);
-  grid-template-rows: repeat(8, 4vw);
+  grid-template-columns: repeat(8, 4.5vw);
+  grid-template-rows: repeat(8, 4.5vw);
   gap: 0.2vw;
   justify-content: center;
   margin: 0 auto;
@@ -57,17 +58,20 @@ h1 {
 .cell.start {
   background-color: #d1f7d1;
   font-weight: bold;
+  font-size: 2vw;
 }
 
 .cell.finish {
   background-color: #f7d1d1;
   font-weight: bold;
+  font-size: 2vw;
 }
 
 .cell.player {
   background-color: #8bd3f7;
   font-weight: bold;
   box-shadow: 0 0 10px #0a74da;
+  font-size:2.5vw ;
 }
 
 .cell:hover:not(.blocked):not(.player) {
@@ -78,9 +82,10 @@ h1 {
   margin: 0.5em auto;
   background: linear-gradient(180deg,#fff,#f3f3f3);
   color: #2c3e50;
-  padding: 0.5em 0.5em;
+  padding: 1vh 1vw;
   border-radius: 999px;
   width:9em;
+  font-size: 1.5vw;
   font-weight: 700;
   box-shadow: 0 6px 14px rgba(0,0,0,0.18);
 }
