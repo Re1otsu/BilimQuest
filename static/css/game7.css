@@ -18,8 +18,7 @@ body {
 }
 .modal-close {
   position: absolute;
-  top: 42vh;
-  right: 34vw;
+  transform: translate(15vw, -3vh);
   font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
@@ -74,7 +73,7 @@ body {
 
 .modal-content {
   background: #222;
-  padding: 20px;
+  padding: 2vw;
   border-radius: 10px;
   text-align: center;
   color: #fff;
@@ -82,17 +81,28 @@ body {
   font-size: 1.4vw;
 }
 
-input { padding: 8px; border-radius: 6px; border: none; margin-top: 10px; width: 80%; text-align: center; }
+input { 
+  padding: 1vw; 
+  border-radius: 6px; 
+  border: none; 
+  margin-top: 2vh; 
+  width: 80%; 
+  text-align: center;
+  transform: translateY(1vh);
+ }
+
 
 button {
+  transform: translateY(2vh);
 padding: 8px 16px;
 border-radius: 6px;
 border: none; cursor: pointer;
-background: gold;
-margin-top: 5vh;
+background: rgb(255, 224, 71);
 font-weight: bold; }
 
-
+#modal-feedback{
+  transform: translateY(3vh);
+}
   #game-over {
   position: fixed;
   top: 50%;

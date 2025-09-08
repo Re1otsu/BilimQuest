@@ -1,8 +1,8 @@
 // Шифры для объектов
 const puzzles = {
-  envelope: { task: "📚✏️🖥️. Сөзді тап:", answer: "ИНФОРМАТИКА" },
-  safe: { task: "Сандармен шифр: 33-36-34-25-44-36-42", answer: "МОНИТОР" },
-  computer: { task: "Цезарь шифры +3: ГҢЖН", answer: "ӘЛЕМ" }
+  envelope: { task: "📚✏️🖥️. Сөзді тап:", answer: "ИНФОРМАТИКА", solved: false },
+  safe: { task: "Сандармен шифр: 33-36-34-25-44-36-42", answer: "МОНИТОР", solved: false },
+  computer: { task: "Цезарь шифры +3: ГҢЖН", answer: "ӘЛЕМ", solved: false }
 };
 
 const agent = document.getElementById("agent");
@@ -34,6 +34,8 @@ function moveAgentTo(element, callback) {
 
 // Открытие модалки
 function openModal(key) {
+  if (puzzles[key].solved) return; // уже решён — выходим
+
   modal.style.display = "flex";
   modalTask.textContent = puzzles[key].task;
   modalInput.value = "";
@@ -77,13 +79,14 @@ function checkAnswer(key) {
 
   const user = modalInput.value.trim().toUpperCase();
   const correct = puzzles[key].answer.toUpperCase();
-  if(user === correct){
-    modalFeedback.textContent = "✅ Дұрыс!";
-    score += scorePerPuzzle;
-    solvedCount++;
-    modal.style.display = "none";
-    if(solvedCount === Object.keys(puzzles).length) endGame();
-  } else {
+    if(user === correct){
+      modalFeedback.textContent = "✅ Дұрыс!";
+      score += scorePerPuzzle;
+      solvedCount++;
+      puzzles[key].solved = true;   // <--- помечаем как решён
+      modal.style.display = "none";
+      if(solvedCount === Object.keys(puzzles).length) endGame();
+    } else {
     mistakes++;
     modalFeedback.textContent = `❌ Қате! Қалған мүмкіндік: ${maxMistakes - mistakes}`;
     if(mistakes >= maxMistakes) endGame();
