@@ -855,15 +855,23 @@ def game2():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Көпір") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Көпір"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game2.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Көпір").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game2.html")
 
@@ -874,15 +882,23 @@ def game3():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Ғарыш хабаршысы") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Ғарыш хабаршысы"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game3.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Ғарыш хабаршысы").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game3.html")
 
@@ -892,15 +908,23 @@ def game4():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Хабаршы") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Хабаршы"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game4.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Хабаршы").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game4.html")
 
@@ -910,15 +934,23 @@ def game5():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Қамал") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Қамал"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game5.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Қамал").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game5.html")
 
@@ -928,15 +960,23 @@ def game6():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Шифр") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Шифр"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game6.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Шифр").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game6.html")
 
@@ -946,15 +986,23 @@ def game7():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Агент") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Агент"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game7.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Агент").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game7.html")
 
@@ -964,15 +1012,23 @@ def game8():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Робот") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Робот"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game8.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Робот").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game8.html")
 
@@ -982,15 +1038,23 @@ def game9():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Сиқырлы шарлар") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Сиқырлы шарлар"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game9.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Сиқырлы шарлар").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game9.html")
 
@@ -1000,15 +1064,23 @@ def game10():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Пазл") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Пазл"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game10.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Пазл").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("game10.html")
 
@@ -1018,15 +1090,23 @@ def module1():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Сәйкестік") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Сәйкестік"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("module1.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Сәйкестік").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     # Әйтпесе ойын интерфейсін көрсету
     return render_template("module1.html")
@@ -1038,14 +1118,23 @@ def module2():
     student_id = session.get("user_id")
 
     # Соңғы нәтижені алу
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Лабиринт") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Лабиринт"
+    ).order_by(GameProgress.attempt.desc()).first()
 
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("module2.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Лабиринт").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template("module2.html")
 
@@ -1075,15 +1164,23 @@ def module4():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Блоктар") \
-        .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Блоктар"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("module4.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Блоктар").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
     return render_template('module4.html')
 
