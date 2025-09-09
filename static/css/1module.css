@@ -101,7 +101,7 @@ body {
 
 #earth{
   position: relative;
-  display: flex;
+  display: table-row;
   align-items:center;
   justify-content: center;
   top:50vh;

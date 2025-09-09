@@ -370,12 +370,25 @@ def student_dashboard(student_id):
 
     stars_sum = sum(g.stars for g in games)
     total_score = sum(g.score for g in games)
+    CHAPTER_DISPLAY_NAMES = {
+        "Білу": "Біздің айналамыздағы ақпарат",
+        "Түсіну": "Ақпарат беру",
+        "Қолдану": "Ақпаратты шифрлау",
+        "Анализ": "Екілік ақпаратты ұсыну",
+        "Синтез": "Екілік ақпаратты ұсыну. Практикум",
+        "Бағалау": "Бірінші бөлім бойынша қорытынды тапсырмалар"
+    }
+    chapters_progress_display = {
+        CHAPTER_DISPLAY_NAMES.get(chapter, chapter): data
+        for chapter, data in chapters_progress.items()
+    }
 
     return render_template(
         "dashboard.html",
         student=student,
         games=games,
-        chapters_progress=chapters_progress,
+        chapters_progress=chapters_progress,  # радар үшін
+        chapters_progress_display=chapters_progress_display,  # bar үшін
         stars_sum=stars_sum,
         total_score=total_score
     )
@@ -416,7 +429,7 @@ def game_result():
     attempts = GameProgress.query.filter_by(student_id=student_id, game_name=game_name).count()
     access = GameAccess.query.filter_by(student_id=student_id, game_name=game_name).first()
 
-    if attempts >= 1 and not (access and access.is_unlocked):
+    if attempts >= 2 and not (access and access.is_unlocked):
         return {"status": "denied", "message": "Мұғалім рұқсат бермейінше қайта өтуге болмайды."}, 403
 
     allow_score_add = False
@@ -425,15 +438,26 @@ def game_result():
         access.is_unlocked = False
 
     # Сохраняем результат
-    new_result = GameProgress(
-        student_id=student_id,
-        game_name=game_name,
-        score=score,
-        stars=stars,
-        completed=completed,
-        attempt=attempts + 1
-    )
-    db.session.add(new_result)
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name=game_name) \
+        .order_by(GameProgress.attempt.desc()).first()
+
+    if progress and progress.attempt < 2:
+        # Если это вторая попытка — обновляем существующую запись
+        progress.score = score
+        progress.stars = stars
+        progress.completed = completed
+        progress.attempt = progress.attempt + 1
+    else:
+        # Первая попытка или после обнуления — создаём новую запись
+        progress = GameProgress(
+            student_id=student_id,
+            game_name=game_name,
+            score=score,
+            stars=stars,
+            completed=completed,
+            attempt=1 if not progress else progress.attempt + 1
+        )
+        db.session.add(progress)
 
     student = Student.query.get(student_id)
     if attempts == 0 or allow_score_add:
@@ -804,18 +828,26 @@ def game1():
     student_id = session.get("user_id")
 
     # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name="Қағып ал") \
-                                 .order_by(GameProgress.attempt.desc()).first()
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Қағып ал"
+    ).order_by(GameProgress.attempt.desc()).first()
 
-    # Егер бұрын тапсырған болса
     if progress:
-        # Егер қайта өтуге рұқсат жоқ болса — тек нәтиже көрсетеміз
+        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
+        if progress.attempt < 2:
+            return render_template("game1.html")
+
+        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
         access = GameAccess.query.filter_by(student_id=student_id, game_name="Қағып ал").first()
         if not (access and access.is_unlocked):
-            return render_template("module1_result.html", score=progress.score, attempt=progress.attempt)
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
 
+    # Егер әлі тапсырмаған болса
     return render_template("game1.html")
-
 
 @app.route("/game2")
 @login_required("student")

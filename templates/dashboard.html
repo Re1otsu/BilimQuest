@@ -77,11 +77,11 @@
             const gamesProgress = new Chart(ctx2, {
                 type: 'bar',
                 data: {
-                    labels: [{% for chapter, progress in chapters_progress.items() %}'{{ chapter }}',{% endfor %}],
+                    labels: [{% for chapter in chapters_progress_display.keys() %}'{{ chapter }}',{% endfor %}],
                     datasets: [{
                         label: 'Қамтыды %',
                         data: [
-                          {% for chapter, data in chapters_progress.items() %}
+                          {% for chapter, data in chapters_progress_display.items() %}
                             {{ data.percent }},
                           {% endfor %}
                         ],
