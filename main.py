@@ -566,28 +566,28 @@ def teacher_panel():
     )
 
     GAME_TO_CHAPTER = {
-        "Қағып ал": "Білу",
-        "Көпір": "Білу",
-        "Сәйкестік": "Білу",
-        "Лабиринт": "Түсіну",
-        "Ғарыш хабаршысы": "Түсіну",
-        "Хабаршы": "Түсіну",
-        "Қамал": "Қолдану",
-        "Шифр": "Қолдану",
-        "Агент": "Қолдану",
-        "Робот": ["Анализ", "Синтез"],
-        "Сиқырлы шарлар": ["Анализ", "Синтез"],
-        "Блоктар": ["Анализ", "Синтез"],
-        "Пазл": "Бағалау",
+        "Қағып ал": "Knowledge",
+        "Көпір": "Knowledge",
+        "Сәйкестік": "Knowledge",
+        "Лабиринт": "Comprehension",
+        "Ғарыш хабаршысы": "Comprehension",
+        "Хабаршы": "Comprehension",
+        "Қамал": "Application",
+        "Шифр": "Application",
+        "Агент": "Application",
+        "Робот": ["Analysis", "Synthesis"],
+        "Сиқырлы шарлар": ["Analysis", "Synthesis"],
+        "Блоктар": ["Analysis", "Synthesis"],
+        "Пазл": "Evaluation",
     }
 
     CHAPTER_MAX_SCORE = {
-        "Білу": 1,
-        "Түсіну": 1,
-        "Қолдану": 2,
-        "Анализ": 4,
-        "Синтез": 4,
-        "Бағалау": 2
+        "Knowledge": 1,
+        "Comprehension": 1,
+        "Application": 2,
+        "Analysis": 4,
+        "Synthesis": 4,
+        "Evaluation": 2
     }
 
     # Переворачиваем: глава → список игр
@@ -615,28 +615,28 @@ def teacher_panel():
     scores = [round(chapter_scores[ch], 2) for ch in labels]
 
     GAME_TO_CHAPTER_NAME = {
-        "Қағып ал": ["Біздің айналамыздағы ақпарат"],
-        "Көпір": ["Біздің айналамыздағы ақпарат"],
-        "Сәйкестік": ["Біздің айналамыздағы ақпарат"],
-        "Лабиринт": ["Ақпарат беру"],
-        "Ғарыш хабаршысы": ["Ақпарат беру"],
-        "Хабаршы": ["Ақпарат беру"],
-        "Қамал": ["Ақпаратты шифрлау"],
-        "Шифр": ["Ақпаратты шифрлау"],
-        "Агент": ["Ақпаратты шифрлау"],
-        "Робот": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
-        "Сиқырлы шарлар": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
-        "Блоктар": ["Екілік ақпаратты ұсыну", "Екілік ақпаратты ұсыну. Практикум"],  # две главы
-        "Пазл": ["Бірінші бөлім бойынша қорытынды тапсырмалар"],
+        "Қағып ал": ["Information around us"],
+        "Көпір": ["Information around us"],
+        "Сәйкестік": ["Information around us"],
+        "Лабиринт": ["Information transmission"],
+        "Ғарыш хабаршысы": ["Information transmission"],
+        "Хабаршы": ["Information transmission"],
+        "Қамал": ["Information encryption"],
+        "Шифр": ["Information encryption"],
+        "Агент": ["Information encryption"],
+        "Робот": ["Representation of binary information", "Representation of binary information. Practicum"],  # две главы
+        "Сиқырлы шарлар": ["Representation of binary information", "Representation of binary information. Practicum"],  # две главы
+        "Блоктар": ["Representation of binary information", "Representation of binary information. Practicum"],  # две главы
+        "Пазл": ["Final tasks for the first section"],
 
     }
     CHAPTER_NAME_MAX_SCORE = {
-        "Біздің айналамыздағы ақпарат": 1,
-        "Ақпарат беру": 1,
-        "Ақпаратты шифрлау": 2,
-        "Екілік ақпаратты ұсыну": 4,
-        "Екілік ақпаратты ұсыну. Практикум": 4,
-        "Бірінші бөлім бойынша қорытынды тапсырмалар": 2
+        "Information around us": 1,
+        "Information transmission": 1,
+        "Information encryption": 2,
+        "Representation of binary information": 4,
+        "Representation of binary information. Practicum": 4,
+        "Final tasks for the first section": 2
     }
     # ---- ПРОГРЕСС ПО ВСЕМ КЛАССАМ ----
     all_progress_all = GameProgress.query.filter(GameProgress.completed == True).all()

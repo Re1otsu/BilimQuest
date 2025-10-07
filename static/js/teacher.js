@@ -2,7 +2,7 @@ const ctx1 = document.getElementById('classChart');
 new Chart(ctx1, {
   type: 'bar',
   data: {
-    labels: ['Білу', 'Түсіну', 'Қолдану', 'Анализ', 'Синтез', 'Бағалау'],
+    labels: ['Knowledge', 'Comprehension', 'Application', 'Analysis', 'Synthesis', 'Evaluation'],
     datasets: [{
       label: 'Ұпай',
       data: [70, 35, 45, 60, 40, 55],
@@ -38,7 +38,7 @@ const ctx2 = document.getElementById('topicChart');
 new Chart(ctx2, {
   type: 'doughnut',
   data: {
-    labels: ['Ақпаратты шифрлау', 'Компьютерлік графика', 'Робототехника'],
+    labels: ['Information Encryption', 'Computer Graphics', 'Robotics'],
     datasets: [{
       data: [65, 54, 82],
       backgroundColor: ['#1e4fa8', '#4db6ff', '#82c91e']

@@ -20,15 +20,15 @@
 </header>
     <div class="container">
         <img src="{{ url_for('static', filename='img/main.png') }}" alt="Картинка" class="main-img">
-        <h2 class="subtitle">Порталға қош келдіңіз!</h2>
+        <h2 class="subtitle">Welcome to the portal!</h2>
         <div class="btn-group">
             <!-- Кнопка для учителя -->
             <form method="POST" action="/">
-                <button type="submit" name="role" value="teacher" class="btn">Мұғалім</button>
+                <button type="submit" name="role" value="teacher" class="btn">Teacher</button>
             </form>
 
         <!-- Кнопка для ученика, которая открывает модалку -->
-            <button type="button" id="studentBtn" class="btn">Оқушы</button>
+            <button type="button" id="studentBtn" class="btn">Student</button>
         </div>
 
     </div>
@@ -37,10 +37,10 @@
     <div id="modal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
-        <h2>Қош келдіңіз!</h2>
-        <p>Әрекетті таңдаңыз:</p>
-        <button class="action-btn login-btn"  id="loginBtn">Кіру</button>
-        <button class="action-btn register-btn" id="registerBtn">Тіркелу</button>
+        <h2>Welcome!</h2>
+        <p>Select an action:</p>
+        <button class="action-btn login-btn"  id="loginBtn">Login</button>
+        <button class="action-btn register-btn" id="registerBtn">Registration</button>
       </div>
     </div>
 

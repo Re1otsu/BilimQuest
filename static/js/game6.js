@@ -1,5 +1,5 @@
 // Настройка игры
-const words = ["ӘДЕБИЕТ", "МАТЕМАТИКА", "ИНФОРМАТИКА"];
+const words = ["Literature", "МАТЕМАТИКА", "ИНФОРМАТИКА"];
 const scorePerWord = 0.7 / 3; // 0.23333333333333334
 let currentIndex = 0;
 let score = 0;

@@ -14,7 +14,7 @@
 
     <div class="user">
       <i class="icon"><img src="static/img/user2.png"></i>
-        Нұсқаулық
+        Instruction
     </div>
   </header>
 
@@ -22,13 +22,13 @@
       <nav class="nav-panel">
         <select id="classSelect">
             {% for cls in class_list %}
-              <option value="{{ cls }}" {% if selected_class == cls %}selected{% endif %}>{{ cls }}-сынып</option>
+              <option value="{{ cls }}" {% if selected_class == cls %}selected{% endif %}>Grade-{{ cls }}</option>
             {% endfor %}
         </select>
-        <a href="#">Сынып бойынша</a>
-        <a href="#">Тақырып бойынша</a>
-        <a href="#">Оқушылар бойынша</a>
-          <a href="/teacher" class="back-btn">Басты бетке</a>
+        <a href="#">By class</a>
+        <a href="#">By topic</a>
+        <a href="#">By students</a>
+          <a href="/teacher" class="back-btn">Home page</a>
       </nav>
 
         <script>
@@ -43,7 +43,7 @@
 
         <div class="line1">
             <div class="diagram1">
-                <h3>Сынып бойынша</h3>
+                <h3>By class</h3>
                 <canvas id="classChart"></canvas>
                 <script>
                   // Диаграмма "по классам" → делаем столбчатую по главам
@@ -83,7 +83,7 @@
             </div>
 
             <div class="diagram2">
-              <h3>Тақырып бойынша</h3>
+              <h3>By topic</h3>
               <canvas id="allStudentsChart"></canvas>
               <script>
                 new Chart(document.getElementById('allStudentsChart'), {
@@ -139,7 +139,7 @@
         <div class="line2">
                 <a href="/rating" class="diagram-link">
                     <div class="diagram3">
-                        <h3>Оқушылар бойынша</h3>
+                        <h3>By students</h3>
                         <img src="static/img/rating2.png">
                     </div>
                 </a>

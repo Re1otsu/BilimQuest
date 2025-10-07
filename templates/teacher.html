@@ -12,11 +12,11 @@
 
   <div class="main">
     <header>
-      <div class="logo">Анықтама</div>
+      <div class="logo">Information</div>
       <nav>
-        <a href="/teacher_panel">Аналитика</a>
-        <a href="/instruction-t">Мұғалімге арналған нұсқаулық – әдістемелік-дидактикалық сипаттағы құрал</a>
-        <a href="/intsruction-p">Порталға арналған нұсқаулық – техникалық-операциялық сипаттағы құрал</a>
+        <a href="/teacher_panel">Analytics</a>
+        <a href="/instruction-t">A methodological and didactic guide for teachers</a>
+        <a href="/intsruction-p">Technical and operational guide for the portal</a>
       </nav>
       <div class="user">
         <img class="ava" src="static/img/user2.png">
@@ -31,7 +31,7 @@
         </span>
         <form id="logoutForm" action="/logout" method="POST" >
           <span id="logoutText">
-          Шығу
+          Logout
           </span>
         </form>
         <script>
@@ -47,13 +47,12 @@
 
   <div class="container">
     <div class="info">
-      <h2>Геймификация туралы анықтама</h2>
+      <h2>The definition of gamification</h2>
       <div class="info-content">
         <div class="info-text">
           <p id="shortText">
-            Геймификация (ағылш. gamification) – ойынға тән элементтер мен механикаларды ойыннан тыс контекстерде, соның ішінде білім беру саласында қолдану арқылы қатысушылардың мотивациясын, қатысу белсенділігін және нәтижелілігін арттыруға бағытталған тәсіл. Бұл ұғым ХХІ ғасырдың басында цифрлық технологиялардың қарқынды дамуымен бірге кең таралып, оқу, бизнес, денсаулық сақтау, мемлекеттік қызметтер сияқты салаларда орнықты.
-          </p>
-          <a href="{{ url_for('download_g') }}" id="toggleBtn">Толық оқу</a>
+            Gamification (from the English word 'gamification') is an approach aimed at increasing the motivation, active participation, and effectiveness of participants by applying game-like elements and mechanics in non-game contexts, including the field of education.This concept became widespread at the beginning of the 21st century with the rapid development of digital technologies and has established itself in areas such as learning, business, healthcare, and public services.          </p>
+          <a href="{{ url_for('download_g') }}" id="toggleBtn">Full reading</a>
         </div>
         <div class="info-images">
           <img src="static/img/star.png" alt="Жұлдыз" />
@@ -78,22 +77,22 @@
       });
     </script>
 
-    <h2>Аналитика</h2>
+    <h2>Analytics</h2>
     <div class="flex">
       <div class="card chart-container">
-        <h3>Сынып бойынша</h3>
+        <h3>By class</h3>
         <canvas id="classChart"></canvas>
       </div>
       <div class="card chart-container">
-        <h3>Тақырып бойынша</h3>
+        <h3>By topic</h3>
         <canvas id="topicChart"></canvas>
       </div>
       <div class="card">
-        <h3>Нұсқаулық</h3>
+        <h3>Instruction</h3>
         <ol>
-          <li>Сыныпты таңдаңыз</li>
-          <li>Диаграмманы қараңыз</li>
-          <li>Нәтижені жүктеп алыңыз</li>
+          <li>Select a class</li>
+          <li>View the chart</li>
+          <li>Download the result</li>
         </ol>
       </div>
     </div>
