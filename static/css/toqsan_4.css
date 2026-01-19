@@ -1,0 +1,463 @@
+html, body { height: 100%; }
+
+body{
+  margin:0;
+  font-family: "Open Sans", system-ui, -apple-system, Arial, sans-serif;
+  color:#fff;
+  overflow:hidden;
+  position:relative;
+}
+
+/* паттерн (если есть) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("/static/img/BG_ai.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.p-logo{ font-size: 38px; font-weight: 900; letter-spacing: .2px; }
+.p-sub{ margin-top: 2px; font-size: 13px; opacity: .92; }
+
+.p-actions{ display:flex; align-items:center; gap:12px; }
+.p-score{
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: linear-gradient(45deg, #ffd34d, #ffb300);
+  color:#1f2d3d;
+  font-weight: 900;
+  display:flex;
+  align-items:center;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+}
+.p-back{
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  text-decoration:none;
+  color:#1f2d3d;
+  font-weight: 900;
+  background: rgba(255,255,255,0.85);
+  display:flex;
+  align-items:center;
+}
+
+/* сцена */
+.p-stage{
+  position: relative;
+  z-index: 1;
+  width: 100vw;
+  height: 100vh;
+  padding-top: 84px;
+}
+
+/* пути */
+.p-paths{
+  position:absolute;
+  inset: 84px 0 0 0;
+  width:100%;
+  height: calc(100% - 84px);
+  z-index: 1;
+}
+.p-paths path{
+  stroke: rgba(255,255,255,0.92);
+  stroke-width: 4;
+  stroke-dasharray: 10 12;
+  fill: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
+  opacity: 0.95;
+}
+
+/* центральный хаб */
+.p-main{
+  position:absolute;
+  left: 50%;
+  top: 28%;
+  transform: translate(-50%, -50%);
+  text-align:center;
+  z-index: 2;
+}
+.p-main img{
+  width: min(320px, 30vw);
+  height: auto;
+  filter: drop-shadow(0 18px 40px rgba(0,0,0,0.35));
+}
+
+.p-main-title{
+  margin: clamp(6px, 1vh, 12px) auto 0;
+
+
+  font-size: clamp(16px, 1.2vw, 30px);
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+
+  padding: clamp(8px, 0.6vw, 14px) clamp(12px, 1vw, 18px);
+  border-radius: clamp(10px, 1.5vw, 14px);
+
+  background: rgba(12, 18, 40, 0.55);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.25); 
+}
+
+
+
+/* интерактивный центральный хаб */
+.p-main{
+  cursor: pointer;
+  transition: transform .32s ease;
+  will-change: transform;
+}
+
+/* звездный ореол вокруг хаба */
+.p-main::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width: min(500px, 30vw);
+  height: min(300px, 38vw);
+  transform: translate(-50%, -50%);
+  pointer-events:none;
+  opacity: 0;
+  transition: opacity .32s ease, transform .32s ease;
+  filter: blur(12px);
+
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.20), transparent 55%),
+    radial-gradient(circle at 30% 35%, rgba(120,214,255,0.16), transparent 62%),
+    radial-gradient(circle at 70% 40%, rgba(255,211,77,0.12), transparent 65%);
+}
+
+/* hover: чуть выше + ореол */
+.p-main:hover{
+  transform: translate(-50%, -50%) translateY(-10px);
+}
+
+.p-main:hover::after{
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.03);
+}
+
+/* картинка хаба: сильнее свечение */
+.p-main img{
+  transition: transform .32s ease, filter .32s ease;
+  will-change: transform, filter;
+}
+
+.p-main:hover img{
+  transform: scale(1.02);
+  filter:
+    drop-shadow(0 24px 52px rgba(0,0,0,0.55))
+    drop-shadow(0 0 18px rgba(255,255,255,0.18));
+}
+
+/* заголовок: немного ярче */
+.p-main-title{
+  transition: transform .32s ease, text-shadow .32s ease;
+  will-change: transform, text-shadow;
+}
+
+.p-main:hover .p-main-title{
+  transform: translateY(2px);
+  text-shadow:
+    0 10px 22px rgba(0,0,0,0.45),
+    0 0 18px rgba(255,255,255,0.12);
+}
+
+/* уменьшить анимации по настройке системы */
+@media (prefers-reduced-motion: reduce){
+  .p-main, .p-main::after, .p-main img, .p-main-title{
+    transition: none !important;
+  }
+}
+
+/* узлы */
+.p-node{
+  position:absolute;
+  transform: translate(-50%, -50%);
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  text-decoration:none;
+  color:#fff;
+  z-index: 2;
+}
+
+
+.p-status-title{ font-weight: 900; }
+.p-bar{
+  flex: 1;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.16);
+  overflow:hidden;
+}
+.p-bar-fill{
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #63d6ff, #ffd34d);
+}
+.p-status-right{
+  min-width: 140px;
+  text-align:right;
+  font-weight: 900;
+}
+
+/* адаптив */
+@media (max-width: 900px){
+  .p-island img{ width: min(220px, 34vw); }
+  .p-main img{ width: min(420px, 70vw); }
+  .p-logo{ font-size: 30px; }
+  .p-sub{ display:none; }
+}
+
+/* topbar (верни читабельность) */
+.p-topbar{
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 84px;
+  padding: 0 22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  z-index: 5;
+}
+
+/* узлы */
+.p-node{
+  position:absolute;
+  transform: translate(-50%, -50%);
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  text-decoration:none;
+  color:#fff;
+  z-index: 3;
+}
+
+/* платформа */
+.p-platform{
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.p-platform-img{
+  width: min(240px, 20vw);
+  height: auto;
+  filter: drop-shadow(0 18px 34px rgba(0,0,0,0.45));
+  z-index: 1;
+}
+
+/* иконка лежит на платформе */
+.p-platform .p-topic-icon{
+  position: absolute;
+  z-index: 2;
+  width: min(120px, 10vw);
+  height: auto;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -62%);
+  filter: drop-shadow(0 14px 22px rgba(0,0,0,0.50));
+  transition: transform .25s ease, filter .25s ease;
+}
+
+.p-node:hover .p-platform .p-topic-icon{
+  transform: translate(-50%, -68%) scale(1.06);
+  filter: drop-shadow(0 18px 30px rgba(0,0,0,0.65));
+}
+
+.p-node.p-finish .p-platform .p-topic-icon{
+  width: min(132px, 11vw);
+}
+
+
+/* позиции (под твой скрин: аккуратнее и ровнее по эллипсу) */
+#n1{ left: 15%; top: 50%; }
+#n2{ left: 35%; top: 75%; }
+#n3{ left: 65%; top: 75%; }
+#n4{ left: 85%; top: 50%; }
+
+/* интерактивность узла целиком */
+.p-node{
+  cursor: pointer;
+  transition: transform .28s ease;
+  will-change: transform;
+}
+
+/* мягкое "всплытие" всего узла */
+.p-node:hover{
+  transform: translate(-50%, -50%) translateY(-8px);
+}
+
+/* платформа: слегка поднимается + ярче тень */
+.p-platform{
+  transition: transform .28s ease, filter .28s ease;
+  will-change: transform, filter;
+}
+
+/* звездное свечение вокруг платформы (псевдо-ореол) */
+.p-platform::after{
+  content:"";
+  position:absolute;
+  inset:-10px;
+  border-radius: 999px;
+  pointer-events:none;
+  opacity: 0;
+  transition: opacity .28s ease, transform .28s ease;
+  filter: blur(10px);
+
+  /* мягкое "звездное" сияние */
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.22), transparent 55%),
+    radial-gradient(circle at 30% 35%, rgba(120,214,255,0.18), transparent 60%),
+    radial-gradient(circle at 70% 40%, rgba(255,211,77,0.14), transparent 62%);
+}
+
+.p-node:hover .p-platform{
+  transform: translateY(-3px);
+  filter: drop-shadow(0 22px 44px rgba(0,0,0,0.55));
+}
+
+.p-node:hover .p-platform::after{
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+/* иконка: чуть подпрыгивает + подсветка */
+.p-platform .p-topic-icon{
+  transition: transform .28s ease, filter .28s ease;
+  will-change: transform, filter;
+}
+
+.p-node:hover .p-platform .p-topic-icon{
+  transform: translate(-50%, -72%) scale(1.08);
+  filter:
+    drop-shadow(0 20px 34px rgba(0,0,0,0.65))
+    drop-shadow(0 0 16px rgba(255,255,255,0.25));
+}
+
+/* лейбл: мягкое свечение и небольшой подъём */
+.p-label{
+  transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+  will-change: transform, box-shadow;
+}
+
+.p-node:hover .p-label{
+  transform: translateY(3px); /* чуть ниже относительно подпрыгнувшей платформы */
+  border-color: rgba(255,255,255,0.30);
+  box-shadow:
+    0 14px 30px rgba(0,0,0,0.33),
+    0 0 22px rgba(255,255,255,0.10);
+}
+
+/* клавиатурный фокус тоже как hover */
+.p-node:focus-visible{
+  outline: none;
+}
+.p-node:focus-visible .p-platform::after{
+  opacity: 1;
+}
+.p-node:focus-visible .p-label{
+  border-color: rgba(255,255,255,0.32);
+}
+
+/* уважение к настройке "уменьшить анимации" */
+@media (prefers-reduced-motion: reduce){
+  .p-node, .p-platform, .p-platform::after, .p-topic-icon, .p-label{
+    transition: none !important;
+  }
+}
+.p-main,
+.p-main:link,
+.p-main:visited,
+.p-main:hover,
+.p-main:active,
+.p-main:focus,
+.p-main:focus-visible{
+  color: #ffffff !important;
+  text-decoration: none !important;
+  outline: none !important;
+}
+
+
+/* слой огоньков */
+.q-fireflies{
+  position:absolute;
+  inset: 84px 0 0 0;
+  width:100%;
+  height: calc(100% - 84px);
+  z-index: 2;
+  pointer-events:none;
+}
+
+/* сам огонёк */
+.q-firefly{
+  position:absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(120, 183, 255, 0.9) 35%, rgba(255,215,120,0.0) 75%);
+  box-shadow:
+    0 0 14px rgba(196, 246, 255, 0.918),
+    0 0 34px rgba(53, 242, 255, 0.35);
+  opacity: 0.9;
+  filter: blur(0px);
+}
+
+.q-firefly::after{
+  content:"";
+  position:absolute;
+  inset:-10px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255,220,120,0.25), transparent 65%);
+  filter: blur(6px);
+}
+
+/* лёгкое мерцание */
+@keyframes flicker{
+  0%,100%{ transform: translate(-50%, -50%) scale(1); opacity:.85; }
+  50%{ transform: translate(-50%, -50%) scale(1.15); opacity:1; }
+}
+.q-firefly{
+  animation: flicker 1.6s ease-in-out infinite;
+}
+
+/* уменьшить анимации по настройке системы */
+@media (prefers-reduced-motion: reduce){
+  .q-firefly{ animation:none !important; }
+}
+
+.p-paths path{
+  stroke: rgb(74, 154, 245);
+  stroke-width: 3;
+  stroke-dasharray: 15 15;
+  fill: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.18));
+  opacity: 1;
+}
+
+.p-paths path.is-active{
+  stroke: rgba(255, 220, 140, 0.9);
+  stroke-width: 6;
+  filter:
+    drop-shadow(0 0 10px rgba(255,220,140,0.55))
+    drop-shadow(0 0 22px rgba(255,200,80,0.45));
+  animation: glowPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse{
+  0%,100%{ stroke-dashoffset: 0; }
+  50%{ stroke-dashoffset: -20; }
+}

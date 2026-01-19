@@ -1,15 +1,36 @@
 /* ====== БАЗА ====== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100vh; }
-body {
+html, body { height: 100%; }
+
+body{
   font-family: "Open Sans", system-ui, -apple-system, Arial, sans-serif;
   color: #fff;
   overflow: hidden;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color:rgb(0, 115, 255)
+
+  /* космический фон */
+  background:
+    radial-gradient(circle at 30% 20%, rgba(120, 90, 255, .35), transparent 45%),
+    radial-gradient(circle at 70% 65%, rgba(255, 120, 190, .22), transparent 50%),
+    radial-gradient(circle at 55% 45%, rgba(60, 210, 255, .18), transparent 45%),
+    linear-gradient(180deg, #0b1b3a 0%, #0a1030 55%, #070a1f 100%);
+  position: relative;
 }
+
+/* звёздный “шум” */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  background-image: url("/static/img/BG_s.png"); /* твой паттерн */
+  background-repeat: repeat;
+  background-size: 320px;
+  opacity: 0.10;
+  pointer-events: none;
+  z-index: 0;
+}
+.map{ position: relative; z-index: 1; }
+.topbar{ position: fixed; z-index: 2; }
 
 /* ====== TOP BAR ====== */
 .topbar {
@@ -51,16 +72,23 @@ body {
   width:100%; height:100%;
   pointer-events:none;
 }
-.paths path {
-  stroke:#fff; stroke-width:4;
-  stroke-dasharray:10 10; fill:none;
-  opacity:.9; stroke-linecap:round;
-  filter: drop-shadow(0 2px 2px #0003);
+.paths path{
+  stroke: rgba(255,255,255,0.92);
+  stroke-width: 4;
+  stroke-dasharray: 10 12;
+  fill: none;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
+  opacity: 0.95;
 }
+
 
 /* ====== ОСТРОВА ====== */
 .node {
-  display: table-row;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   position: absolute;
   width: 10vw;
   height: auto;
@@ -100,13 +128,21 @@ body {
 }
 
 #earth{
-  position: relative;
-  display: table-row;
-  align-items:center;
-  justify-content: center;
-  top:50vh;
-  left: 50vw;
-
+  left: 50%;
+  top: 45%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+#earth .label{
+  padding: 1vh 1.2vw;
+  border-radius: 14px;
+  background: rgba(10, 20, 50, 0.55);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+  font-weight: 800;
 }
 
 #saturn {
@@ -135,16 +171,34 @@ body {
   justify-content:center;
   margin-bottom: 2vh;
 }
+.island::after{
+  content:"";
+  width: 140px;
+  height: 18px;
+  margin-top: -10px;
+  border-radius: 999px;
+  background: radial-gradient(closest-side, rgba(255,255,255,0.35), rgba(255,255,255,0));
+  filter: blur(1px);
+}
+
 
 .emoji, .icon {
   font-size: clamp(28px, 4vw, 56px);
   filter: drop-shadow(0 3px 3px #0002);
 }
-.label {
-  margin-top: .6rem;
-  font-weight: 700;
-  font-size: clamp(12px, 1.6vw, 20px);
-  text-shadow: 0 2px 4px #0004;
+.label{
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(10, 20, 50, 0.55);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+  backdrop-filter: blur(6px);
+
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.15;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
 }
 
 /* Заблокировано */

@@ -1,104 +1,126 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8">
-  <title>Анықтама</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <title>Портал</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
 
-  <div class="main">
-    <header>
-      <div class="logo">Information</div>
-      <nav>
-        <a href="/teacher_panel">Analytics</a>
-        <a href="/instruction-t">A methodological and didactic guide for teachers</a>
-        <a href="/intsruction-p">Technical and operational guide for the portal</a>
-      </nav>
-      <div class="user">
-        <img class="ava" src="static/img/user2.png">
-        <span id="name">
-          {% if session.get('user_name') %}
-            {{ session.user_name | initials }}
-          {% elif teacher is defined and teacher.name %}
-            {{ teacher.name | initials }}
-          {% else %}
-            Гость
-          {% endif %}
-        </span>
-        <form id="logoutForm" action="/logout" method="POST" >
-          <span id="logoutText">
-          Logout
-          </span>
-        </form>
-        <script>
-          const logoutIcon = document.getElementById('logoutText');
-          const logoutForm = document.getElementById('logoutForm');
-          logoutIcon.addEventListener('click', () => {
-            logoutForm.submit();
-          });
-        </script>
+<body class="portal-body">
+  <div class="portal-shell">
 
+    <!-- TOP BAR -->
+    <header class="portal-topbar">
+      <div class="portal-title">
+        <span>BilimQuest</span>
       </div>
+
+    <div class="portal-user-block">
+      <div class="portal-user">
+        {{ session.user_name | initials }}
+      </div>
+
+      <form action="/logout" method="POST">
+        <button type="submit" class="portal-logout-btn" title="Шығу">
+          Шығу
+        </button>
+      </form>
+    </div>
+
+
     </header>
 
-  <div class="container">
-    <div class="info">
-      <h2>The definition of gamification</h2>
-      <div class="info-content">
-        <div class="info-text">
-          <p id="shortText">
-            Gamification (from the English word 'gamification') is an approach aimed at increasing the motivation, active participation, and effectiveness of participants by applying game-like elements and mechanics in non-game contexts, including the field of education.This concept became widespread at the beginning of the 21st century with the rapid development of digital technologies and has established itself in areas such as learning, business, healthcare, and public services.          </p>
-          <a href="{{ url_for('download_g') }}" id="toggleBtn">Full reading</a>
+    <!-- 4 CARDS -->
+    <section class="portal-cards">
+      <a href="/articles" class="portal-card-link">
+        <div class="portal-card portal-card-clickable">
+          <div class="portal-card-head">
+            <img class="portal-card-icon"
+                src="{{ url_for('static', filename='img/book2.png') }}"
+                alt="book">
+            <div>
+              <div class="portal-card-title">Геймификацияға бойынша ғылыми еңбектер</div>
+            </div>
+          </div>
         </div>
-        <div class="info-images">
-          <img src="static/img/star.png" alt="Жұлдыз" />
-          <img src="static/img/diagramma.png" alt="Диаграмма" />
-          <img src="static/img/goal.png" alt="Цель" />
+      </a>
+
+
+      <a href="/theory" class="portal-card-link">
+        <div class="portal-card portal-card-clickable">
+          <div class="portal-card-head">
+            <img class="portal-card-icon"
+                src="{{ url_for('static', filename='img/question2.png') }}"
+                alt="help">
+            <div>
+              <div class="portal-card-title">Теориялық білім</div>
+              <div class="portal-card-sub">Геймификация дегеніміз не?</div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </a>
 
-    <script>
-      const toggleBtn = document.getElementById("toggleBtn");
-      const fullText = document.getElementById("fullText");
 
-      toggleBtn.addEventListener("click", () => {
-        if (fullText.style.display === "none") {
-          fullText.style.display = "block";
-          toggleBtn.textContent = "Жасыру";
-        } else {
-          fullText.style.display = "none";
-          toggleBtn.textContent = "Толық оқу";
-        }
-      });
-    </script>
+      <a href="/practice" class="portal-card-link">
+        <div class="portal-card portal-card-clickable">
+          <div class="portal-card-head">
+            <img class="portal-card-icon"
+                src="{{ url_for('static', filename='img/training.png') }}"
+                alt="flask">
+            <div>
+              <div class="portal-card-title">Практикалық білім</div>
+            </div>
+          </div>
+        </div>
+      </a>
 
-    <h2>Analytics</h2>
-    <div class="flex">
-      <div class="card chart-container">
-        <h3>By class</h3>
-        <canvas id="classChart"></canvas>
+
+      <a href="/teacher_panel" class="portal-card-link">
+        <div class="portal-card portal-card-clickable">
+          <div class="portal-card-head">
+            <img class="portal-card-icon"
+                src="{{ url_for('static', filename='img/donut-chart.png') }}"
+                alt="analytics">
+            <div>
+              <div class="portal-card-title">Аналитика</div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+    </section>
+
+
+    <!-- BIG HERO -->
+    <section class="portal-hero">
+      <div class="portal-hero-title">Геймификация әлемі</div>
+
+      <!-- правая картинка/иллюстрация -->
+      <img class="portal-hero-illus" src="{{ url_for('static', filename='img/gamefik.png') }}" alt="hero" />
+
+      <!-- контакты -->
+      <div class="portal-contacts">
+        <div class="portal-contacts-title">Контактiлiк ақпарат</div>
+        <ul class="portal-contacts-list">
+          <li>
+            <img src="{{ url_for('static', filename='img/call.png') }}" alt="phone">
+            <span>+777 852 13 27</span>
+          </li>
+          <li>
+            <img src="{{ url_for('static', filename='img/email.png') }}" alt="email">
+            <span>Naz.b.a@list.ru</span>
+          </li>
+          <li>
+            <img src="{{ url_for('static', filename='img/adress.png') }}" alt="address">
+            <span>Қазақстан 55</span>
+          </li>
+        </ul>
       </div>
-      <div class="card chart-container">
-        <h3>By topic</h3>
-        <canvas id="topicChart"></canvas>
-      </div>
-      <div class="card">
-        <h3>Instruction</h3>
-        <ol>
-          <li>Select a class</li>
-          <li>View the chart</li>
-          <li>Download the result</li>
-        </ol>
-      </div>
-    </div>
+
+    </section>
+
   </div>
-  </div>
-
-<script src="static/js/teacher.js"></script>
 </body>
 </html>

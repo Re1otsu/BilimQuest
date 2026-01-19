@@ -47,17 +47,25 @@ migrate = Migrate(app, db)
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
+    # name оставляем как "имя", чтобы не делать переименование колонки
     name = db.Column(db.String(100), nullable=False)
+    surname = db.Column(db.String(100), nullable=False)  # NEW
+
     student_class = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(200), nullable=False)
     score = db.Column(db.Float, default=0)
 
     progress = db.relationship('StudentProgress', backref='student', lazy=True)
 
-    __table_args__ = (db.UniqueConstraint('name', 'student_class', name='uq_name_class'),)
+    # было: ('name','student_class')
+    __table_args__ = (
+        db.UniqueConstraint('name', 'surname', 'student_class', name='uq_name_surname_class'),
+    )
 
     def __repr__(self):
-        return f"<Student {self.name}>"
+        return f"<Student {self.name} {self.surname}>"
+
 
 class Teacher(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -213,37 +221,52 @@ def student():
 def register():
     if request.method == "POST":
         name = request.form["name"].strip()
+        surname = request.form["surname"].strip()
         student_class = request.form["class"]
         password = request.form["password"]
 
-        # Проверка: зарегистрирован ли уже такой ученик
-        existing_student = Student.query.filter_by(name=name, student_class=student_class).first()
+        # Проверка на дубль (имя+фамилия+класс)
+        existing_student = Student.query.filter_by(
+            name=name, surname=surname, student_class=student_class
+        ).first()
+
         if existing_student:
-            error = f"{name} {student_class} сыныбында бұрын тіркелген. Кіру бетіне өтіңіз."
+            error = f"{name} {surname} {student_class} сыныбында бұрын тіркелген. Кіру бетіне өтіңіз."
             return render_template("register.html", error=error)
 
         hashed_password = generate_password_hash(password)
-        new_student = Student(name=name, student_class=student_class, password=hashed_password)
+        new_student = Student(
+            name=name,
+            surname=surname,
+            student_class=student_class,
+            password=hashed_password
+        )
         db.session.add(new_student)
         db.session.commit()
 
-        # Автоматический вход после регистрации (по желанию)
+        # Можно сразу залогинить и отправить на /student
         session["user_id"] = new_student.id
         session["user_name"] = new_student.name
         session["student_class"] = new_student.student_class
+        session["role"] = "student"  # важно для login_required("student")
 
-        return redirect("/login")  # Немедленно перенаправить ученика
+        return redirect("/student")
+
     return render_template("register.html")
+
 
 # Кіру
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        name = request.form["name"]
+        name = request.form["name"].strip()
+        surname = request.form["surname"].strip()
         password = request.form["password"]
         student_class = request.form["class"]
 
-        student = Student.query.filter_by(name=name, student_class=student_class).first()
+        student = Student.query.filter_by(
+            name=name, surname=surname, student_class=student_class
+        ).first()
 
         if student and check_password_hash(student.password, password):
             session["user_id"] = student.id
@@ -252,8 +275,10 @@ def login():
             session["role"] = "student"
             return redirect("/student")
         else:
-            return "Қате: Есім, сынып немесе құпиясөз дұрыс емес."
+            return "Қате: Есім, тегі, сынып немесе құпиясөз дұрыс емес."
+
     return render_template("login.html")
+
 
 
 
@@ -566,28 +591,28 @@ def teacher_panel():
     )
 
     GAME_TO_CHAPTER = {
-        "Қағып ал": "Knowledge",
-        "Көпір": "Knowledge",
-        "Сәйкестік": "Knowledge",
-        "Лабиринт": "Comprehension",
-        "Ғарыш хабаршысы": "Comprehension",
-        "Хабаршы": "Comprehension",
-        "Қамал": "Application",
-        "Шифр": "Application",
-        "Агент": "Application",
-        "Робот": ["Analysis", "Synthesis"],
-        "Сиқырлы шарлар": ["Analysis", "Synthesis"],
-        "Блоктар": ["Analysis", "Synthesis"],
-        "Пазл": "Evaluation",
+        "Қағып ал": "Білу",
+        "Көпір": "Білу",
+        "Сәйкестік": "Білу",
+        "Лабиринт": "Түсіну",
+        "Ғарыш хабаршысы": "Түсіну",
+        "Хабаршы": "Түсіну",
+        "Қамал": "Қолдану",
+        "Шифр": "Қолдану",
+        "Агент": "Қолдану",
+        "Робот": ["Талдау", "Синтез"],
+        "Сиқырлы шарлар": ["Талдау", "Синтез"],
+        "Блоктар": ["Талдау", "Синтез"],
+        "Пазл": "Бағалау",
     }
 
     CHAPTER_MAX_SCORE = {
-        "Knowledge": 1,
-        "Comprehension": 1,
-        "Application": 2,
-        "Analysis": 4,
-        "Synthesis": 4,
-        "Evaluation": 2
+        "Білу": 1,
+        "Түсіну": 1,
+        "Қолдану": 2,
+        "Талдау": 4,
+        "Синтез": 4,
+        "Бағалау": 2
     }
 
     # Переворачиваем: глава → список игр
@@ -615,28 +640,28 @@ def teacher_panel():
     scores = [round(chapter_scores[ch], 2) for ch in labels]
 
     GAME_TO_CHAPTER_NAME = {
-        "Қағып ал": ["Information around us"],
-        "Көпір": ["Information around us"],
-        "Сәйкестік": ["Information around us"],
-        "Лабиринт": ["Information transmission"],
-        "Ғарыш хабаршысы": ["Information transmission"],
-        "Хабаршы": ["Information transmission"],
-        "Қамал": ["Information encryption"],
-        "Шифр": ["Information encryption"],
-        "Агент": ["Information encryption"],
-        "Робот": ["Representation of binary information", "Representation of binary information. Practicum"],  # две главы
-        "Сиқырлы шарлар": ["Representation of binary information", "Representation of binary information. Practicum"],  # две главы
-        "Блоктар": ["Representation of binary information", "Representation of binary information. Practicum"],  # две главы
-        "Пазл": ["Final tasks for the first section"],
+        "Қағып ал": ["Айналамыздағы ақпарат"],
+        "Көпір": ["Айналамыздағы ақпарат"],
+        "Сәйкестік": ["Айналамыздағы ақпарат"],
+        "Лабиринт": ["Ақпаратты беру"],
+        "Ғарыш хабаршысы": ["Ақпаратты беру"],
+        "Хабаршы": ["Ақпаратты беру"],
+        "Қамал": ["Ақпаратты шифрлау"],
+        "Шифр": ["Ақпаратты шифрлау"],
+        "Агент": ["Ақпаратты шифрлау"],
+        "Робот": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
+        "Сиқырлы шарлар": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
+        "Блоктар": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
+        "Пазл": ["Бірінші бөлімнің қорытынды тапсырмалары"],
 
     }
     CHAPTER_NAME_MAX_SCORE = {
-        "Information around us": 1,
-        "Information transmission": 1,
-        "Information encryption": 2,
-        "Representation of binary information": 4,
-        "Representation of binary information. Practicum": 4,
-        "Final tasks for the first section": 2
+        "Айналамыздағы ақпарат": 1,
+        "Ақпаратты беру": 1,
+        "Ақпаратты шифрлау": 2,
+        "Екілік ақпаратты көрсету": 4,
+        "Екілік ақпаратты көрсету. Практикум": 4,
+        "Бірінші бөлімнің қорытынды тапсырмалары": 2
     }
     # ---- ПРОГРЕСС ПО ВСЕМ КЛАССАМ ----
     all_progress_all = GameProgress.query.filter(GameProgress.completed == True).all()
@@ -821,6 +846,111 @@ def bolim1_5():
             completed[row.game_name] = bool(row.completed)
 
     return render_template("bolim1_5.html", completed=completed, student=student)
+
+@app.route("/toqsan_2")
+@login_required("student")
+def toqsan_2():
+    student_id = session.get("user_id")
+
+    student = Student.query.get_or_404(student_id)
+
+    progress = db.session.execute(
+        text("""
+            SELECT game_name, completed
+            FROM game_progress
+            WHERE student_id = :sid
+        """),
+        {"sid": student_id}
+    ).fetchall()
+
+    default_modules = [
+        'matching',
+        'maze',
+        'cipher_game',
+        'push_blocks_all'
+    ]
+
+    completed = {m: False for m in default_modules}
+
+    for game_name, is_completed in progress:
+        if game_name in completed:
+            completed[game_name] = bool(is_completed)
+
+    return render_template(
+        "toqsan_2.html",
+        student=student,
+        completed=completed
+    )
+
+@app.route("/toqsan_3")
+@login_required("student")
+def toqsan_3():
+    student_id = session.get("user_id")
+
+    student = Student.query.get_or_404(student_id)
+
+    progress = db.session.execute(
+        text("""
+            SELECT game_name, completed
+            FROM game_progress
+            WHERE student_id = :sid
+        """),
+        {"sid": student_id}
+    ).fetchall()
+
+    default_modules = [
+        'matching',
+        'maze',
+        'cipher_game',
+        'push_blocks_all'
+    ]
+
+    completed = {m: False for m in default_modules}
+
+    for game_name, is_completed in progress:
+        if game_name in completed:
+            completed[game_name] = bool(is_completed)
+
+    return render_template(
+        "toqsan_3.html",
+        student=student,
+        completed=completed
+    )
+
+@app.route("/toqsan_4")
+@login_required("student")
+def toqsan_4():
+    student_id = session.get("user_id")
+
+    student = Student.query.get_or_404(student_id)
+
+    progress = db.session.execute(
+        text("""
+            SELECT game_name, completed
+            FROM game_progress
+            WHERE student_id = :sid
+        """),
+        {"sid": student_id}
+    ).fetchall()
+
+    default_modules = [
+        'matching',
+        'maze',
+        'cipher_game',
+        'push_blocks_all'
+    ]
+
+    completed = {m: False for m in default_modules}
+
+    for game_name, is_completed in progress:
+        if game_name in completed:
+            completed[game_name] = bool(is_completed)
+
+    return render_template(
+        "toqsan_4.html",
+        student=student,
+        completed=completed
+    )
 
 @app.route("/game1")
 @login_required("student")

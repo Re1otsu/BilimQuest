@@ -9,56 +9,73 @@
       <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
-        <header class="top-bar">
-            <h1 class="logo">BilimQuest</h1>
-            <h2 class="text">Жалпы білім беретін орта мектептің информатика пәні бойынша практикалық тапсырмаларды геймификация элементтерін қолдана отырып оқыту порталы</h2>
-            <div class="top-info">
-                <a href="/rating" class="btn-rating">
-                    ⭐ {{ student.score }}
-                </a>
-                <a href="{{ url_for('student_dashboard', student_id=student.id) }}" class="btn-profile">
-                    <img src="static/img/user.png" alt="user" class="avatar">
-                    <span>{{ student.name }}</span>
-                </a>
-            </div>
-        </header>
+<header class="s-topbar">
+  <div class="s-brand">
+    <div class="s-logo">BilimQuest</div>
 
-        <main>
-            <div class="main-container">
+  </div>
 
-                <!-- Левая часть: модули -->
-                <div class="sidebar">
-                    <a href="/1module" class="module">
-                        <span>Ақпаратты ұсыну</span>
-                    </a>
-                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <span>Компьютерлік графика</span>
-                    </a>
-                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <span>Робототехника</span>
-                    </a>
-                    <a href="" class="module {% if not completed['push_blocks_all'] %}disabled{% endif %}">
-                        <span>Роботтардың жарысы</span>
-                    </a>
-                </div>
+  <div class="s-actions">
+    <a href="/rating" class="s-score">⭐ {{ "%.3f"|format(student.score) }}</a>
 
-                <!-- Правая часть: контейнер для объявлений -->
-                <div class="announcements">
-                    <h2>📢 Хабарландырулар</h2>
-                    <ul>
-                        {% for ann in announcements %}
-                            <li>
-                                {{ ann.message }}
-                                <small style="color: gray;">{{ ann.local_time().strftime("%d.%m.%Y %H:%M") }}</small>
-                            </li>
-                        {% else %}
-                            <li>Әзірше хабарландыру жоқ</li>
-                        {% endfor %}
-                    </ul>
-                </div>
+    <a href="{{ url_for('student_dashboard', student_id=student.id) }}" class="s-profile">
+      <img src="{{ url_for('static', filename='img/user.png') }}" alt="user" class="s-avatar">
+      <span class="s-name">{{ student.name }}</span>
+      <span class="s-arrow">›</span>
+    </a>
+  </div>
+</header>
 
-            </div>
-        </main>
+<main class="s-page">
+  <section class="s-shell">
+
+    <section class="s-classes">
+      <a class="s-class-card s-c5" href="/1module">
+        <div class="s-class-title">Ақпарат галактикасы</div>
+        <div class="s-class-cta">⭐ 1-тоқсан ойындары›</div>
+      </a>
+
+      <a class="s-class-card s-c6" href="/toqsan_2">
+        <div class="s-class-title">Пазл әлемі</div>
+        <div class="s-class-cta">⭐ 2-тоқсан ойындары›</div>
+      </a>
+
+      <a class="s-class-card s-c7" href="/toqsan_3">
+        <div class="s-class-title">Квест жолы</div>
+        <div class="s-class-cta">⭐ 3-тоқсан ойындары›</div>
+      </a>
+
+      <a class="s-class-card s-c8" href="/toqsan_4.">
+        <div class="s-class-title">Жасанды интеллект зертханасы</div>
+        <div class="s-class-cta">⭐ 4-тоқсан ойындары></div>
+      </a>
+    </section>
+
+    <section class="s-news">
+      <div class="s-news-head">
+        <span class="s-bell">🔔</span>
+        <div>
+          <div class="s-news-title">Хабардар болыңыздар:</div>
+          <div class="s-news-sub">Жаңалықтарды және жаңартуларды осы жерден көре аласыз.</div>
+        </div>
+      </div>
+
+      <ul class="s-news-list">
+        {% for ann in announcements %}
+          <li class="s-news-item">
+            <div class="s-news-msg">{{ ann.message }}</div>
+            <div class="s-news-date">{{ ann.local_time().strftime("%d.%m.%Y %H:%M") }}</div>
+          </li>
+        {% else %}
+          <li class="s-news-item">
+            <div class="s-news-msg">Әзірше хабарландыру жоқ</div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+  </section>
+</main>
 
 </body>
 </html>

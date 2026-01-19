@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Puzzle World</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/toqsan_4.css') }}">
+</head>
+<body>
+
+  <header class="p-topbar">
+    <div class="p-brand">
+      <div class="p-logo">BilimQuest</div>
+    </div>
+
+    <div class="p-actions">
+      <div class="p-score">⭐ {{ "%.2f"|format(student.score) }}</div>
+    </div>
+  </header>
+
+  <main class="p-stage">
+
+<svg class="p-paths" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
+
+  <path id="path-01" d="M480,180 C350,250 280,200 200,260" />
+  <path id="path-12" d="M160,330 C220,500 270,400 340,480" />
+  <path id="path-23" d="M380,480 C550,170 500,320 650,450" />
+  <path id="path-34" d="M670,450 C700,450 800,450 850,280" />
+
+
+</svg>
+
+<div class="q-fireflies" data-path="#path-01" data-count="7" data-speed="0.18"></div>
+<div class="q-fireflies" data-path="#path-12" data-count="7" data-speed="0.18"></div>
+<div class="q-fireflies" data-path="#path-23" data-count="7" data-speed="0.18"></div>
+<div class="q-fireflies" data-path="#path-34" data-count="7" data-speed="0.18"></div>
+<div class="q-fireflies" data-path="#path-45" data-count="7" data-speed="0.18"></div>
+<div class="q-fireflies" data-path="#path-56" data-count="7" data-speed="0.18"></div>
+
+
+    <!-- контейнер для “огоньков” -->
+    <div class="q-fireflies" data-path="#route1" data-count="10" data-speed="0.18"></div>
+
+    <a class="p-main" href="/student" aria-label="Артқа">
+    <img src="{{ url_for('static', filename='img/gollogram_boy.png') }}" alt="main">
+    <div class="p-hero-title">Басты бет</div>
+    </a>
+
+
+    <!-- n1 -->
+    <a class="p-node" id="n1" href="/puzzle/logic" aria-label="Растрлық суреттерді құру және редакциялау">
+      <div class="p-platform">
+        <img class="p-platform-img" src="{{ url_for('static', filename='img/platform.png') }}" alt="">
+        <img class="p-topic-icon" src="{{ url_for('static', filename='img/puzzle_1.png') }}" alt="">
+      </div>
+      <div class="p-label">
+        <div class="p-label-title">Растрлық суреттерді құру және редакциялау</div>
+      </div>
+    </a>
+
+    <!-- n2 -->
+    <a class="p-node" id="n2" href="/puzzle/devices" aria-label="Растрлық суреттерді өңдеу">
+      <div class="p-platform">
+        <img class="p-platform-img" src="{{ url_for('static', filename='img/platform.png') }}" alt="">
+        <img class="p-topic-icon" src="{{ url_for('static', filename='img/puzzle_2.png') }}" alt="">
+      </div>
+      <div class="p-label">
+        <div class="p-label-title">Растрлық суреттерді өңдеу</div>
+      </div>
+    </a>
+
+    <!-- n3 -->
+    <a class="p-node" id="n3" href="/puzzle/graphics" aria-label="Векторлық суреттерді құру">
+      <div class="p-platform">
+        <img class="p-platform-img" src="{{ url_for('static', filename='img/platform.png') }}" alt="">
+        <img class="p-topic-icon" src="{{ url_for('static', filename='img/puzzle_3.png') }}" alt="">
+      </div>
+      <div class="p-label">
+        <div class="p-label-title">Векторлық суреттерді құру</div>
+      </div>
+    </a>
+
+    <!-- n4 -->
+    <a class="p-node" id="n4" href="/puzzle/ai" aria-label="Қисық бетімен жұмыс">
+      <div class="p-platform">
+        <img class="p-platform-img" src="{{ url_for('static', filename='img/platform.png') }}" alt="">
+        <img class="p-topic-icon" src="{{ url_for('static', filename='img/puzzle_4.png') }}" alt="">
+      </div>
+      <div class="p-label">
+        <div class="p-label-title">Қисық бетімен жұмыс</div>
+      </div>
+    </a>
+
+  </main>
+
+  <script>
+(() => {
+  function initFireflies(layer) {
+    const pathSel = layer.dataset.path;
+    const count = parseInt(layer.dataset.count || "10", 10);
+    const speed = parseFloat(layer.dataset.speed || "0.18"); // доля пути в секунду (примерно)
+
+    const path = document.querySelector(pathSel);
+    if (!path) return;
+
+    const svg = path.ownerSVGElement;
+    const total = path.getTotalLength();
+
+    // создаём огоньки
+    const flies = [];
+    for (let i = 0; i < count; i++) {
+      const el = document.createElement("div");
+      el.className = "q-firefly";
+      layer.appendChild(el);
+
+      // равномерный разнос + небольшой рандом
+      flies.push({
+        el,
+        t: (i / count) + Math.random() * 0.08,
+        w: 0.6 + Math.random() * 0.8  // “вес” (чуть разные скорости)
+      });
+    }
+
+    // перевод координат SVG → пиксели слоя
+    function svgPointToLayerXY(pt) {
+      const svgRect = svg.getBoundingClientRect();
+      const layerRect = layer.getBoundingClientRect();
+      const x = (pt.x / 1000) * svgRect.width + (svgRect.left - layerRect.left);
+      const y = (pt.y / 600) * svgRect.height + (svgRect.top - layerRect.top);
+      return { x, y };
+    }
+
+    let last = performance.now();
+    function tick(now) {
+      const dt = (now - last) / 1000;
+      last = now;
+
+      for (const f of flies) {
+        f.t += dt * speed * f.w;
+        if (f.t > 1) f.t -= 1;
+
+        const p = path.getPointAtLength(total * f.t);
+        const { x, y } = svgPointToLayerXY(p);
+
+        f.el.style.left = x + "px";
+        f.el.style.top = y + "px";
+      }
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // на ресайз корректно обновится за счёт getBoundingClientRect в каждом кадре,
+    // но если хочешь экономнее — можно кешировать размеры и обновлять по resize.
+  }
+
+  document.querySelectorAll(".q-fireflies").forEach(initFireflies);
+})();
+</script>
+
+</body>
+</html>
