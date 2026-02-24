@@ -252,7 +252,7 @@ body::before {
 }
 
 .p-platform-img{
-  width: min(240px, 20vw);
+  width: min(300px, 30vw);
   height: auto;
   filter: drop-shadow(0 18px 34px rgba(0,0,0,0.45));
   z-index: 1;
@@ -462,4 +462,26 @@ body::before {
 @keyframes glowPulse{
   0%,100%{ stroke-dashoffset: 0; }
   50%{ stroke-dashoffset: -20; }
+}
+
+.p-label-title{
+  text-align: center;
+  line-height: 1.25;
+  font-weight: 700;
+
+  font-size: clamp(14px, 1.1vw, 12px);
+
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+.p-label{
+  margin-top: -5px;
+  padding: 10px 25px;
+  border-radius: 14px;
+  background: rgba(12, 18, 40, 0.55);
+  border: 1px solid rgba(255,255,255,0.18);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+  max-width: 340px;
 }

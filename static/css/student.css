@@ -493,19 +493,19 @@ body{
 
 /* 1 карточка */
 .s-c5{
-  background-image: url("/static/img/toqsan_1.png");
+  background-image: url("/static/img/module_1.png");
 }
 
 .s-c6{
-  background-image: url("/static/img/toqsan_2.png");
+  background-image: url("/static/img/module_2.png");
 }
 
 .s-c7{
-  background-image: url("/static/img/toqsan_3.png");
+  background-image: url("/static/img/module_3.png");
 }
 
 .s-c8{
-  background-image: url("/static/img/toqsan_4.png");
+  background-image: url("/static/img/module_4.png");
 }
 
 .s-class-card{
