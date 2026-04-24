@@ -15,6 +15,20 @@ body{
   position:relative;
 }
 
+.puzzle-title {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.puzzle-title img {
+  width: clamp(250px, 35vw, 550px);
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(106, 56, 241, 0.6));
+}
 /* паттерн (если есть) */
 body::before {
   content: "";
@@ -93,13 +107,13 @@ body::before {
   z-index: 2;
 }
 .p-center img{
-  width: min(520px, 44vw);
+  width: min(450px, 42vw);
   height: auto;
   filter: drop-shadow(0 18px 40px rgba(0,0,0,0.35));
 }
 
 .p-center-title{
-  margin: clamp(6px, 1vh, 12px) auto 0;
+  margin: clamp(4px, 1vh, 8px) auto 0;
   width: min(20vw, 420px);
 
   font-size: clamp(16px, 2.2vw, 30px);

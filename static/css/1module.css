@@ -204,6 +204,21 @@ body::before{
   content: " (қолжетімсіз)"; font-weight: 700; opacity:.85;
 }
 
+.galaxy-title {
+  position: absolute;
+  top: 43%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.galaxy-title img {
+  width: clamp(280px, 40vw, 600px);
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(180, 100, 255, 0.6));
+}
+
 /* ====== АДАПТАЦИЯ ====== */
 
 /* Планшеты */

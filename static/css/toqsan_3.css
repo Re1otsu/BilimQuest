@@ -426,6 +426,21 @@ body::before {
   filter: blur(6px);
 }
 
+.quest-title {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.quest-title img {
+  width: clamp(200px, 40vw, 400px);
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(255, 186, 84, 0.6));
+}
+
 /* лёгкое мерцание */
 @keyframes flicker{
   0%,100%{ transform: translate(-50%, -50%) scale(1); opacity:.85; }

@@ -40,6 +40,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     "connect_args": {"sslmode": "require"}
 }
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -208,7 +210,7 @@ def student():
                      .all())
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['Сәйкестік', 'maze', 'cipher_game', 'push_blocks_all']
+    default_modules = ['Сәйкестік', 'maze', 'cipher_game']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -355,8 +357,6 @@ def student_dashboard(student_id):
         "Робот": ["Анализ", "Синтез"],
         "Сиқырлы шарлар": ["Анализ", "Синтез"],
         "Блоктар": ["Анализ", "Синтез"],
-        "Пазл": ["Бағалау"]
-
     }
 
     CHAPTER_MAX_SCORE = {
@@ -365,7 +365,6 @@ def student_dashboard(student_id):
         "Қолдану": 2,
         "Анализ": 4,
         "Синтез": 4,
-        "Бағалау": 2
     }
 
     # Подсчет прогресса по главам
@@ -401,7 +400,6 @@ def student_dashboard(student_id):
         "Қолдану": "Ақпаратты шифрлау",
         "Анализ": "Екілік ақпаратты ұсыну",
         "Синтез": "Екілік ақпаратты ұсыну. Практикум",
-        "Бағалау": "Бірінші бөлім бойынша қорытынды тапсырмалар"
     }
     chapters_progress_display = {
         CHAPTER_DISPLAY_NAMES.get(chapter, chapter): data
@@ -444,7 +442,6 @@ def game_result():
         "Робот": 1.2,
         "Сиқырлы шарлар": 1.4,
         "Блоктар":1.4,
-        "Пазл":2
     }
 
     max_score = MAX_SCORE.get(game_name)
@@ -603,7 +600,6 @@ def teacher_panel():
         "Робот": ["Талдау", "Синтез"],
         "Сиқырлы шарлар": ["Талдау", "Синтез"],
         "Блоктар": ["Талдау", "Синтез"],
-        "Пазл": "Бағалау",
     }
 
     CHAPTER_MAX_SCORE = {
@@ -612,7 +608,6 @@ def teacher_panel():
         "Қолдану": 2,
         "Талдау": 4,
         "Синтез": 4,
-        "Бағалау": 2
     }
 
     # Переворачиваем: глава → список игр
@@ -652,8 +647,6 @@ def teacher_panel():
         "Робот": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
         "Сиқырлы шарлар": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
         "Блоктар": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
-        "Пазл": ["Бірінші бөлімнің қорытынды тапсырмалары"],
-
     }
     CHAPTER_NAME_MAX_SCORE = {
         "Айналамыздағы ақпарат": 1,
@@ -661,7 +654,6 @@ def teacher_panel():
         "Ақпаратты шифрлау": 2,
         "Екілік ақпаратты көрсету": 4,
         "Екілік ақпаратты көрсету. Практикум": 4,
-        "Бірінші бөлімнің қорытынды тапсырмалары": 2
     }
     # ---- ПРОГРЕСС ПО ВСЕМ КЛАССАМ ----
     all_progress_all = GameProgress.query.filter(GameProgress.completed == True).all()
@@ -733,7 +725,7 @@ def module_1():
     ).fetchall()
 
     # Определяем порядок модулей и создаём словарь completed
-    default_modules = ['Сәйкестік', 'maze', 'cipher_game', 'push_blocks_all']
+    default_modules = ['Сәйкестік', 'maze', 'cipher_game']
     completed = {m: False for m in default_modules}
     for row in progress:
         if row.game_name in completed:
@@ -1187,32 +1179,6 @@ def game9():
             )
 
     return render_template("game9.html")
-
-@app.route("/game10")
-@login_required("student")
-def game10():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Пазл"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game10.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Пазл").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game10.html")
 
 @app.route("/module1")
 @login_required("student")
