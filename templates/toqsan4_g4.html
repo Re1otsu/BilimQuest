@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Кибер-Бекініс — Қауіпсіз База</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7ecff;background:#05070f;overflow:hidden}
+body{background:
+  radial-gradient(ellipse 100% 60% at 50% -5%,rgba(40,30,150,.35),transparent 60%),
+  radial-gradient(ellipse 80% 50% at 50% 110%,rgba(0,90,180,.2),transparent 60%),#05070f}
+
+/* HUD top */
+.hud{display:flex;align-items:center;justify-content:space-between;gap:12px;height:58px;padding:0 14px;flex-wrap:nowrap;
+  background:linear-gradient(180deg,rgba(10,16,44,.96),rgba(6,10,30,.96));border-bottom:1.5px solid rgba(80,140,255,.3)}
+.agent{display:flex;align-items:center;gap:10px}
+.ava{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:radial-gradient(circle at 38% 30%,#2a4a9a,#0e1844);border:1.5px solid rgba(120,160,255,.5)}
+.ag-meta{font-size:12px;font-weight:800;line-height:1.2}.ag-meta b{font-size:13px}.ag-lvl{color:#8fb3ff;font-size:10.5px}
+.hud-mid{flex:1;max-width:320px;text-align:center}
+.def-label{font-size:10.5px;font-weight:800;color:#9fb0e8;letter-spacing:.5px}
+.def-track{height:13px;border-radius:7px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(255,255,255,.1);margin-top:3px}
+.def-fill{height:100%;border-radius:7px;width:100%;background:linear-gradient(90deg,#1e9e4a,#46e06a,#7dffa0);
+  box-shadow:0 0 12px rgba(70,224,106,.6);transition:width .25s}
+.def-fill.warn{background:linear-gradient(90deg,#b45309,#f59e0b)}
+.def-fill.crit{background:linear-gradient(90deg,#b42020,#ef4444)}
+.hud-right{display:flex;align-items:center;gap:8px}
+.pill{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:13px;font-weight:900;font-size:14px;
+  background:linear-gradient(180deg,rgba(20,34,76,.92),rgba(12,20,52,.95));border:1.5px solid rgba(90,120,210,.4)}
+.pill.energy{color:#7be0ff;border-color:rgba(80,200,255,.45)}
+.pill.star{color:#ffd24a;border-color:rgba(255,200,60,.4)}
+
+/* stage */
+.stage{display:flex;height:calc(100vh - 58px - 92px);gap:10px;padding:10px 12px;overflow:hidden}
+.board-wrap{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;position:relative;
+  border-radius:16px;overflow:hidden;border:1.5px solid rgba(80,140,255,.25);
+  background:radial-gradient(ellipse 80% 70% at 50% 45%,rgba(20,40,90,.5),rgba(4,8,22,.95))}
+#board{display:block;max-width:100%;max-height:100%;touch-action:none;cursor:crosshair}
+
+/* Kronos chat */
+.kronos{width:300px;flex-shrink:0;display:flex;flex-direction:column;border-radius:16px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(12,20,52,.95),rgba(7,11,32,.96));border:1.5px solid rgba(90,120,210,.3)}
+.kr-head{display:flex;align-items:center;gap:9px;padding:11px 13px;border-bottom:1px solid rgba(90,120,210,.25);
+  background:linear-gradient(180deg,rgba(30,46,110,.6),transparent)}
+.kr-head .ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;
+  background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1px solid rgba(120,150,255,.5)}
+.kr-head b{font-size:13px}.kr-head div{font-size:10px;color:#8fb3ff}
+.kr-log{flex:1;overflow-y:auto;padding:11px;display:flex;flex-direction:column;gap:9px}
+.kr-log::-webkit-scrollbar{width:4px}.kr-log::-webkit-scrollbar-thumb{background:rgba(120,150,255,.3);border-radius:2px}
+.kmsg{display:flex;gap:8px;align-items:flex-start;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.kmsg .av{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;
+  background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1px solid rgba(120,150,255,.4)}
+.kmsg .bub{flex:1;font-size:12px;line-height:1.42;font-weight:600;padding:8px 11px;border-radius:11px;
+  background:linear-gradient(180deg,rgba(24,34,78,.95),rgba(16,24,58,.97));border:1px solid rgba(90,120,210,.3);color:#dbe4ff;border-bottom-left-radius:4px}
+.kmsg.warn .bub{border-color:rgba(251,191,36,.5);color:#fde8b0}
+.kmsg.alert .bub{border-color:rgba(239,68,68,.55);color:#ffc9c9;background:linear-gradient(180deg,rgba(50,18,22,.95),rgba(30,10,14,.97))}
+.kmsg.good .bub{border-color:rgba(70,224,106,.5);color:#c2f5d2}
+
+/* bottom: shop + actions */
+.dock{height:92px;display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:linear-gradient(180deg,rgba(10,16,44,.96),rgba(6,10,30,.97));border-top:1.5px solid rgba(80,140,255,.3)}
+.shop{flex:1;display:flex;gap:8px;overflow-x:auto}
+.tower-btn{flex:1;min-width:120px;display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:13px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(22,32,74,.9),rgba(14,20,50,.95));border:2px solid var(--tc,#6d5dfc);
+  transition:transform .12s,box-shadow .2s;position:relative}
+.tower-btn:hover:not(.dis){transform:translateY(-2px);box-shadow:0 6px 16px rgba(var(--tcr),.4)}
+.tower-btn.armed{box-shadow:0 0 0 2px var(--tc),0 0 18px rgba(var(--tcr),.6)}
+.tower-btn.dis{opacity:.45;cursor:not-allowed}
+.tb-ico{width:36px;height:36px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:21px;
+  background:rgba(var(--tcr),.18);border:1px solid var(--tc)}
+.tb-meta{min-width:0}.tb-name{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-cost{font-size:11px;font-weight:800;color:#7be0ff;margin-top:1px}
+.act{display:flex;flex-direction:column;gap:7px;flex-shrink:0}
+.abtn{padding:11px 16px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;font-weight:900;font-size:14px;color:#fff;
+  white-space:nowrap;transition:transform .12s,filter .2s}
+.abtn:hover:not(:disabled){transform:translateY(-1px);filter:brightness(1.08)}.abtn:disabled{opacity:.5}
+.abtn.attack{background:linear-gradient(180deg,#ef4444,#b42030);box-shadow:0 6px 16px rgba(239,68,68,.4)}
+.abtn.back{background:linear-gradient(180deg,#3a4a7a,#222c52);font-size:12px;padding:9px 14px}
+
+/* result overlay */
+.result{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(3,6,16,.88);backdrop-filter:blur(6px)}
+.result.show{display:flex}
+.rcard{position:relative;max-width:480px;width:100%;padding:30px;border-radius:24px;text-align:center;
+  background:linear-gradient(160deg,rgba(16,26,72,.99),rgba(7,11,30,.99));border:2px solid rgba(120,180,255,.5);
+  box-shadow:0 0 70px rgba(60,120,255,.3);transform:scale(.85) translateY(16px);opacity:0;transition:.4s cubic-bezier(.34,1.56,.64,1)}
+.result.show .rcard{transform:scale(1) translateY(0);opacity:1}
+.r-medal{font-size:60px;margin-bottom:6px;animation:trophyB .7s ease}
+@keyframes trophyB{0%{transform:scale(0) rotate(-25deg)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.r-title{font-size:23px;font-weight:900}.r-sub{font-size:12px;font-weight:800;color:#8ee6ff;letter-spacing:.6px;margin-bottom:8px}
+.r-defbar{height:16px;border-radius:9px;background:rgba(0,0,0,.4);overflow:hidden;border:1px solid rgba(255,255,255,.1);margin:10px 0 4px}
+.r-deffill{height:100%;border-radius:9px;background:linear-gradient(90deg,#1e9e4a,#46e06a);width:0;transition:width 1s ease .2s}
+.r-defpct{font-weight:900;font-size:15px;color:#7dffa0;margin-bottom:12px}
+.r-audit{text-align:left;font-size:12.5px;line-height:1.5;color:#cdd8f5;background:rgba(0,229,255,.05);
+  border:1px solid rgba(90,180,255,.25);border-radius:13px;padding:12px 14px;margin-bottom:16px}
+.r-audit b{color:#8ee6ff}.r-crys{font-size:17px;font-weight:900;color:#8ee6ff;margin-bottom:14px}
+.r-btns{display:flex;gap:9px}
+.r-btn{flex:1;padding:14px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;font-weight:900;font-size:15px}
+.r-btn.retry{background:rgba(255,255,255,.1);color:#cfe7ef;border:1px solid rgba(255,255,255,.2)}
+.r-btn.go{color:#06231a;background:linear-gradient(180deg,#7dffa0,#33c75e)}
+.r-btn:hover{filter:brightness(1.07)}
+.confetti{position:fixed;top:-12px;z-index:210;pointer-events:none;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+
+@media(max-width:820px){
+  .stage{flex-direction:column;height:auto;overflow:visible}
+  .kronos{width:100%;height:200px}
+  body{overflow:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div class="hud">
+  <div class="agent">
+    <div class="ava">🕵️</div>
+    <div class="ag-meta"><b>АГЕНТ</b><div class="ag-lvl">Кибер-бекініс</div></div>
+  </div>
+  <div class="hud-mid">
+    <div class="def-label">🛰️ БАС СЕРВЕР ҚОРҒАУЫ — <span id="defPct">100%</span></div>
+    <div class="def-track"><div class="def-fill" id="defFill"></div></div>
+  </div>
+  <div class="hud-right">
+    <div class="pill energy">⚡ <span id="energyVal">300</span></div>
+    <div class="pill star">⭐ <span id="scoreVal">{{ "%.2f"|format(student.score) }}</span></div>
+  </div>
+</div>
+
+<!-- STAGE -->
+<div class="stage">
+  <div class="board-wrap">
+    <canvas id="board" width="620" height="500"></canvas>
+  </div>
+  <div class="kronos">
+    <div class="kr-head"><div class="ico">🤖</div><div><b>ЖИ Кеңесші Кронос</b><div>Стратегиялық талдау</div></div></div>
+    <div class="kr-log" id="krLog"></div>
+  </div>
+</div>
+
+<!-- DOCK -->
+<div class="dock">
+  <div class="shop" id="shop"></div>
+  <div class="act">
+    <button class="abtn attack" id="attackBtn">⚔️ Шабуыл бастау</button>
+    <button class="abtn back" onclick="goBack()">← Базаға оралу</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="result" id="result">
+  <div class="rcard">
+    <div class="r-medal" id="rMedal">🛡️</div>
+    <div class="r-title" id="rTitle"></div>
+    <div class="r-sub" id="rSub"></div>
+    <div class="r-defbar"><div class="r-deffill" id="rDefFill"></div></div>
+    <div class="r-defpct" id="rDefPct"></div>
+    <div class="r-audit" id="rAudit"></div>
+    <div class="r-crys" id="rCrys"></div>
+    <div class="r-btns" id="rBtns"></div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   3-ОЙЫН: Кибер-Бекініс (Tower Defense)
+   Интернеттегі қауіпсіздік. Мұнара орналастыр → 3 толқынды тойтар.
+════════════════════════════════════════════════════════════ */
+const cv=document.getElementById('board'), ctx=cv.getContext('2d');
+const W=cv.width, H=cv.height, CELL=50;
+
+/* ── server ── */
+const SERVER={x:W/2, y:H/2, r:30, hp:100, maxhp:100};
+
+/* ── paths (pixel waypoints; enemies spawn at [0] → reach server) ── */
+const PATHS=[
+  [{x:-20,y:90},{x:150,y:90},{x:150,y:H/2},{x:SERVER.x-44,y:SERVER.y}],
+  [{x:W+20,y:H-90},{x:W-150,y:H-90},{x:W-150,y:H/2},{x:SERVER.x+44,y:SERVER.y}],
+  [{x:W/2,y:-20},{x:W/2,y:120},{x:SERVER.x,y:SERVER.y-44}],
+];
+
+/* ── towers catalog ── */
+const TOWERS={
+  password: {name:'Пароль Қалқаны', emoji:'🔐', cost:50,  color:'#6d5dfc', cr:'109,93,252', range:78, kind:'slow', slow:.5,
+             tip:'жақын хакерлердің жылдамдығын 50%-ға баяулатады'},
+  antivirus:{name:'Антивирус Лазері', emoji:'🛡️', cost:100, color:'#37e1ff', cr:'55,225,255', range:96, kind:'laser', dps:30,
+             tip:'радиустағы вирустарды лазермен жояды'},
+  firewall: {name:'Брандмауэр', emoji:'🔥', cost:75,  color:'#ff7a3c', cr:'255,122,60', range:64, kind:'gun', dps:46,
+             tip:'порталдан келетін зиянды трафикке күшті соққы береді'},
+  backup:   {name:'Backup Мұнарасы', emoji:'☁️', cost:120, color:'#9be0ff', cr:'155,224,255', range:0, kind:'heal', heal:6,
+             tip:'Бас Сервердің өмірін (HP) қалпына келтіреді'},
+};
+
+/* ── state ── */
+let energy=300, towers=[], enemies=[], shots=[], particles=[];
+let armed=null, ghost=null;
+let phase='build';          // build | attack | over
+let waveIdx=0, spawnQ=[], spawnT=0, started=false;
+let lastT=0, gameOver=false;
+
+/* ── shop UI ── */
+const shopEl=document.getElementById('shop');
+Object.entries(TOWERS).forEach(([k,t])=>{
+  const b=document.createElement('div'); b.className='tower-btn'; b.id='tb_'+k;
+  b.style.setProperty('--tc',t.color); b.style.setProperty('--tcr',t.cr);
+  b.innerHTML=`<div class="tb-ico">${t.emoji}</div><div class="tb-meta"><div class="tb-name">${t.name}</div><div class="tb-cost">⚡ ${t.cost} э.</div></div>`;
+  b.onclick=()=>arm(k);
+  shopEl.appendChild(b);
+});
+function arm(k){
+  if(gameOver) return;
+  if(energy<TOWERS[k].cost){ kron('alert','⚡ Энергия жеткіліксіз! Алдымен арзанырақ мұнара қой.'); return; }
+  armed = armed===k ? null : k;
+  document.querySelectorAll('.tower-btn').forEach(el=>el.classList.toggle('armed', el.id==='tb_'+armed));
+}
+function refreshShop(){
+  Object.entries(TOWERS).forEach(([k,t])=>document.getElementById('tb_'+k).classList.toggle('dis', energy<t.cost));
+}
+
+/* ── geometry helpers ── */
+function distToSeg(px,py,a,b){
+  const dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy;
+  let t=l2? ((px-a.x)*dx+(py-a.y)*dy)/l2 : 0; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-(a.x+dx*t), py-(a.y+dy*t));
+}
+function distToPaths(x,y){
+  let m=1e9;
+  for(const p of PATHS) for(let i=0;i<p.length-1;i++) m=Math.min(m, distToSeg(x,y,p[i],p[i+1]));
+  return m;
+}
+function snap(x,y){ return { x:Math.floor(x/CELL)*CELL+CELL/2, y:Math.floor(y/CELL)*CELL+CELL/2 }; }
+function buildable(x,y){
+  if(x<CELL/2||x>W-CELL/2||y<CELL/2||y>H-CELL/2) return false;
+  if(Math.hypot(x-SERVER.x,y-SERVER.y)<58) return false;
+  if(distToPaths(x,y)<26) return false;           // not ON the path
+  if(towers.some(t=>Math.hypot(t.x-x,t.y-y)<CELL*0.8)) return false; // not occupied
+  return true;
+}
+
+/* ── pointer placement ── */
+function evtXY(e){ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e;
+  return { x:(t.clientX-r.left)*(W/r.width), y:(t.clientY-r.top)*(H/r.height) }; }
+cv.addEventListener('mousemove',e=>{ if(!armed){ghost=null;return;} const p=evtXY(e); ghost=snap(p.x,p.y); });
+cv.addEventListener('mouseleave',()=>ghost=null);
+cv.addEventListener('click',e=>{ const p=evtXY(e); place(p.x,p.y); });
+cv.addEventListener('touchstart',e=>{ if(!armed)return; e.preventDefault(); const p=evtXY(e); ghost=snap(p.x,p.y); place(p.x,p.y); },{passive:false});
+
+function place(x,y){
+  if(!armed||gameOver) return;
+  const s=snap(x,y), t=TOWERS[armed];
+  if(!buildable(s.x,s.y)){ kron('warn','⚠️ Мұнда қою мүмкін емес — жолдан немесе серверден алыс, бос ұяшыққа қой.'); return; }
+  if(energy<t.cost){ kron('alert','⚡ Энергия жеткіліксіз!'); return; }
+  energy-=t.cost;
+  const tw={type:armed,x:s.x,y:s.y,cd:0,...t};
+  towers.push(tw);
+  updateEnergy(); refreshShop();
+  placeFeedback(tw);
+  ghost=null;
+   bink(s.x,s.y,t.color);
+  if(energy<TOWERS[armed].cost){ armed=null; document.querySelectorAll('.tower-btn').forEach(el=>el.classList.remove('armed')); }
+}
+
+/* ── Kronos placement coaching (Bloom levels) ── */
+function placeFeedback(tw){
+  const nearPortal = PATHS.some(p=>Math.hypot(tw.x-p[0].x,tw.y-p[0].y)<150);
+  const nearPath = distToPaths(tw.x,tw.y)<60;
+  if(tw.type==='firewall'){
+    if(nearPortal) kron('good','🔥 Өте ақылды шешім! Брандмауэр сыртқы шабуылды ең бірінші тексеретін сүзгі. Оны кіреберіс порталға қойғаның қауіпсіздікті +25%-ға арттырды! ⚡');
+    else kron('','🔥 Брандмауэр қойылды. Ең тиімдісі — оны порталдың кіреберісіне қою.');
+  } else if(tw.type==='antivirus'){
+    if(nearPath) kron('good','🛡️ Дұрыс! Антивирус лазерін файлдар жиі өтетін жолға жақын қойдың — ол вирустарды тиімді жояды.');
+    else kron('warn','⚠️ Назар аудар! Тым алыс бұрышқа қойылған Антивирус вирустарды көре алмайды. Оны орталық жолдарға жақын орналастыр! 🛡️');
+  } else if(tw.type==='password'){
+    kron('','🔐 Пароль Қалқаны хакерлерді баяулатады — оны жол бойына қойғаның дұрыс.');
+  } else if(tw.type==='backup'){
+    kron('good','☁️ Backup мұнарасы қосылды! Енді вирус серверге жетсе де, ол деректер өмірін қалпына келтіреді. Әсіресе Боссқа қарсы өте маңызды!');
+  }
+}
+
+/* ── waves ── */
+const WAVES=[
+  { n:'Фишингтік шпиондар', t:'phish', count:10, gap:.7,
+    sig:['alert','🚨 1-Толқын — Фишинг шабуылы! Хакерлер жалған сілтемелер мен ұтыс ойындары кейпінде кіруге тырысуда. Пароль орталығына жеткізбе!'] },
+  { n:'Троян вирусы', t:'trojan', count:8, gap:.95,
+    sig:['alert','🦠 2-Толқын — Троян! Ол өзін қауіпсіз ойын ретінде таныстырады. Оны тек Антивирус лазері ғана таниды!'] },
+  { n:'Босс: Ransomware', t:'boss', count:1, gap:1, adds:5,
+    sig:['alert','💀 3-Толқын — БОСС! Хакер-Шифрлаушы Бас Серверді бұзып, деректерді құлыптамақ! Тезірек Backup мұнарасын іске қос!'] },
+];
+const ETYPE={
+  phish: {hp:20, sp:62, dmg:6,  r:11, col:'#ffd24a', label:'✉️'},
+  trojan:{hp:48, sp:46, dmg:11, r:13, col:'#b06bff', label:'🦠'},
+  boss:  {hp:420,sp:30, dmg:42, r:24, col:'#ff4d4d', label:'👹'},
+};
+let betweenWaves=false;
+
+document.getElementById('attackBtn').onclick=startAttack;
+function startAttack(){
+  if(phase!=='build'||gameOver) return;
+  if(towers.length===0){ kron('warn','⚠️ Алдымен кемінде бір қорғаныс мұнарасын қой!'); return; }
+  phase='attack'; started=true; waveIdx=0;
+  document.getElementById('attackBtn').disabled=true;
+  document.getElementById('attackBtn').textContent='⚔️ Шайқас жүріп жатыр...';
+  beginWave(0);
+}
+function beginWave(i){
+  const w=WAVES[i];
+  kron(w.sig[0], w.sig[1]);
+  beep(i===2?180:330);
+  spawnQ=[];
+  for(let k=0;k<w.count;k++) spawnQ.push(w.t);
+  if(w.adds) for(let k=0;k<w.adds;k++) spawnQ.push('phish');
+  spawnT=0.4;
+}
+function spawnEnemy(type){
+  const path=PATHS[Math.floor(Math.random()*PATHS.length)];
+  const e=ETYPE[type];
+  enemies.push({type,x:path[0].x,y:path[0].y,wp:1,path,hp:e.hp,maxhp:e.hp,sp:e.sp,dmg:e.dmg,r:e.r,slow:1,slowT:0});
+}
+
+/* ── main loop ── */
+function loop(ts){
+  const dt=Math.min(.05,(ts-(lastT||ts))/1000); lastT=ts;
+  if(phase==='attack' && !gameOver) update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+function update(dt){
+  // spawn
+  if(spawnQ.length){ spawnT-=dt; if(spawnT<=0){ spawnEnemy(spawnQ.shift()); spawnT=WAVES[waveIdx].gap; } }
+  // towers
+  for(const t of towers){
+    t.cd-=dt;
+    if(t.kind==='heal'){ if(SERVER.hp<SERVER.maxhp){ SERVER.hp=Math.min(SERVER.maxhp,SERVER.hp+t.heal*dt); updateDef(); } continue; }
+    if(t.kind==='slow'){ for(const e of enemies){ if(Math.hypot(e.x-t.x,e.y-t.y)<t.range){ e.slow=t.slow; e.slowT=.25; } } continue; }
+    // laser / gun: target nearest in range
+    let tg=null,best=1e9;
+    for(const e of enemies){ const d=Math.hypot(e.x-t.x,e.y-t.y); if(d<t.range&&d<best){best=d;tg=e;} }
+    if(tg){ tg.hp-=t.dps*dt; shots.push({x1:t.x,y1:t.y,x2:tg.x,y2:tg.y,col:t.color,life:.08});
+      if(tg.hp<=0) killEnemy(tg); }
+  }
+  // enemies move
+  for(let i=enemies.length-1;i>=0;i--){
+    const e=enemies[i];
+    if(e.slowT>0){e.slowT-=dt; if(e.slowT<=0)e.slow=1;}
+    const wp=e.path[e.wp];
+    if(!wp){ // reached server
+      SERVER.hp=Math.max(0,SERVER.hp-e.dmg); updateDef(); hitServer();
+      enemies.splice(i,1); continue;
+    }
+    const dx=wp.x-e.x, dy=wp.y-e.y, d=Math.hypot(dx,dy), step=e.sp*e.slow*dt;
+    if(d<=step){ e.x=wp.x; e.y=wp.y; e.wp++; }
+    else { e.x+=dx/d*step; e.y+=dy/d*step; }
+    if(SERVER.hp<=0){ endGame(); return; }
+  }
+  // shots/particles decay
+  for(let i=shots.length-1;i>=0;i--){ shots[i].life-=dt; if(shots[i].life<=0) shots.splice(i,1); }
+  for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.x+=p.vx;p.y+=p.vy;p.life-=dt; if(p.life<=0)particles.splice(i,1); }
+  // wave progression
+  if(spawnQ.length===0 && enemies.length===0 && phase==='attack' && !betweenWaves){
+    if(waveIdx<WAVES.length-1){
+      betweenWaves=true;
+      setTimeout(()=>{ if(!gameOver){ waveIdx++; beginWave(waveIdx); betweenWaves=false; } },1000);
+    } else endGame();
+  }
+}
+function killEnemy(e){
+  const i=enemies.indexOf(e); if(i>=0)enemies.splice(i,1);
+  for(let k=0;k<8;k++){const a=Math.random()*6.28,s=40+Math.random()*60;particles.push({x:e.x,y:e.y,vx:Math.cos(a)*s/60,vy:Math.sin(a)*s/60,life:.5,col:ETYPE[e.type].col});}
+  beep(660,.05);
+}
+
+/* ── draw ── */
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='rgba(80,140,255,.07)'; ctx.lineWidth=1;
+  for(let x=0;x<=W;x+=CELL){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<=H;y+=CELL){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // paths
+  for(const p of PATHS){
+    ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);for(let i=1;i<p.length;i++)ctx.lineTo(p[i].x,p[i].y);
+    ctx.strokeStyle='rgba(0,180,255,.10)';ctx.lineWidth=34;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+    ctx.strokeStyle='rgba(0,210,255,.5)';ctx.lineWidth=3;ctx.setLineDash([3,12]);ctx.lineDashOffset=-(performance.now()/40%15);ctx.stroke();ctx.setLineDash([]);
+    // portal
+    ctx.fillStyle='rgba(120,80,255,.8)';ctx.beginPath();ctx.arc(p[0].x<0?6:p[0].x>W?W-6:p[0].x, p[0].y<0?6:p[0].y>H?H-6:p[0].y,9,0,6.28);ctx.fill();
+  }
+  // server
+  const sp=SERVER.hp/SERVER.maxhp;
+  ctx.save();ctx.shadowColor=sp>.5?'rgba(70,224,106,.7)':sp>.2?'rgba(245,158,11,.7)':'rgba(239,68,68,.8)';ctx.shadowBlur=22;
+  ctx.fillStyle='#0e2247';ctx.strokeStyle=sp>.5?'#46e06a':sp>.2?'#f59e0b':'#ef4444';ctx.lineWidth=3;
+  roundRect(SERVER.x-30,SERVER.y-30,60,60,12);ctx.fill();ctx.stroke();ctx.restore();
+  ctx.font='26px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🛰️',SERVER.x,SERVER.y-3);
+  // server hp ring
+  ctx.beginPath();ctx.arc(SERVER.x,SERVER.y,40,-1.57,-1.57+6.28*sp);ctx.strokeStyle=sp>.5?'#46e06a':sp>.2?'#f59e0b':'#ef4444';ctx.lineWidth=4;ctx.stroke();
+
+  // towers
+  for(const t of towers){
+    if(armed===null){ ctx.strokeStyle='rgba(255,255,255,.05)';ctx.beginPath();ctx.arc(t.x,t.y,t.range,0,6.28);ctx.stroke(); }
+    ctx.save();ctx.shadowColor=t.color;ctx.shadowBlur=12;ctx.fillStyle='rgba(10,18,44,.95)';ctx.strokeStyle=t.color;ctx.lineWidth=2;
+    roundRect(t.x-19,t.y-19,38,38,9);ctx.fill();ctx.stroke();ctx.restore();
+    ctx.font='20px sans-serif';ctx.fillText(t.emoji,t.x,t.y+1);
+  }
+  // shots
+  for(const s of shots){ ctx.strokeStyle=s.col;ctx.lineWidth=2.5;ctx.globalAlpha=Math.min(1,s.life*12);
+    ctx.shadowColor=s.col;ctx.shadowBlur=8;ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.stroke();ctx.shadowBlur=0;ctx.globalAlpha=1; }
+  // enemies
+  for(const e of enemies){
+    const et=ETYPE[e.type];
+    ctx.font=(e.type==='boss'?'30px':'18px')+' sans-serif';ctx.fillText(et.label,e.x,e.y);
+    // hp bar
+    const w=e.r*2;ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(e.x-w/2,e.y-e.r-8,w,4);
+    ctx.fillStyle=e.hp/e.maxhp>.4?'#46e06a':'#ef4444';ctx.fillRect(e.x-w/2,e.y-e.r-8,w*Math.max(0,e.hp/e.maxhp),4);
+    if(e.slow<1){ctx.fillStyle='#6d9dff';ctx.font='10px sans-serif';ctx.fillText('❄',e.x+e.r,e.y-e.r);}
+  }
+  // particles
+  for(const p of particles){ ctx.globalAlpha=Math.max(0,p.life*2);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,3,0,6.28);ctx.fill();ctx.globalAlpha=1; }
+  // ghost
+  if(ghost&&armed){ const ok=buildable(ghost.x,ghost.y)&&energy>=TOWERS[armed].cost; const t=TOWERS[armed];
+    ctx.globalAlpha=.5;ctx.fillStyle=ok?'rgba(70,224,106,.4)':'rgba(239,68,68,.4)';
+    roundRect(ghost.x-19,ghost.y-19,38,38,9);ctx.fill();
+    ctx.strokeStyle=ok?'#46e06a':'#ef4444';ctx.lineWidth=2;ctx.beginPath();ctx.arc(ghost.x,ghost.y,t.range,0,6.28);ctx.stroke();
+    ctx.globalAlpha=1;ctx.font='20px sans-serif';ctx.fillText(t.emoji,ghost.x,ghost.y+1); }
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function bink(x,y,c){ for(let k=0;k<10;k++){const a=Math.random()*6.28,s=30+Math.random()*40;particles.push({x,y,vx:Math.cos(a)*s/60,vy:Math.sin(a)*s/60,life:.5,col:c});} }
+
+/* ── HUD updates ── */
+function updateEnergy(){ document.getElementById('energyVal').textContent=Math.round(energy); }
+function updateDef(){
+  const pct=Math.max(0,Math.round(SERVER.hp));
+  document.getElementById('defPct').textContent=pct+'%';
+  const f=document.getElementById('defFill'); f.style.width=pct+'%';
+  f.className='def-fill'+(pct<25?' crit':pct<55?' warn':'');
+}
+let lastHit=0;
+function hitServer(){ const n=performance.now(); if(n-lastHit>250){ lastHit=n; document.querySelector('.board-wrap').animate([{filter:'brightness(1)'},{filter:'brightness(1.6) saturate(1.5)'},{filter:'brightness(1)'}],{duration:200}); beep(120,.08);} }
+
+/* ── end / audit ── */
+function endGame(){
+  if(gameOver) return; gameOver=true; phase='over';
+  const def=Math.max(0,Math.round(SERVER.hp));
+  let medal,title,sub,crys,audit;
+  const hasBackup=towers.some(t=>t.type==='backup');
+  const hasFirewall=towers.some(t=>t.type==='firewall');
+  if(def>=90){ medal='🎖️'; title='Кибер-Генерал'; sub='CYBER GENERAL'; crys=3;
+    audit=`<b>Қорғау деңгейі: ${def}% — мықты заманауи база!</b><br>База толық аман, вирустар өтпеді. Брандмауэр мен Антивирусты дұрыс орналастырдың. 💡 Кеңес: интернетте маңызды файлдардың бұлтты көшірмесін алдын ала жасап жүр!`; }
+  else if(def>=50){ medal='🛡️'; title='Қорғаушы'; sub='SECURITY AGENT'; crys=2;
+    audit=`<b>Қорғау деңгейі: ${def}% — сервер аздап зақымдалды.</b><br>${hasBackup?'Backup қойма деректерді құтқарып қалды. ☁️':'Backup мұнарасын ертерек қойсаң, серверді толық сақтап қалар едің. ☁️'} ${hasFirewall?'':'Брандмауэрді порталға қойсаң, фишингті 100% тойтарар едің. 🔥'}`; }
+  else { medal='🧩'; title='Қайта жүктеу керек'; sub='SYSTEM REBOOT'; crys=0;
+    audit=`<b>Қорғау деңгейі: ${def}% — база бұзылды.</b><br>Ештеңе етпейді! Мұнараларды басқаша орналастыр: Брандмауэр — порталға, Антивирус — жолға жақын, Backup — Боссқа қарсы. Қайта байқап көр!`; }
+
+  kron(def>=50?'good':'alert', `📊 КИБЕР-АУДИТ: Қорғау деңгейі ${def}%. ${title} мәртебесі!`);
+
+  document.getElementById('rMedal').textContent=medal;
+  document.getElementById('rTitle').textContent=title;
+  document.getElementById('rSub').textContent=sub;
+  document.getElementById('rDefPct').textContent='🛡️ Қорғау: '+def+'%';
+  document.getElementById('rAudit').innerHTML='<b>🤖 ЖИ Кронос аудиті:</b><br>'+audit;
+  document.getElementById('rCrys').textContent='💎 +'+crys+' Деректер кристалы';
+  const btns=document.getElementById('rBtns'); btns.innerHTML='';
+  if(crys<3){ const r=document.createElement('button'); r.className='r-btn retry'; r.textContent='↻ Қайта'; r.onclick=()=>location.reload(); btns.appendChild(r); }
+  const g=document.createElement('button'); g.className='r-btn go'; g.textContent='Картаға оралу'; g.onclick=()=>finishGame(crys); btns.appendChild(g);
+  setTimeout(()=>{ document.getElementById('rDefFill').style.width=def+'%'; },100);
+  document.getElementById('result').classList.add('show');
+  if(crys>0) confetti();
+  window._finalCrys=crys;
+}
+
+let submitting=false;
+function finishGame(crys){
+  if(submitting) return; submitting=true;
+  try{
+    const k='bilimquest_t4_progress_v1';
+    let s=JSON.parse(localStorage.getItem(k));
+    if(!s||!s.status||s.status.length!==5) s={status:['active','locked','locked','locked','locked']};
+    if(crys>0){ s.status[3]='done'; if(s.status[4]==='locked') s.status[4]='active'; }
+    localStorage.setItem(k,JSON.stringify(s));
+  }catch(e){}
+  const score=Math.round(crys/3*0.3*100)/100;
+  if(crys>0){
+    fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({game_name:'Кибер-бекініс',score,stars:crys>=3?1:0,completed:true})})
+      .finally(()=>{ location.href='/toqsan_4'; });
+    setTimeout(()=>{ if(submitting) location.href='/toqsan_4'; },1500);
+  } else location.href='/toqsan_4';
+}
+function goBack(){ location.href='/toqsan_4'; }
+
+/* ── Kronos chat ── */
+const krLog=document.getElementById('krLog');
+function kron(cls,txt){
+  const m=document.createElement('div'); m.className='kmsg'+(cls?' '+cls:'');
+  m.innerHTML=`<div class="av">🤖</div><div class="bub">${txt}</div>`;
+  krLog.appendChild(m); krLog.scrollTop=krLog.scrollHeight;
+  while(krLog.children.length>14) krLog.removeChild(krLog.firstChild);
+}
+
+/* ── audio ── */
+let actx;
+function beep(f,dur){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();
+  o.connect(g);g.connect(actx.destination);o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.12,actx.currentTime);
+  g.gain.linearRampToValueAtTime(0,actx.currentTime+(dur||.12));o.start();o.stop(actx.currentTime+(dur||.12));}catch(e){}}
+function confetti(){const cs=['#7dffa0','#46e06a','#37e1ff','#ffd24a','#6d5dfc','#fff'];
+  for(let i=0;i<70;i++){const c=document.createElement('div');c.className='confetti';const sz=6+Math.random()*7,d=2.2+Math.random()*1.8;
+  c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cs[i%cs.length]};border-radius:2px;animation-duration:${d}s;animation-delay:${Math.random()*.5}s`;
+  document.body.appendChild(c);setTimeout(()=>c.remove(),(d+.7)*1000);}}
+
+/* ── init ── */
+updateEnergy(); updateDef(); refreshShop();
+kron('','👋 Сәлем, Агент! Мен — Кронос. Базаны қорғау үшін мұнараларды дүкеннен таңдап, картаға қой. 🔥 Брандмауэрді порталдарға, 🛡️ Антивирусты жолдарға жақын орналастыр. Дайын болсаң — «Шабуыл бастау».');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Кибер-Тұзақ — Желілік жүгіруші</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#fff;overflow:hidden;background:#05070f;user-select:none;-webkit-user-select:none}
+#viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#05070f}
+#stage{position:relative;width:960px;height:540px;transform-origin:center;flex:0 0 auto}
+#game{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:14px;touch-action:none}
+
+.hud{position:absolute;top:12px;left:12px;right:12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:none}
+.agent{display:flex;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(40,30,90,.85),rgba(20,16,54,.9));border:2px solid rgba(150,130,255,.5);border-radius:16px;padding:7px 14px 7px 8px;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+.av{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:24px;background:radial-gradient(circle at 38% 30%,#5a7bff,#2a2a8a);border:2px solid rgba(180,200,255,.6)}
+.ag-meta{font-size:11px;font-weight:800;line-height:1.15}.ag-meta b{font-size:12px}
+.hpbar{width:110px;height:9px;border-radius:6px;background:rgba(0,0,0,.4);overflow:hidden;border:1px solid rgba(255,255,255,.15);margin-top:3px}
+.hpfill{height:100%;width:100%;border-radius:6px;background:linear-gradient(90deg,#46e06a,#7dffa0);transition:width .25s}
+.hpfill.warn{background:linear-gradient(90deg,#f59e0b,#fbbf24)}.hpfill.crit{background:linear-gradient(90deg,#ef4444,#ff8080)}
+.chips{display:flex;gap:8px}
+.chip{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:14px;font-weight:900;font-size:15px;background:linear-gradient(180deg,rgba(30,40,80,.85),rgba(16,22,50,.9));border:1.5px solid rgba(120,180,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.chip.coin{color:#ffd24a}.chip.crys{color:#9be9ff}.chip.star{color:#ffd24a}
+
+.mission{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:10;width:330px;pointer-events:none;background:linear-gradient(180deg,rgba(20,30,66,.92),rgba(10,16,40,.95));border:1.5px solid rgba(120,180,255,.4);border-radius:16px;padding:9px 16px;box-shadow:0 8px 22px rgba(0,0,0,.45)}
+.m-title{font-size:12px;font-weight:900;color:#a9c4ff;letter-spacing:.5px}
+.m-sub{font-size:11px;color:#c9d6f5;margin:2px 0 6px;font-weight:600}
+.m-track{height:9px;border-radius:6px;background:rgba(0,0,0,.4);overflow:hidden;border:1px solid rgba(255,255,255,.12)}
+.m-fill{height:100%;width:0;background:linear-gradient(90deg,#37e1ff,#7dffa0);border-radius:6px;transition:width .35s}
+.m-num{position:absolute;right:14px;top:8px;font-size:12px;font-weight:900;color:#7dffa0}
+
+.ctrls{position:absolute;bottom:14px;z-index:10;display:flex;gap:10px}
+.ctrls.left{left:14px}.ctrls.right{right:14px}
+.cbtn{width:74px;height:74px;border-radius:18px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:inherit;font-weight:900;font-size:11px;color:#fff;background:linear-gradient(180deg,#6d3dd6,#3a1e8a);box-shadow:0 6px 16px rgba(80,40,200,.5),inset 0 2px 0 rgba(255,255,255,.2);transition:transform .08s,filter .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.cbtn:active{transform:scale(.92);filter:brightness(1.15)}
+.cbtn .ar{font-size:26px;line-height:1}
+.cbtn.jump{width:96px;height:96px;background:linear-gradient(180deg,#1d9bd6,#0e5a8a);box-shadow:0 6px 18px rgba(20,140,210,.55),inset 0 2px 0 rgba(255,255,255,.25)}
+.cbtn.jump .ar{font-size:34px}
+
+.ovl{position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(4,8,20,.8);backdrop-filter:blur(4px);border-radius:14px}
+.ovl.show{display:flex}
+.card{max-width:440px;width:90%;text-align:center;padding:30px 28px;border-radius:24px;background:linear-gradient(160deg,rgba(24,30,80,.99),rgba(8,12,34,.99));border:2px solid rgba(120,180,255,.5);box-shadow:0 0 60px rgba(60,100,255,.35);transform:scale(.86);opacity:0;transition:.4s cubic-bezier(.34,1.56,.64,1)}
+.ovl.show .card{transform:scale(1);opacity:1}
+.card h1{font-size:24px;font-weight:900;margin-bottom:6px}
+.card .ic{font-size:58px;margin-bottom:6px;display:block}
+.card p{font-size:13.5px;line-height:1.5;color:#c9d6f5;margin-bottom:16px}
+.card .how{text-align:left;font-size:12.5px;line-height:1.6;color:#cdd8f5;background:rgba(0,150,255,.06);border:1px solid rgba(90,180,255,.25);border-radius:13px;padding:11px 13px;margin-bottom:16px}
+.card .how b{color:#9be9ff}
+.r-crys{font-size:17px;font-weight:900;color:#9be9ff;margin-bottom:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;font-weight:900;font-size:16px;color:#06231a;background:linear-gradient(180deg,#7dffa0,#33c75e);box-shadow:0 8px 20px rgba(51,199,94,.45);margin:0 4px}
+.btn:hover{filter:brightness(1.06)}
+.btn.ghost{background:rgba(255,255,255,.1);color:#cfe7ef;border:1px solid rgba(255,255,255,.2)}
+.confetti{position:absolute;top:-12px;z-index:40;pointer-events:none;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(560px) rotate(720deg);opacity:.9}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+  <canvas id="game" width="960" height="540"></canvas>
+
+  <div class="hud">
+    <div class="agent">
+      <div class="av">🧑‍💻</div>
+      <div class="ag-meta"><b>АГЕНТ</b><div style="color:#a9c4ff">Деңгей 3</div>
+        <div class="hpbar"><div class="hpfill" id="hpFill"></div></div></div>
+    </div>
+    <div class="chips">
+      <div class="chip coin">🪙 <span id="coinVal">0</span></div>
+      <div class="chip crys">💎 <span id="crysVal">0</span></div>
+      <div class="chip star">⭐ <span id="scoreVal">{{ "%.2f"|format(student.score) }}</span></div>
+    </div>
+  </div>
+
+  <div class="mission">
+    <div class="m-title">🎯 МИССИЯ</div>
+    <div class="m-sub">Қауіптерден секіріп өт, қауіпсіз сайттарды жина!</div>
+    <div class="m-track"><div class="m-fill" id="mFill"></div></div>
+    <div class="m-num" id="mNum">0 / 10</div>
+  </div>
+
+  <div class="ctrls left">
+    <button class="cbtn" id="btnLeft"><span class="ar">←</span>СОЛҒА</button>
+    <button class="cbtn" id="btnRight"><span class="ar">→</span>ОҢҒА</button>
+  </div>
+  <div class="ctrls right">
+    <button class="cbtn jump" id="btnJump"><span class="ar">↑</span>СЕКІРУ</button>
+  </div>
+
+  <div class="ovl show" id="introOvl">
+    <div class="card">
+      <span class="ic">🏃‍♂️</span>
+      <h1>Кибер-Тұзақ: Желілік жүгіруші</h1>
+      <p>Сен — жас Агент! Интернет әлемінде жүгіріп, кибер-тұзақтардан секіріп өт.</p>
+      <div class="how">
+        <b>↑ СЕКІРУ</b> — тұзақтан секір (Space/↑). Ұзақ бассаң — биік секіреді!<br>
+        <b>← → СОЛҒА/ОҢҒА</b> — орныңды реттеп қозғал<br>
+        🎁🔗🕵️ <b>Тұзақтар</b> (фишинг, күмәнді сілтеме, алаяқ) — секіріп өт!<br>
+        🛡️ <b>Қауіпсіз сайттар</b> — оларды жина (+🪙)<br>
+        🤖 Кронос алдын ала ескертеді — назар аудар!
+      </div>
+      <p style="margin-bottom:14px">Мақсат: <b style="color:#7dffa0">10 қауіпсіз сайт</b> жина, HP-ды сақта!</p>
+      <button class="btn" onclick="startGame()">▶ Бастау!</button>
+    </div>
+  </div>
+
+  <div class="ovl" id="resultOvl">
+    <div class="card">
+      <span class="ic" id="rIc">🏆</span>
+      <h1 id="rTitle"></h1>
+      <p id="rText"></p>
+      <div class="r-crys" id="rCrys"></div>
+      <div id="rBtns"></div>
+    </div>
+  </div>
+
+</div></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   3-ОЙЫН: Кибер-Тұзақ — Желілік жүгіруші (improved runner)
+════════════════════════════════════════════════════════════ */
+const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+const W=960,H=540, GY=H-120;
+const GOAL=10;
+
+const THREATS=[
+  {k:'phish', icon:'🎁', title:'Сен жеңдің!', text:'Сыйлық алу үшін бас!', warn:'Назар аудар! Жалған ұтыс — фишинг! Секір!'},
+  {k:'link',  icon:'🔗', title:'http://bit.ly', text:'win-free', warn:'Назар аудар! Күмәнді сілтеме — секір!'},
+  {k:'hacker',icon:'🕵️', title:'Сәлем!', text:'Жеке ақпаратыңды жіберші', warn:'Сақ бол! Алаяқ дерек сұрап тұр — секір!'},
+];
+const SAFE={icon:'🛡️', title:'Қауіпсіз сайт', text:'Сенімді ақпарат!'};
+
+/* tuning */
+const GRAV=0.95, JUMP_V=-16.2, HZ=66;
+let player, ents, particles, speed, hp, coins, collected, crystals, mistakes, dist, streak, bestStreak;
+let running=false, gameOver=false, spawnX, lastT=0, kron={txt:'',t:0}, shake=0, lastKind='safe';
+const keys={left:false,right:false,jumpHeld:false};
+
+function reset(){
+  player={x:185,y:GY,vy:0,onGround:true,w:40,h:58,inv:0,run:0,squash:0,dustT:0};
+  ents=[]; particles=[]; speed=4.2; hp=100; coins=0; collected=0; crystals=0; mistakes=0; dist=0;
+  streak=0; bestStreak=0; spawnX=W+120; gameOver=false; lastKind='safe'; shake=0;
+  for(let i=0;i<3;i++) spawnNext();
+  updateHUD();
+}
+
+/* fair spawning: gap always ≥ jumpable distance */
+function spawnNext(){
+  const airframes=2*Math.abs(JUMP_V)/GRAV;          // ~34
+  const minGap=speed*airframes*0.62 + 60;           // guarantees landing room
+  const gap=minGap + 70 + Math.random()*90;
+  spawnX+=gap;
+  let threat=Math.random()<0.55;
+  if(lastKind==='threat'&&Math.random()<0.55) threat=false;  // avoid back-to-back walls
+  if(threat){
+    const t=THREATS[Math.floor(Math.random()*THREATS.length)];
+    ents.push({type:'threat',def:t,x:spawnX,y:GY,w:56,h:HZ,warned:false,hit:false,pulse:Math.random()*6});
+    lastKind='threat';
+  } else {
+    const air=Math.random()<0.7;                     // most safe items floating (jump to grab)
+    ents.push({type:'safe',def:SAFE,x:spawnX,y:air?GY-96:GY-30,w:54,h:54,taken:false,bob:Math.random()*6});
+    lastKind='safe';
+  }
+}
+
+/* ── input (with jump-cut for variable height) ── */
+function jumpDown(){ if(!running||gameOver) return; keys.jumpHeld=true;
+  if(player.onGround){ player.vy=JUMP_V; player.onGround=false; player.squash=-1; sfx(520,920,'sine',.16,.16); jumpTrail(); } }
+function jumpUp(){ keys.jumpHeld=false; if(player.vy<0) player.vy*=0.46; }  // released early → shorter jump
+function bind(id,down,up){const e=document.getElementById(id);
+  const d=ev=>{ev.preventDefault();down();}; const u=ev=>{ev.preventDefault();up&&up();};
+  e.addEventListener('touchstart',d,{passive:false}); e.addEventListener('mousedown',d);
+  e.addEventListener('touchend',u,{passive:false}); e.addEventListener('mouseup',u); e.addEventListener('mouseleave',u);
+}
+bind('btnJump',jumpDown,jumpUp);
+bind('btnLeft',()=>keys.left=true,()=>keys.left=false);
+bind('btnRight',()=>keys.right=true,()=>keys.right=false);
+document.addEventListener('keydown',e=>{ if((e.key===' '||e.key==='ArrowUp')&&!e.repeat){e.preventDefault();jumpDown();} if(e.key==='ArrowLeft')keys.left=true; if(e.key==='ArrowRight')keys.right=true; });
+document.addEventListener('keyup',e=>{ if(e.key===' '||e.key==='ArrowUp')jumpUp(); if(e.key==='ArrowLeft')keys.left=false; if(e.key==='ArrowRight')keys.right=false; });
+
+function startGame(){ document.getElementById('introOvl').classList.remove('show'); reset(); running=true; lastT=performance.now(); kronSay('🤖 Кеттік, Агент! Тұзақтарды бақыла!'); }
+
+/* ── loop ── */
+function loop(ts){
+  const dt=Math.min(2.2,(ts-(lastT||ts))/16.67); lastT=ts;
+  if(running&&!gameOver) update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+function update(dt){
+  dist+=speed*dt;
+  speed=Math.min(6.4, 4.2+collected*0.2);
+  if(keys.left) player.x=Math.max(95,player.x-3.4*dt);
+  if(keys.right) player.x=Math.min(380,player.x+3.6*dt);
+  // physics + jump-cut hang
+  player.vy+=GRAV*dt; player.y+=player.vy*dt;
+  if(player.y>=GY){ if(!player.onGround){ player.squash=1; landDust(); } player.y=GY; player.vy=0; player.onGround=true; }
+  else player.onGround=false;
+  player.run+=speed*dt; player.squash*=Math.pow(0.82,dt);
+  if(player.inv>0)player.inv-=dt;
+  // run dust
+  if(player.onGround){ player.dustT-=dt; if(player.dustT<=0){ runDust(); player.dustT=4; } }
+  // move ents + spawn
+  for(const e of ents) e.x-=speed*dt;
+  spawnX-=speed*dt;
+  while(spawnX<W+240) spawnNext();
+  // kronos telegraph
+  for(const e of ents){ if(e.type==='threat'&&!e.warned&&e.x-player.x<320&&e.x-player.x>140){ e.warned=true; kronSay('🤖 '+e.def.warn); sfx(880,880,'square',.06,.05);} e.pulse+=0.12*dt; }
+  // collisions
+  const pCx=player.x, pB=player.y, pT=player.y-player.h, pL=player.x-player.w/2, pR=player.x+player.w/2;
+  for(const e of ents){
+    if(e.type==='threat'&&!e.hit){
+      const eL=e.x-e.w/2,eR=e.x+e.w/2, top=e.y-e.h;
+      if(pR>eL&&pL<eR && pB>top+12 && player.inv<=0){
+        e.hit=true; hp=Math.max(0,hp-20); mistakes++; streak=0; player.inv=1.1; player.vy=-7.5; player.onGround=false;
+        shake=7; sfx(170,60,'sawtooth',.26,.2); kronSay('💥 Ой! Тұзаққа түстің — ертерек секір!');
+        burst(player.x,player.y-30,'#ff5b5b',12); updateHUD();
+        if(hp<=0) endGame(false);
+      }
+    } else if(e.type==='safe'&&!e.taken){
+      const cx=e.x, cy=e.y, pcx=player.x, pcy=player.y-26;
+      if(Math.hypot(cx-pcx,cy-pcy)<46){
+        e.taken=true; collected++; streak++; bestStreak=Math.max(bestStreak,streak);
+        let gain=10; if(streak>=3){ gain+=5; } coins+=gain;
+        crystals=Math.min(3,Math.floor(collected/4));
+        ring(e.x,e.y); floatText(e.x,e.y-10,'+'+gain,'#ffd24a'); burst(e.x,e.y,'#7dffa0',10);
+        sfx(700,1320,'sine',.18,.14); updateHUD();
+        if(streak===3) { kronSay('🔥 Стрик ×3! Сен қауіпсіз көздерді жақсы танисың!'); floatText(player.x,player.y-70,'🔥 СТРИК!','#ff8a3c'); }
+        else if(streak>=5&&streak%2===1){ kronSay('⚡ '+streak+' қатарынан! Керемет!'); }
+        else kronSay('✅ Жарайсың! Қауіпсіз сайт — сенімді ақпарат көзі!');
+        if(collected>=GOAL) endGame(true);
+      }
+    }
+  }
+  ents=ents.filter(e=> e.x>-140 && !(e.type==='safe'&&e.taken));
+  // particles
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.g)p.vy+=p.g*dt;p.life-=dt;if(p.r2!=null)p.r+=p.r2*dt;if(p.life<=0)particles.splice(i,1);}
+  if(shake>0) shake*=Math.pow(0.8,dt);
+  if(kron.t>0)kron.t-=dt;
+}
+
+/* ── particle spawners ── */
+function burst(x,y,col,n){for(let i=0;i<n;i++){const a=Math.random()*6.28,s=1.5+Math.random()*3.5;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,g:.18,life:24,kind:'dot',col});}}
+function ring(x,y){particles.push({x,y,r:8,r2:1.8,life:18,kind:'ring',col:'#7dffa0'});}
+function floatText(x,y,t,col){particles.push({x,y,vx:0,vy:-1.1,life:42,kind:'text',txt:t,col});}
+function runDust(){particles.push({x:player.x-16,y:GY-2,vx:-1-Math.random(),vy:-0.5-Math.random(),g:.05,life:16,kind:'dust',col:'rgba(180,210,160,'});}
+function landDust(){for(let i=0;i<6;i++){const a=Math.PI+(Math.random()-.5)*1.4;particles.push({x:player.x,y:GY-2,vx:Math.cos(a)*2.2,vy:-Math.random()*1.5,g:.1,life:18,kind:'dust',col:'rgba(190,215,170,'});}}
+function jumpTrail(){player._trail=8;}
+
+/* ── draw ── */
+function draw(){
+  ctx.save();
+  if(shake>0.5) ctx.translate((Math.random()*2-1)*shake,(Math.random()*2-1)*shake);
+  drawBg();
+  // ground
+  ctx.fillStyle='#3a7a3a'; ctx.fillRect(-20,GY,W+40,H-GY);
+  ctx.fillStyle='#2c5e2c'; ctx.fillRect(-20,GY,W+40,9);
+  ctx.strokeStyle='rgba(120,255,180,.4)';ctx.lineWidth=3;
+  for(let x=-(dist%64);x<W;x+=64){ctx.beginPath();ctx.moveTo(x,GY+24);ctx.lineTo(x+26,GY+24);ctx.stroke();}
+  // entities (behind player drawn first if x>player)
+  for(const e of ents){ e.type==='threat'?drawThreat(e):drawSafe(e); }
+  // particles (under player) + player + overlay particles
+  drawParticles(false);
+  drawAgent();
+  drawParticles(true);
+  drawKronos();
+  ctx.restore();
+}
+function drawBg(){
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#4aa6ec');g.addColorStop(.55,'#8fd0f2');g.addColorStop(1,'#cdeeff');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // neon data grid (cyber feel) faint
+  ctx.strokeStyle='rgba(80,180,255,.12)';ctx.lineWidth=1;
+  for(let x=-(dist*.3%70);x<W;x+=70){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+60,GY);ctx.stroke();}
+  // binary stream particles
+  ctx.fillStyle='rgba(255,255,255,.5)';ctx.font='12px Rubik';
+  for(let i=0;i<10;i++){const bx=((i*140 - dist*.6)%(W+120)+W+120)%(W+120)-60;ctx.fillText(i%2?'1010':'0110',bx,90+((i*53)%120));}
+  // city
+  drawCity(dist*.25,'#7fb8d8',150); drawCity(dist*.5,'#5a93bf',95);
+  // clouds
+  ctx.fillStyle='rgba(255,255,255,.75)';for(let i=0;i<4;i++){const cx=((i*320-dist*.15)%(W+220)+W+220)%(W+220)-110;cloud(cx,64+i*16);}
+}
+function drawCity(off,col,baseH){const SP=120,start=Math.floor(off/SP)-1;
+  for(let i=start;i*SP-off<W+SP;i++){const x=Math.round(i*SP-off);
+    const bh=baseH+(((Math.sin(i*12.9898)*0.5+0.5)*60)|0);   // stable per building → no flicker
+    ctx.fillStyle=col;ctx.fillRect(x,GY-bh,90,bh);
+    ctx.fillStyle='rgba(255,255,255,.18)';
+    for(let wy=GY-bh+12;wy<GY-12;wy+=22)for(let wx=x+10;wx<x+80;wx+=22)ctx.fillRect(wx,wy,10,12);
+  }}
+function cloud(x,y){ctx.beginPath();ctx.arc(x,y,18,0,6.28);ctx.arc(x+20,y+4,22,0,6.28);ctx.arc(x+44,y,16,0,6.28);ctx.fill();}
+
+function drawThreat(e){
+  const top=e.y-e.h, pulse=0.5+0.5*Math.sin(e.pulse);
+  // danger ground glow
+  ctx.fillStyle=`rgba(230,40,40,${0.18+pulse*0.22})`; ctx.beginPath();ctx.ellipse(e.x,GY+6,e.w*0.8,15,0,0,6.28);ctx.fill();
+  // hazard pillar (must jump over)
+  const grd=ctx.createLinearGradient(0,top,0,GY); grd.addColorStop(0,'rgba(200,40,40,.85)');grd.addColorStop(1,'rgba(120,10,10,.9)');
+  ctx.fillStyle=grd; roundRect(e.x-e.w/2,top,e.w,e.h,9); ctx.fill();
+  ctx.strokeStyle=`rgba(255,90,90,${0.6+pulse*0.4})`;ctx.lineWidth=2.5;roundRect(e.x-e.w/2,top,e.w,e.h,9);ctx.stroke();
+  ctx.font='30px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.def.icon,e.x,e.y-e.h/2-4);
+  ctx.font='15px sans-serif';ctx.fillText(e.def.k==='hacker'?'⚠️':'☠️',e.x,GY-12);
+  // popup sign above
+  const cw=Math.max(118,ctx.measureText(e.def.text).width+36),ch=50,cy=top-ch-12;
+  ctx.fillStyle='rgba(255,242,242,.97)';roundRect(e.x-cw/2,cy,cw,ch,9);ctx.fill();
+  ctx.strokeStyle='#e34a4a';ctx.lineWidth=2;roundRect(e.x-cw/2,cy,cw,ch,9);ctx.stroke();
+  ctx.fillStyle='#c0392b';ctx.font='bold 12px Rubik';ctx.textBaseline='middle';ctx.fillText('⚠️ '+e.def.title,e.x,cy+17);
+  ctx.fillStyle='#7a3030';ctx.font='11px Rubik';ctx.fillText(e.def.text,e.x,cy+34);
+  // warning marker if approaching
+  if(e.warned && e.x>player.x){ ctx.fillStyle=`rgba(255,200,0,${0.6+pulse*0.4})`;ctx.font='bold 22px Rubik';ctx.fillText('!',e.x,cy-16); }
+}
+function drawSafe(e){
+  const bob=Math.sin(dist*.05+e.bob)*5;
+  ctx.save();ctx.translate(e.x,e.y+bob);
+  // glow halo
+  ctx.fillStyle='rgba(70,224,106,.25)';ctx.beginPath();ctx.arc(0,0,30,0,6.28);ctx.fill();
+  ctx.shadowColor='rgba(70,224,106,.7)';ctx.shadowBlur=16;
+  ctx.fillStyle='rgba(235,255,242,.97)';ctx.beginPath();ctx.arc(0,0,21,0,6.28);ctx.fill();
+  ctx.shadowBlur=0;ctx.strokeStyle='#2bbd54';ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,21,0,6.28);ctx.stroke();
+  ctx.font='24px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🛡️',0,1);
+  // label tag
+  const cw=120,cy=-58;
+  ctx.fillStyle='rgba(235,255,242,.95)';roundRect(-cw/2,cy,cw,40,9);ctx.fill();
+  ctx.strokeStyle='#2bbd54';ctx.lineWidth=1.5;roundRect(-cw/2,cy,cw,40,9);ctx.stroke();
+  ctx.fillStyle='#1e8e4a';ctx.font='bold 11px Rubik';ctx.fillText('🛡️ '+e.def.title,0,cy+14);
+  ctx.fillStyle='#2c6e44';ctx.font='10px Rubik';ctx.fillText(e.def.text,0,cy+29);
+  ctx.restore();
+}
+function drawAgent(){
+  const x=player.x,y=player.y;
+  const sq=player.squash; // -1 stretched(jump up), +1 squashed(land)
+  const scaleY=1-sq*0.09, scaleX=1+sq*0.06;
+  // shadow (shrinks with height)
+  const air=(GY-y)/130; ctx.fillStyle=`rgba(0,0,0,${0.28*(1-air*0.7)})`;
+  ctx.beginPath();ctx.ellipse(x,GY+6,22*(1-air*0.4),7*(1-air*0.4),0,0,6.28);ctx.fill();
+
+  ctx.save(); ctx.translate(x,y); ctx.scale(scaleX,scaleY);
+  if(player.inv>0 && Math.floor(dist*0.5)%2) ctx.globalAlpha=0.45;
+  const grounded=player.onGround;
+  const ph=player.run*0.42;
+  // legs
+  ctx.strokeStyle='#1f2a44';ctx.lineWidth=6;ctx.lineCap='round';
+  if(grounded){
+    const l1=Math.sin(ph)*6, l2=Math.sin(ph+Math.PI)*6;
+    ctx.beginPath();ctx.moveTo(-3,-12);ctx.lineTo(-3+l1*0.4,-2+Math.abs(l1)*0.2);ctx.lineTo(-3+l1,2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(4,-12);ctx.lineTo(4+l2*0.4,-2+Math.abs(l2)*0.2);ctx.lineTo(4+l2,2);ctx.stroke();
+    // shoes
+    ctx.strokeStyle='#e0452f';ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(-3+l1-3,2);ctx.lineTo(-3+l1+4,2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(4+l2-3,2);ctx.lineTo(4+l2+4,2);ctx.stroke();
+  } else {
+    // tucked legs in air
+    ctx.beginPath();ctx.moveTo(-3,-12);ctx.lineTo(-8,-2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(4,-12);ctx.lineTo(9,-4);ctx.stroke();
+    ctx.strokeStyle='#e0452f';ctx.lineWidth=5;
+    ctx.beginPath();ctx.moveTo(-11,-2);ctx.lineTo(-5,-2);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(7,-4);ctx.lineTo(12,-4);ctx.stroke();
+  }
+  // backpack
+  ctx.fillStyle='#c0392b';roundRect(-13,-40,9,24,4);ctx.fill();
+  // body (jacket)
+  const bg=ctx.createLinearGradient(0,-44,0,-10);bg.addColorStop(0,'#3a6ad0');bg.addColorStop(1,'#1d3f8a');
+  ctx.fillStyle=bg;roundRect(-9,-44,18,32,7);ctx.fill();
+  // arm swing
+  ctx.strokeStyle='#2a4a9a';ctx.lineWidth=5;ctx.lineCap='round';
+  const arm=grounded?Math.sin(ph+Math.PI)*6:-10;
+  ctx.beginPath();ctx.moveTo(0,-38);ctx.lineTo(arm*0.6,-26);ctx.lineTo(arm,-18);ctx.stroke();
+  // head
+  ctx.fillStyle='#f3c79a';ctx.beginPath();ctx.arc(0,-52,9,0,6.28);ctx.fill();
+  ctx.fillStyle='#2a2018';ctx.beginPath();ctx.arc(0,-56,9,Math.PI,0);ctx.fill(); // hair
+  // eye
+  ctx.fillStyle='#16324f';ctx.beginPath();ctx.arc(4,-51,1.8,0,6.28);ctx.fill();
+  ctx.restore();
+}
+function drawParticles(over){
+  for(const p of particles){
+    const front=(p.kind==='text'||p.kind==='ring');
+    if(front!==over) continue;
+    if(p.kind==='dot'){ctx.globalAlpha=Math.min(1,p.life/12);ctx.fillStyle=p.col;ctx.beginPath();ctx.arc(p.x,p.y,3,0,6.28);ctx.fill();ctx.globalAlpha=1;}
+    else if(p.kind==='dust'){ctx.fillStyle=p.col+(Math.min(.5,p.life/30))+')';ctx.beginPath();ctx.arc(p.x,p.y,3+(16-p.life)*0.2,0,6.28);ctx.fill();}
+    else if(p.kind==='ring'){ctx.globalAlpha=Math.max(0,p.life/18);ctx.strokeStyle=p.col;ctx.lineWidth=3;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.28);ctx.stroke();ctx.globalAlpha=1;}
+    else if(p.kind==='text'){ctx.globalAlpha=Math.max(0,p.life/42);ctx.fillStyle=p.col;ctx.font='bold 18px Rubik';ctx.textAlign='center';ctx.fillText(p.txt,p.x,p.y);ctx.globalAlpha=1;}
+  }
+}
+function drawKronos(){
+  const kx=player.x-6, ky=player.y-player.h-52+Math.sin(dist*.06)*7;
+  ctx.font='32px sans-serif';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText('🤖',kx,ky);
+  if(kron.t>0&&kron.txt){
+    ctx.font='bold 13px Rubik';const w=Math.min(380,ctx.measureText(kron.txt).width+26);
+    const bx=Math.max(8,Math.min(W-w-8,kx+20)),by=ky-44;
+    ctx.fillStyle='rgba(255,255,255,.96)';roundRect(bx,by,w,36,11);ctx.fill();
+    ctx.strokeStyle='rgba(80,140,255,.5)';ctx.lineWidth=1.5;roundRect(bx,by,w,36,11);ctx.stroke();
+    ctx.fillStyle='#0a3a6c';ctx.textAlign='left';ctx.fillText(kron.txt,bx+12,by+23);
+  }
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+function kronSay(t){kron.txt=t;kron.t=120;}
+function updateHUD(){
+  const f=document.getElementById('hpFill');f.style.width=hp+'%';f.className='hpfill'+(hp<30?' crit':hp<60?' warn':'');
+  document.getElementById('coinVal').textContent=coins;
+  document.getElementById('crysVal').textContent=crystals;
+  document.getElementById('mNum').textContent=collected+' / '+GOAL;
+  document.getElementById('mFill').style.width=(collected/GOAL*100)+'%';
+}
+
+function endGame(win){
+  if(gameOver)return;gameOver=true;running=false;
+  let crys,title,ic,text;
+  if(win&&mistakes===0){crys=3;ic='🏆';title='Кибер-Чемпион!';text='Ғажап! Бірде-бір тұзаққа түспей, 10 қауіпсіз сайтты жинадың. Сен интернет қауіптерін мінсіз танисың!';}
+  else if(win){crys=2;ic='🥈';title='Қырағы Агент!';text=`10 қауіпсіз сайт жиналды! ${mistakes} тұзаққа түстің — Кронос ескерткенде ертерек секір. Үздік стрик: ${bestStreak}.`;}
+  else{crys=collected>=5?1:0;ic='🔄';title='Тағы байқап көр';text=`${collected}/10 жиналды. HP бітті! Кроностың ескертулерін тыңдап, тұзақтан секіруге үйрен.`;}
+  crystals=Math.max(crystals,crys);
+  document.getElementById('rIc').textContent=ic;
+  document.getElementById('rTitle').textContent=title;
+  document.getElementById('rText').textContent=text;
+  document.getElementById('rCrys').textContent='💎 +'+crys+' Кристалл  •  🪙 '+coins+' тиын';
+  const bt=document.getElementById('rBtns');bt.innerHTML='';
+  if(crys<2){const r=document.createElement('button');r.className='btn ghost';r.textContent='↻ Қайта';r.onclick=()=>{document.getElementById('resultOvl').classList.remove('show');document.getElementById('introOvl').classList.add('show');};bt.appendChild(r);}
+  const g=document.createElement('button');g.className='btn';g.textContent='Картаға оралу';g.onclick=()=>finishGame(crys);bt.appendChild(g);
+  document.getElementById('resultOvl').classList.add('show');
+  if(win)confetti();
+}
+let submitting=false;
+function finishGame(crys){
+  if(submitting)return;submitting=true;
+  try{const k='bilimquest_t4_progress_v1';let s=JSON.parse(localStorage.getItem(k));
+    if(!s||!s.status||s.status.length!==5)s={status:['active','locked','locked','locked','locked']};
+    if(crys>0){s.status[2]='done';if(s.status[3]==='locked')s.status[3]='active';}
+    localStorage.setItem(k,JSON.stringify(s));}catch(e){}
+  const score=Math.round(crys/3*0.3*100)/100;
+  if(crys>0){fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Желілік жүгіруші',score,stars:crys>=3?1:0,completed:true})}).finally(()=>{location.href='/toqsan_4';});
+    setTimeout(()=>{if(submitting)location.href='/toqsan_4';},1500);
+  } else location.href='/toqsan_4';
+}
+
+let actx;
+function sfx(f1,f2,type,dur,gain){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();
+  o.connect(g);g.connect(actx.destination);o.type=type;o.frequency.setValueAtTime(f1,actx.currentTime);if(f2)o.frequency.linearRampToValueAtTime(f2,actx.currentTime+dur);
+  g.gain.setValueAtTime(gain,actx.currentTime);g.gain.linearRampToValueAtTime(0,actx.currentTime+dur);o.start();o.stop(actx.currentTime+dur);}catch(e){}}
+function confetti(){const st=document.getElementById('stage');const cs=['#7dffa0','#46e06a','#37e1ff','#ffd24a','#fff'];
+  for(let i=0;i<60;i++){const c=document.createElement('div');c.className='confetti';const sz=6+Math.random()*6,d=2+Math.random()*1.6;
+  c.style.cssText=`left:${Math.random()*100}%;width:${sz}px;height:${sz*1.6}px;background:${cs[i%cs.length]};border-radius:2px;animation-duration:${d}s;animation-delay:${Math.random()*.5}s`;
+  st.appendChild(c);setTimeout(()=>c.remove(),(d+.6)*1000);}}
+
+function fit(){const s=Math.min(innerWidth/W,innerHeight/H);document.getElementById('stage').style.transform='scale('+s+')';}
+addEventListener('resize',fit); fit();
+reset(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

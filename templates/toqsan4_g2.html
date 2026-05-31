@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Цифрлық детектив — Жоғалған файлдар іздеуінде</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7ecff;background:#060914}
+body{background:
+  radial-gradient(ellipse 110% 55% at 50% -5%,rgba(40,30,150,.4),transparent 60%),
+  radial-gradient(ellipse 90% 60% at 50% 110%,rgba(0,90,180,.22),transparent 60%),
+  #060914;padding:14px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:1000px;display:flex;flex-direction:column;gap:12px}
+
+#dangerFx{position:fixed;inset:0;background:rgba(239,68,68,0);pointer-events:none;z-index:90}
+#dangerFx.on{animation:dangerFlash .6s ease}
+@keyframes dangerFlash{0%,100%{background:rgba(239,68,68,0)}25%,75%{background:rgba(239,68,68,.26)}}
+
+/* header */
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr-title{display:flex;align-items:center;gap:11px;font-weight:900;font-size:18px}
+.hdr-ico{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:22px;background:radial-gradient(circle at 38% 30%,#3a5bd0,#16205a);border:1.5px solid rgba(120,150,255,.5);
+  box-shadow:0 0 16px rgba(80,110,255,.45)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.crystals{display:flex;align-items:center;gap:7px;padding:8px 15px;border-radius:14px;font-weight:900;font-size:16px;color:#8ee6ff;
+  background:linear-gradient(180deg,rgba(20,40,80,.9),rgba(12,22,54,.95));border:1.5px solid rgba(80,200,255,.45);
+  box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.crystals .cz{font-size:18px}
+.hdr-star{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:14px;font-weight:900;font-size:15px;color:#ffd24a;
+  background:linear-gradient(180deg,rgba(30,40,90,.9),rgba(16,22,54,.95));border:1.5px solid rgba(255,200,60,.4)}
+
+/* story */
+.story{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(16,24,58,.9),rgba(10,16,42,.95));border:1.5px solid rgba(80,110,200,.32)}
+.story .kr{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:24px;background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1.5px solid rgba(120,150,255,.5)}
+.story-body{font-size:13px;line-height:1.45;color:#cdd8f5}
+.story-body b{color:#8ee6ff}
+
+/* scene progress */
+.scenes-prog{display:flex;gap:8px}
+.sp{flex:1;height:8px;border-radius:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);transition:.3s}
+.sp.active{background:linear-gradient(90deg,#6d5dfc,#37e1ff);box-shadow:0 0 10px rgba(80,140,255,.5);border-color:transparent}
+.sp.done{background:linear-gradient(90deg,#1e9e4a,#46e06a);border-color:transparent}
+
+/* layout */
+.cols{display:flex;gap:12px;align-items:flex-start}
+.col-main{flex:1.5;min-width:0;display:flex;flex-direction:column;gap:12px}
+.col-chat{flex:1;min-width:0;position:sticky;top:14px}
+@media(max-width:760px){.cols{flex-direction:column}.col-chat{position:static;width:100%}}
+
+.card{background:linear-gradient(180deg,rgba(16,24,60,.92),rgba(10,15,42,.96));border:1.5px solid rgba(90,120,210,.32);
+  border-radius:18px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;letter-spacing:.6px;padding:5px 14px;border-radius:20px;
+  background:linear-gradient(180deg,#3b4cc0,#27308a);color:#dfe6ff;margin-bottom:6px}
+.bloom{font-size:11px;font-weight:700;color:#9fb0e8;margin-bottom:11px;letter-spacing:.3px}
+.q-text{font-size:17px;font-weight:800;line-height:1.32;margin-bottom:14px}
+
+/* device chips (scene 1 multi) */
+.devices{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:6px}
+.dev{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border-radius:14px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(22,30,70,.9),rgba(14,20,50,.95));border:2px solid rgba(90,120,210,.32);
+  transition:transform .15s,border-color .2s,box-shadow .25s;position:relative}
+.dev:hover:not(.locked){transform:translateY(-3px);border-color:rgba(120,150,255,.7)}
+.dev .de{font-size:38px;line-height:1}
+.dev .dn{font-size:13px;font-weight:700}
+.dev.ok{border-color:#46e06a;background:rgba(20,70,40,.5);box-shadow:0 0 20px rgba(70,224,106,.45)}
+.dev.ok::after{content:'✓';position:absolute;top:6px;right:8px;color:#7dffa0;font-weight:900;font-size:16px}
+.dev.bad{border-color:#ef4444;background:rgba(70,20,24,.5);animation:shakeX .4s}
+.dev.locked{cursor:default}
+@keyframes shakeX{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* single options */
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;cursor:pointer;font-size:15px;font-weight:700;
+  background:linear-gradient(180deg,rgba(22,30,70,.9),rgba(14,20,50,.95));border:2px solid rgba(90,120,210,.32);
+  transition:transform .15s,border-color .2s,box-shadow .25s}
+.opt:hover:not(.locked){transform:translateX(3px);border-color:rgba(120,150,255,.7)}
+.opt.ok{border-color:#46e06a;background:rgba(20,70,40,.5);box-shadow:0 0 22px rgba(70,224,106,.5)}
+.opt.bad{border-color:#ef4444;background:rgba(70,20,24,.5);animation:shakeX .4s}
+.opt.locked{cursor:default;opacity:.85}
+
+/* feedback */
+.feedback{display:none;align-items:flex-start;gap:11px;margin-top:14px;padding:13px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(14,30,24,.9),rgba(10,20,18,.95));border:1.5px solid rgba(70,224,106,.4)}
+.feedback.show{display:flex;animation:fadeUp .35s ease}
+.feedback.bad{background:linear-gradient(180deg,rgba(40,16,18,.9),rgba(24,10,12,.95));border-color:rgba(239,68,68,.45)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fb-ava{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:23px;
+  background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1.5px solid rgba(120,150,255,.5)}
+.fb-body{flex:1;min-width:0}
+.fb-title{font-weight:900;font-size:14px;margin-bottom:2px}
+.fb-title.good{color:#7dffa0}.fb-title.bad{color:#ff8a8a}
+.fb-text{font-size:13px;line-height:1.45;color:#cdd8f5}
+.snd{flex-shrink:0;width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+  color:#9fdfff;font-size:15px;cursor:pointer}
+.snd:hover{background:rgba(255,255,255,.14)}
+.next-btn{display:none;width:100%;margin-top:13px;padding:14px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;
+  font-weight:800;font-size:15px;color:#fff;background:linear-gradient(180deg,#6d5dfc,#4a37d6);box-shadow:0 8px 20px rgba(80,60,230,.4)}
+.next-btn.show{display:block;animation:fadeUp .3s ease}
+.next-btn:hover{filter:brightness(1.08)}
+
+/* chat */
+.chat-title{font-size:14px;font-weight:800;color:#aebbe8;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.help-qs{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.help-q{text-align:left;padding:10px 13px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;
+  color:#cdd8f5;background:rgba(28,38,84,.7);border:1.5px solid rgba(90,120,210,.3);transition:.18s}
+.help-q:hover:not(.used){background:rgba(45,58,120,.85);border-color:rgba(120,150,255,.6);transform:translateX(3px)}
+.help-q::before{content:'💬 ';opacity:.8}
+.help-q.used{opacity:.4;cursor:default}
+.chat-log{display:flex;flex-direction:column;gap:9px;max-height:320px;overflow-y:auto;padding-right:2px}
+.chat-log::-webkit-scrollbar{width:4px}.chat-log::-webkit-scrollbar-thumb{background:rgba(120,150,255,.3);border-radius:2px}
+.msg{display:flex;gap:8px;align-items:flex-end;animation:fadeUp .3s ease}
+.msg.me{flex-direction:row-reverse}
+.msg .av{width:32px;height:32px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px}
+.msg.ai .av{background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1px solid rgba(120,150,255,.4)}
+.msg.me .av{background:radial-gradient(circle at 40% 32%,#3a6ad0,#16307a);border:1px solid rgba(120,180,255,.4)}
+.bub{max-width:80%;padding:9px 12px;border-radius:13px;font-size:13px;line-height:1.42;font-weight:600}
+.msg.ai .bub{background:linear-gradient(180deg,rgba(24,34,78,.95),rgba(16,24,58,.97));border:1px solid rgba(90,120,210,.3);color:#dbe4ff;border-bottom-left-radius:5px}
+.msg.me .bub{background:linear-gradient(180deg,#3a6ad0,#2952b0);color:#fff;border-bottom-right-radius:5px}
+.bub .snd{display:inline-flex;vertical-align:middle;margin-left:5px;width:24px;height:24px;font-size:12px}
+.chat-input{display:flex;gap:8px;margin-top:11px}
+.chat-input input{flex:1;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(90,120,210,.3);background:rgba(10,16,40,.8);
+  color:#e7ecff;font-family:inherit;font-size:13.5px;outline:none}
+.chat-input input:focus{border-color:rgba(120,150,255,.7)}
+.chat-input button{width:46px;border:none;border-radius:12px;cursor:pointer;font-size:17px;color:#fff;
+  background:linear-gradient(180deg,#6d5dfc,#4a37d6)}
+
+/* result overlay */
+.result{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(4,8,20,.86);backdrop-filter:blur(6px)}
+.result.show{display:flex}
+.result-card{position:relative;max-width:460px;width:100%;text-align:center;padding:34px 30px;border-radius:24px;
+  background:linear-gradient(160deg,rgba(18,28,78,.99),rgba(8,12,34,.99));border:2px solid rgba(120,180,255,.5);
+  box-shadow:0 0 70px rgba(60,120,255,.3);transform:scale(.84) translateY(16px);opacity:0;transition:.4s cubic-bezier(.34,1.56,.64,1)}
+.result.show .result-card{transform:scale(1) translateY(0);opacity:1}
+.r-medal{font-size:64px;margin-bottom:8px;animation:trophyB .7s ease}
+@keyframes trophyB{0%{transform:scale(0) rotate(-25deg)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.r-title{font-size:24px;font-weight:900;margin-bottom:4px}
+.r-sub{font-size:13px;font-weight:700;color:#8ee6ff;margin-bottom:12px;letter-spacing:.5px}
+.r-crys{font-size:20px;font-weight:900;color:#8ee6ff;margin-bottom:12px}
+.r-text{font-size:13.5px;line-height:1.55;color:#cdd8f5;margin-bottom:20px}
+.r-btn{width:100%;padding:15px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;font-weight:900;font-size:16px;color:#06231a;
+  background:linear-gradient(180deg,#7dffa0,#33c75e);box-shadow:0 10px 26px rgba(51,199,94,.5)}
+.r-btn:hover{filter:brightness(1.06)}
+
+.confetti{position:fixed;top:-12px;z-index:210;pointer-events:none;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+</style>
+</head>
+<body>
+<div id="dangerFx"></div>
+
+<div class="wrap">
+
+  <!-- header -->
+  <div class="hdr">
+    <div class="hdr-title"><span class="hdr-ico">🔍</span>Цифрлық детектив</div>
+    <div class="hdr-right">
+      <div class="crystals"><span class="cz">💎</span><span id="crysVal">0</span> / 5</div>
+      <div class="hdr-star">⭐ <span id="scoreVal">{{ "%.2f"|format(student.score) }}</span></div>
+    </div>
+  </div>
+
+  <!-- story -->
+  <div class="story">
+    <div class="kr">🤖</div>
+    <div class="story-body"><b>KRONOS-1:</b> Детектив мырза, шұғыл шақырту! Мектеп серверіне шабуыл жасалды, бірақ мен маңызды файлдарды шифрлап үлгердім. Оларды жоғалтпай, қауіпсіз жерге жеткіз! Жолда кибер-тұзақтар күтіп тұр ⚠️ — қателессең, деректер кристалдары күйеді!</div>
+  </div>
+
+  <!-- scene progress -->
+  <div class="scenes-prog">
+    <div class="sp" id="sp0"></div><div class="sp" id="sp1"></div><div class="sp" id="sp2"></div>
+  </div>
+
+  <div class="cols">
+    <!-- main scene -->
+    <div class="col-main">
+      <div class="card" id="sceneCard"></div>
+    </div>
+
+    <!-- AI chat -->
+    <div class="col-chat">
+      <div class="card">
+        <div class="chat-title">🤖 Interactive AI Chatbot</div>
+        <div class="help-qs" id="helpQs"></div>
+        <div class="chat-log" id="chatLog"></div>
+        <div class="chat-input">
+          <input id="chatInput" type="text" placeholder="Сұрағыңызды жазыңыз..." autocomplete="off">
+          <button id="chatSend">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- result -->
+<div class="result" id="result">
+  <div class="result-card">
+    <div class="r-medal" id="rMedal">🏆</div>
+    <div class="r-title" id="rTitle"></div>
+    <div class="r-sub" id="rSub"></div>
+    <div class="r-crys" id="rCrys"></div>
+    <div class="r-text" id="rText"></div>
+    <button class="r-btn" onclick="finishGame()">✓ Картаға оралу</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   2-ОЙЫН: Цифрлық детектив — Жоғалған файлдар іздеуінде
+   3 сахна (Білу → Қолдану → Бағалау) + AI чат. 💎 max 5.
+════════════════════════════════════════════════════════════ */
+
+const SCENES = [
+  { badge:'1-САХНА: Тасымалдаушыларды анықтау', bloom:'🧠 Блум: Білу', type:'multi', reward:1,
+    q:'Қайсысы ақпарат тасымалдаушы? Барлығын тауып бел!',
+    items:[
+      {e:'💾', n:'Флешка', carrier:true},
+      {e:'💿', n:'Диск', carrier:true},
+      {e:'📇', n:'SD карта', carrier:true},
+      {e:'🔌', n:'Кабель', carrier:false},
+      {e:'🖱️', n:'Тінтуір', carrier:false},
+    ],
+    okFb:'Жарайсың! Бұл құрылғы ақпаратты цифрлық түрде сақтай алады.',
+    badFb:'Тоқта! Бұл құрылғы деректерді өңдеу/тасымалдауға арналмаған — тасымалдаушы емес!' },
+
+  { badge:'2-САХНА: Мектепке маңызды миссия', bloom:'🧩 Блум: Қолдану', type:'single', reward:1,
+    q:'Мектепке маңызды презентация файлын апару керек. Қай жолды таңдаймыз?',
+    opts:[
+      {e:'📱', n:'Телефон', ok:false, fb:'Бұл дұрыс емес. Телефонды компьютерге қосқанда вирус жұғу қаупі жоғары немесе кабель таппай қалуың мүмкін.'},
+      {e:'💻', n:'Ноутбук', ok:false, fb:'Ноутбук үлкен әрі ауыр — оны күнделікті мектепке тасу ыңғайсыз, зақымдап алуың мүмкін.'},
+      {e:'💾', n:'Флешка (USB-Flash)', ok:true, fb:'Өте ыңғайлы! Флешка — шағын, жеңіл әрі кез келген мектеп компьютеріне жылдам қосылады. Жол ашық!'},
+    ] },
+
+  { badge:'3-САХНА: Финал — Қауіпсіздік форты', bloom:'⚖️ Блум: Бағалау', type:'single', reward:3,
+    q:'Файл ешқашан жоғалмауы тиіс. Ең сенімді қорғаныс қайсысы?',
+    opts:[
+      {e:'💾', n:'Флешка', ok:false, fb:'Қауіпсіз емес: физикалық құрылғыны жоғалтуың, су тигізуің немесе сындырып алуың мүмкін.'},
+      {e:'💿', n:'Диск', ok:false, fb:'Қауіпсіз емес: дискіні сырып алуың немесе сындырып алуың оңай.'},
+      {e:'☁️', n:'Бұлтты қойма (Cloud)', ok:true, fb:'Керемет! Бұлт — ең қауіпсіз: ақпарат интернеттегі қорғалған серверде сақталады, физикалық жоғалмайды, кез келген құрылғыдан кіресің!'},
+    ] },
+];
+
+let sceneIdx=0, crystals=0, mistakes=0;
+let curReward=0, foundCarriers=0, sceneDone=false;
+
+const card=document.getElementById('sceneCard');
+
+function renderScene(){
+  const sc=SCENES[sceneIdx];
+  curReward=sc.reward; sceneDone=false; foundCarriers=0;
+  // progress
+  [0,1,2].forEach(i=>{const e=document.getElementById('sp'+i);e.className='sp'+(i<sceneIdx?' done':i===sceneIdx?' active':'');});
+
+  let body=`<span class="badge">${sc.badge}</span><div class="bloom">${sc.bloom}</div><div class="q-text">${sc.q}</div>`;
+  if(sc.type==='multi'){
+    body+=`<div class="devices" id="devGrid"></div>`;
+  }else{
+    body+=`<div class="opts" id="optList"></div>`;
+  }
+  body+=`<div class="feedback" id="fb"><div class="fb-ava">🤖</div><div class="fb-body"><div class="fb-title" id="fbT"></div><div class="fb-text" id="fbX"></div></div><button class="snd" id="fbS">🔊</button></div>`;
+  body+=`<button class="next-btn" id="nextBtn">Келесі сахна →</button>`;
+  card.innerHTML=body;
+
+  if(sc.type==='multi'){
+    const g=document.getElementById('devGrid');
+    sc.items.forEach((it,i)=>{
+      const d=document.createElement('div'); d.className='dev'; d.innerHTML=`<span class="de">${it.e}</span><span class="dn">${it.n}</span>`;
+      d.onclick=()=>pickDevice(d,it,sc);
+      g.appendChild(d);
+    });
+  }else{
+    const l=document.getElementById('optList');
+    sc.opts.forEach((o,i)=>{
+      const d=document.createElement('div'); d.className='opt'; d.innerHTML=`<span style="font-size:24px">${o.e}</span><span>${o.n}</span>`;
+      d.onclick=()=>pickOption(d,o,sc);
+      l.appendChild(d);
+    });
+  }
+  document.getElementById('nextBtn').onclick=nextScene;
+}
+
+const carriersNeeded=()=>SCENES[0].items.filter(x=>x.carrier).length;
+
+function pickDevice(el,it,sc){
+  if(sceneDone||el.classList.contains('ok')||el.classList.contains('locked')) return;
+  if(it.carrier){
+    el.classList.add('ok'); foundCarriers++;
+    fb(true, '✔ Дұрыс! '+it.n, sc.okFb);
+    crystalPulse();
+    if(foundCarriers>=carriersNeeded()){
+      sceneDone=true; crystals+=curReward; updateCrys();
+      document.querySelectorAll('.dev').forEach(d=>d.classList.add('locked'));
+      fb(true,'✔ Барлық тасымалдаушы табылды! 💎 +'+curReward, sc.okFb);
+      ding(); document.getElementById('nextBtn').classList.add('show');
+    }
+  }else{
+    mistakes++; curReward=Math.max(0,curReward-1);
+    el.classList.add('bad'); setTimeout(()=>el.classList.remove('bad'),500);
+    fb(false,'❌ Бұл тасымалдаушы емес!', sc.badFb);
+    buzz(); dangerFlash();
+  }
+}
+
+function pickOption(el,o,sc){
+  if(sceneDone||el.classList.contains('locked')) return;
+  if(o.ok){
+    sceneDone=true; crystals+=curReward; updateCrys();
+    el.classList.add('ok');
+    document.querySelectorAll('.opt').forEach(d=>d.classList.add('locked'));
+    fb(true,'✅ Дұрыс! 💎 +'+curReward, o.fb);
+    ding(); crystalPulse();
+    document.getElementById('nextBtn').classList.add('show');
+  }else{
+    mistakes++; curReward=Math.max(0,curReward-1);
+    el.classList.add('bad'); setTimeout(()=>{el.classList.remove('bad');},600);
+    fb(false,'⚠️ Қате таңдау', o.fb);
+    buzz(); dangerFlash();
+  }
+}
+
+function fb(good,title,text){
+  const f=document.getElementById('fb'); f.className='feedback show'+(good?'':' bad');
+  const t=document.getElementById('fbT'); t.className='fb-title '+(good?'good':'bad'); t.textContent=title;
+  document.getElementById('fbX').textContent=text;
+  document.getElementById('fbS').onclick=()=>speak(title+'. '+text);
+  speak(title+'. '+text);
+}
+
+function nextScene(){
+  sceneIdx++;
+  if(sceneIdx>=SCENES.length){ showResult(); return; }
+  renderScene();
+}
+
+function updateCrys(){ document.getElementById('crysVal').textContent=crystals; }
+function crystalPulse(){ const c=document.querySelector('.crystals'); c.animate([{transform:'scale(1)'},{transform:'scale(1.18)'},{transform:'scale(1)'}],{duration:380}); }
+
+/* ── result / titles ── */
+function showResult(){
+  [0,1,2].forEach(i=>document.getElementById('sp'+i).className='sp done');
+  let medal,title,sub,text;
+  if(crystals>=5){ medal='🏆'; title='Деректер шебері'; sub='DATA MASTER • Диплом';
+    text='Ғажап! Сен ешқандай қателіксіз нағыз цифрлық детектив екеніңді дәлелдің! ЖИ-жүйесі саған толық сенім артады!'; }
+  else if(crystals>=3){ medal='🥈'; title='Кибер-агент'; sub='CYBER AGENT • Жақсы деңгей';
+    text='Тамаша нәтиже! Сен кибер-әлемді жақсы түсінесің, бірақ қауіпсіздік ережелерін сәл қайталау артық етпейді.'; }
+  else { medal='🥉'; title='Кибер-жаңашыл'; sub='CYBER NOVICE • Тағы жаттығу керек';
+    text='Жолда қиындықтар болды ма? Ештеңе етпейді — ЖИ-көмекшіден көбірек сұрап, миссияны қайта бастап көр!'; }
+  document.getElementById('rMedal').textContent=medal;
+  document.getElementById('rTitle').textContent=title;
+  document.getElementById('rSub').textContent=sub;
+  document.getElementById('rCrys').textContent='💎 '+crystals+' / 5 кристалл';
+  document.getElementById('rText').textContent=text;
+  document.getElementById('result').classList.add('show');
+  if(crystals>=3) confetti();
+  ding();
+}
+
+/* ── chat ── */
+const HELP=[
+  { q:'Флешка деген не?',
+    a:'Флешка (USB-flash) — бұл сенің қалтаңда жүретін кішкентай сандықша сияқты. Оған өлеңдерді, суреттерді немесе сабақтарыңды жазып алып, кез келген компьютерге салып көре аласың! 🎒' },
+  { q:'Бұлт деген не?',
+    a:'Бұл аспандағы бұлт емес! ☁️ Бұл — интернеттегі алып электронды қойма. Файлыңды сақтап қойсаң, флешканы үйде ұмытсаң да, мектепте телефоннан немесе кез келген компьютерден логин-пароліңмен аша аласың. Өте ыңғайлы!' },
+  { q:'Қайсысы жақсы: Флешка ма, әлде Бұлт па?',
+    a:'Екеуі де жақсы! Бірақ файлың өте маңызды болса, оны флешкаға да жазып, бұлтқа да жүктеп қойған дұрыс — оны резервтік көшірме (backup) дейді. Сонда 100% қауіпсіз! 🛡️' },
+];
+const helpEl=document.getElementById('helpQs');
+HELP.forEach(h=>{
+  const b=document.createElement('button'); b.className='help-q'; b.textContent=h.q;
+  b.onclick=()=>{ if(b.classList.contains('used'))return; b.classList.add('used'); meSay(h.q); setTimeout(()=>aiSay(h.a),520); };
+  helpEl.appendChild(b);
+});
+const log=document.getElementById('chatLog');
+function meSay(t){const m=document.createElement('div');m.className='msg me';m.innerHTML=`<div class="av">🧑‍🎓</div><div class="bub">${t}</div>`;log.appendChild(m);log.scrollTop=log.scrollHeight;}
+function aiSay(t){const m=document.createElement('div');m.className='msg ai';m.innerHTML=`<div class="av">🤖</div><div class="bub">${t}<button class="snd">🔊</button></div>`;log.appendChild(m);log.scrollTop=log.scrollHeight;m.querySelector('.snd').onclick=()=>speak(t);speak(t);}
+function freeReply(q){const s=q.toLowerCase();
+  if(/флеш|usb/.test(s))return HELP[0].a;
+  if(/бұлт|cloud|облак/.test(s))return HELP[1].a;
+  if(/резерв|backup|сақтау|қайсы|жақсы/.test(s))return HELP[2].a;
+  if(/диск|sd|карта/.test(s))return 'Диск пен SD карта да ақпарат тасымалдаушылар. Бірақ диск сынғыш, ал ең сенімдісі — бұлтты қойма (cloud) ☁️.';
+  return 'Жақсы сұрақ! Деректерді сақтаудың ең сенімді жолы — оны флешкаға да, бұлтқа да сақтау (резервтік көшірме). 🛡️';}
+document.getElementById('chatSend').onclick=sendFree;
+document.getElementById('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendFree();});
+function sendFree(){const i=document.getElementById('chatInput');const v=i.value.trim();if(!v)return;i.value='';meSay(v);setTimeout(()=>aiSay(freeReply(v)),480);}
+
+/* ── finish: map progress + score + return ── */
+let submitting=false;
+function finishGame(){
+  if(submitting)return; submitting=true;
+  try{
+    const k='bilimquest_t4_progress_v1';
+    let s=JSON.parse(localStorage.getItem(k));
+    if(!s||!s.status||s.status.length!==5) s={status:['active','locked','locked','locked','locked']};
+    if(s.status[0]==='locked') s.status[0]='active';
+    s.status[1]='done';
+    if(s.status[2]==='locked') s.status[2]='active';
+    localStorage.setItem(k,JSON.stringify(s));
+  }catch(e){}
+  const score=Math.round(crystals/5*0.2*100)/100;
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Цифрлық детектив',score,stars:crystals>=5?1:0,completed:true})})
+    .finally(()=>{ window.location.href='/toqsan_4'; });
+  setTimeout(()=>{ if(submitting) window.location.href='/toqsan_4'; },1500);
+}
+
+/* ── FX + audio ── */
+function dangerFlash(){const d=document.getElementById('dangerFx');d.classList.remove('on');void d.offsetWidth;d.classList.add('on');}
+function confetti(){const cs=['#7dffa0','#46e06a','#6d5dfc','#ffd24a','#37e1ff','#fff'];
+  for(let i=0;i<80;i++){const c=document.createElement('div');c.className='confetti';const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+  c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cs[i%cs.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+  document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}}
+let voices=[];
+function loadVoices(){try{voices=speechSynthesis.getVoices();}catch(e){}}
+if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+function speak(text){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text.replace(/[🎒☁️🛡️💎✔✅⚠️❌🏆🥈🥉]/g,''));
+  const v=voices.find(x=>/kk|kazakh/i.test(x.lang))||voices.find(x=>/ru/i.test(x.lang));
+  if(v){u.voice=v;u.lang=v.lang;}else u.lang='ru-RU'; u.rate=.98;u.pitch=1.05; speechSynthesis.speak(u);}catch(e){}}
+let actx;
+function tone(f1,f2,type,dur,gain){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.type=type;
+  o.frequency.setValueAtTime(f1,actx.currentTime);if(f2)o.frequency.linearRampToValueAtTime(f2,actx.currentTime+dur);
+  g.gain.setValueAtTime(gain,actx.currentTime);g.gain.linearRampToValueAtTime(0,actx.currentTime+dur);o.start();o.stop(actx.currentTime+dur);}catch(e){}}
+function ding(){tone(660,1320,'sine',.4,.25);setTimeout(()=>tone(990,1760,'sine',.35,.2),120);}
+function buzz(){tone(200,70,'sawtooth',.28,.18);}
+
+/* ── init ── */
+renderScene();
+</script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Кибер-эргономика — ЖИ Көмекшіні емдеу</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7ecff;
+  background:#070b1e;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(ellipse 110% 60% at 50% -5%,rgba(60,40,160,.45),transparent 60%),
+  radial-gradient(ellipse 80% 50% at 50% 110%,rgba(0,80,180,.25),transparent 60%),
+  #070b1e;
+  padding:14px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:540px;display:flex;flex-direction:column;gap:12px}
+
+/* danger flash overlay */
+#dangerFx{position:fixed;inset:0;background:rgba(239,68,68,.0);pointer-events:none;z-index:90;transition:background .15s}
+#dangerFx.on{animation:dangerFlash .6s ease}
+@keyframes dangerFlash{0%,100%{background:rgba(239,68,68,0)}25%,75%{background:rgba(239,68,68,.28)}}
+
+/* ── header ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hdr-title{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;line-height:1.15}
+.hdr-shield{width:40px;height:40px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 38% 30%,#3a5bd0,#16205a);border:1.5px solid rgba(120,150,255,.5);
+  box-shadow:0 0 14px rgba(80,110,255,.4);font-size:20px}
+.hdr-star{display:flex;align-items:center;gap:7px;flex-shrink:0;padding:8px 14px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(30,40,90,.9),rgba(16,22,54,.95));border:1.5px solid rgba(255,200,60,.4);
+  font-weight:900;font-size:16px;color:#ffd24a;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.hdr-star .st{font-size:18px}
+
+/* ── health bar ── */
+.health{background:linear-gradient(180deg,rgba(16,24,58,.9),rgba(10,16,42,.95));border:1.5px solid rgba(80,110,200,.3);
+  border-radius:14px;padding:10px 14px}
+.health-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#aebbe8;margin-bottom:7px}
+.health-top b{font-family:'Rubik';font-weight:900;font-size:15px;color:#46e06a;transition:color .3s}
+.health-track{height:14px;border-radius:8px;background:rgba(0,0,0,.4);overflow:hidden;border:1px solid rgba(255,255,255,.08);position:relative}
+.health-fill{height:100%;border-radius:8px;width:85%;
+  background:linear-gradient(90deg,#1e9e4a,#46e06a,#7dffa0);
+  box-shadow:0 0 14px rgba(70,224,106,.6);transition:width .9s cubic-bezier(.34,1.4,.5,1)}
+.health-fill.warn{background:linear-gradient(90deg,#b45309,#f59e0b)}
+
+/* ── cards ── */
+.card{background:linear-gradient(180deg,rgba(16,24,60,.92),rgba(10,15,42,.96));
+  border:1.5px solid rgba(90,120,210,.32);border-radius:18px;padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.badge{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1px;padding:5px 14px;border-radius:20px;
+  background:linear-gradient(180deg,#3b4cc0,#27308a);color:#dfe6ff;box-shadow:0 3px 10px rgba(0,0,0,.3);margin-bottom:11px}
+.q-text{font-size:17px;font-weight:800;line-height:1.3;margin-bottom:13px}
+.q-img{border-radius:13px;overflow:hidden;border:1.5px solid rgba(90,120,210,.3);margin-bottom:14px;
+  background:radial-gradient(circle at 50% 35%,rgba(40,60,140,.5),rgba(8,12,34,.9));
+  aspect-ratio:16/9;display:flex;align-items:center;justify-content:center}
+.q-img img{width:74%;height:74%;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5))}
+
+/* ── options ── */
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:14px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(22,30,70,.9),rgba(14,20,50,.95));border:2px solid rgba(90,120,210,.32);
+  font-size:15px;font-weight:700;transition:transform .15s,border-color .2s,box-shadow .25s;position:relative}
+.opt:hover:not(.locked){transform:translateX(3px);border-color:rgba(120,150,255,.7)}
+.opt .onum{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:15px;color:#fff;background:linear-gradient(180deg,#5a4bd8,#352a96);box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.opt.sel{border-color:#7c8cff;box-shadow:0 0 16px rgba(110,130,255,.4);background:rgba(40,52,110,.9)}
+.opt .ocheck{margin-left:auto;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(.4);transition:.3s;flex-shrink:0}
+.opt.correct{border-color:#46e06a;background:rgba(20,70,40,.55);box-shadow:0 0 26px rgba(70,224,106,.55)}
+.opt.correct .ocheck{opacity:1;transform:scale(1);background:radial-gradient(circle at 38% 32%,#7dffa0,#2bbd54);
+  box-shadow:0 0 14px rgba(70,224,106,.8);color:#073;font-size:18px}
+.opt.wrong{border-color:#ef4444;background:rgba(70,20,24,.5);animation:shakeX .4s}
+.opt.locked{cursor:default}
+@keyframes shakeX{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.answer-btn{width:100%;padding:15px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;
+  font-weight:800;font-size:16px;color:#fff;letter-spacing:.3px;
+  background:linear-gradient(180deg,#6d5dfc,#4a37d6);box-shadow:0 8px 20px rgba(80,60,230,.4);transition:transform .15s,filter .2s}
+.answer-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.answer-btn:disabled{opacity:.45;cursor:default}
+
+/* ── feedback ── */
+.feedback{display:none;align-items:flex-start;gap:12px;padding:14px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(14,30,24,.9),rgba(10,20,18,.95));border:1.5px solid rgba(70,224,106,.4)}
+.feedback.show{display:flex;animation:fadeUp .35s ease}
+.feedback.bad{background:linear-gradient(180deg,rgba(40,16,18,.9),rgba(24,10,12,.95));border-color:rgba(239,68,68,.45)}
+.feedback.soft{background:linear-gradient(180deg,rgba(40,34,12,.9),rgba(24,20,8,.95));border-color:rgba(251,191,36,.45)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ai-ava{width:48px;height:48px;border-radius:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:26px;background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1.5px solid rgba(120,150,255,.5);
+  box-shadow:0 0 14px rgba(80,110,255,.4)}
+.fb-body{flex:1;min-width:0}
+.fb-title{font-weight:900;font-size:15px;margin-bottom:3px}
+.fb-title.good{color:#7dffa0}.fb-title.bad{color:#ff8a8a}.fb-title.soft{color:#fde68a}
+.fb-text{font-size:13.5px;line-height:1.5;color:#cdd8f5}
+.snd{flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);color:#9fdfff;font-size:16px;cursor:pointer;transition:background .2s}
+.snd:hover{background:rgba(255,255,255,.14)}
+
+/* ── certificate ── */
+.cert{display:none;align-items:center;gap:14px;padding:16px;border-radius:18px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(40,30,110,.92),rgba(18,24,70,.95));border:1.5px solid rgba(150,130,255,.45);
+  box-shadow:0 10px 30px rgba(40,20,120,.4)}
+.cert.show{display:flex;animation:certIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes certIn{0%{opacity:0;transform:scale(.85) translateY(14px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+.cert-badge{width:60px;height:60px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:32px;background:radial-gradient(circle at 38% 30%,#7c6bff,#2a1e80);border:2px solid rgba(180,160,255,.6);
+  box-shadow:0 0 22px rgba(140,110,255,.6)}
+.cert-txt b{font-size:15px;font-weight:900;color:#fff}
+.cert-txt div{font-size:12px;color:#c3c8ee;margin-top:2px}
+
+/* ── chat ── */
+.chat-title{font-size:14px;font-weight:800;color:#aebbe8;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.help-qs{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.help-q{text-align:left;padding:11px 14px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:700;
+  color:#cdd8f5;background:rgba(28,38,84,.7);border:1.5px solid rgba(90,120,210,.3);transition:.18s}
+.help-q:hover:not(.used){background:rgba(45,58,120,.85);border-color:rgba(120,150,255,.6);transform:translateX(3px)}
+.help-q::before{content:'💬 ';opacity:.8}
+.help-q.used{opacity:.4;cursor:default}
+.chat-log{display:flex;flex-direction:column;gap:9px;max-height:300px;overflow-y:auto;padding-right:2px}
+.chat-log::-webkit-scrollbar{width:4px}.chat-log::-webkit-scrollbar-thumb{background:rgba(120,150,255,.3);border-radius:2px}
+.msg{display:flex;gap:9px;align-items:flex-end;animation:fadeUp .3s ease}
+.msg.me{flex-direction:row-reverse}
+.msg .av{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.msg.ai .av{background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1px solid rgba(120,150,255,.4)}
+.msg.me .av{background:radial-gradient(circle at 40% 32%,#3a6ad0,#16307a);border:1px solid rgba(120,180,255,.4)}
+.bub{max-width:78%;padding:10px 13px;border-radius:14px;font-size:13.5px;line-height:1.45;font-weight:600}
+.msg.ai .bub{background:linear-gradient(180deg,rgba(24,34,78,.95),rgba(16,24,58,.97));border:1px solid rgba(90,120,210,.3);
+  color:#dbe4ff;border-bottom-left-radius:5px}
+.msg.me .bub{background:linear-gradient(180deg,#3a6ad0,#2952b0);color:#fff;border-bottom-right-radius:5px}
+.bub .snd{display:inline-flex;vertical-align:middle;margin-left:6px;width:26px;height:26px;font-size:13px}
+.chat-input{display:flex;gap:9px;margin-top:12px}
+.chat-input input{flex:1;padding:13px 15px;border-radius:13px;border:1.5px solid rgba(90,120,210,.3);
+  background:rgba(10,16,40,.8);color:#e7ecff;font-family:inherit;font-size:14px;outline:none}
+.chat-input input:focus{border-color:rgba(120,150,255,.7)}
+.chat-input button{width:50px;border:none;border-radius:13px;cursor:pointer;font-size:18px;color:#fff;
+  background:linear-gradient(180deg,#6d5dfc,#4a37d6);box-shadow:0 4px 14px rgba(80,60,230,.4)}
+
+/* ── finish bar ── */
+.finish{display:none;position:sticky;bottom:0;padding-top:4px}
+.finish.show{display:block;animation:fadeUp .4s ease}
+.finish-btn{width:100%;padding:16px;border:none;border-radius:15px;cursor:pointer;font-family:inherit;
+  font-weight:900;font-size:17px;color:#06231a;letter-spacing:.3px;
+  background:linear-gradient(180deg,#7dffa0,#33c75e);box-shadow:0 10px 26px rgba(51,199,94,.5)}
+.finish-btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+
+/* confetti */
+.confetti{position:fixed;top:-12px;z-index:100;pointer-events:none;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+</style>
+</head>
+<body>
+<div id="dangerFx"></div>
+
+<div class="wrap">
+
+  <!-- header -->
+  <div class="hdr">
+    <div class="hdr-title"><span class="hdr-shield">🛡️</span>Компьютерде жұмыс істеу қауіпсіздігі</div>
+    <div class="hdr-star"><span class="st">⭐</span><span id="scoreVal">{{ "%.2f"|format(student.score) }}</span></div>
+  </div>
+
+  <!-- AI health bar -->
+  <div class="health">
+    <div class="health-top"><span>🤖 ЖИ-Көмекшінің денсаулығы</span><b id="hpPct">85%</b></div>
+    <div class="health-track"><div class="health-fill" id="hpFill"></div></div>
+  </div>
+
+  <!-- question -->
+  <div class="card">
+    <span class="badge">СҰРАҚ</span>
+    <div class="q-text">Компьютер алдында үзіліссіз қанша уақыт отыруға болады?</div>
+    <div class="q-img"><img src="{{ url_for('static', filename='img/toqsan4/node-safe.png') }}" alt="Компьютер алдындағы бала"></div>
+    <div class="options" id="options"></div>
+    <button class="answer-btn" id="answerBtn" disabled>▶ Жауап беру</button>
+  </div>
+
+  <!-- feedback -->
+  <div class="feedback" id="feedback">
+    <div class="ai-ava">🤖</div>
+    <div class="fb-body">
+      <div class="fb-title" id="fbTitle"></div>
+      <div class="fb-text" id="fbText"></div>
+    </div>
+    <button class="snd" id="fbSnd" title="Тыңдау">🔊</button>
+  </div>
+
+  <!-- certificate -->
+  <div class="cert" id="cert">
+    <div class="cert-badge">🔐</div>
+    <div class="cert-txt">
+      <b>Эргономика СЕРТИФИКАТЫ ЖҮКТЕЛДІ</b>
+      <div>Сен ЖИ-Көмекшінің денсаулығын 100%-ға қалпына келтірдің!</div>
+    </div>
+  </div>
+
+  <!-- chat -->
+  <div class="card">
+    <div class="chat-title">💬 ЖИ Көмекшісімен диалог</div>
+    <div class="help-qs" id="helpQs"></div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="chat-input">
+      <input id="chatInput" type="text" placeholder="Сұрағыңызды жазыңыз..." autocomplete="off">
+      <button id="chatSend" title="Жіберу">➤</button>
+    </div>
+  </div>
+
+  <!-- finish -->
+  <div class="finish" id="finishBar">
+    <button class="finish-btn" onclick="finishGame()">✓ Аяқтау — картаға оралу (+0.10 ұпай)</button>
+  </div>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   1-ОЙЫН: Кибер-эргономика — ЖИ Көмекшіні емдеу
+   Дұрыс жауап → ЖИ денсаулығы 85% → 100%. +0.10 ұпай.
+════════════════════════════════════════════════════════════ */
+
+let hp = 85;
+let won = false;
+let selected = -1;
+let answeredCorrect = false;
+
+/* ── options ── */
+const OPTS = [
+  { n:1, t:'10 минут', kind:'soft',
+    title:'Бұл дұрыс емес', tcls:'soft',
+    fb:'10 минут тым аз — жұмысты аяқтап үлгермейсің. Бірақ ұзақ үзіліссіз отыру да зиян. Қайта ойланып көр!' },
+  { n:2, t:'20–30 минут', kind:'correct',
+    title:'Дұрыс жауап!', tcls:'good',
+    fb:'Жарайсың! Бұл өте дұрыс әрекет. 20–30 минуттан кейін үзіліс жасау көздің шаршауын азайтады және денсаулықты қорғайды!' },
+  { n:3, t:'2 сағат', kind:'danger',
+    title:'Бұл қауіпті!', tcls:'bad',
+    fb:'Экранға телміріп 2 сағат тапжылмай отыру көру қабілетіне және омыртқаға өте үлкен зиян! Сол жақтағы Көмек сұрақтарын қарап көр.' },
+];
+
+const optsEl = document.getElementById('options');
+OPTS.forEach((o,i)=>{
+  const d=document.createElement('div');
+  d.className='opt'; d.dataset.i=i;
+  d.innerHTML=`<span class="onum">${o.n}</span><span>${o.t}</span><span class="ocheck">✓</span>`;
+  d.onclick=()=>selectOpt(i);
+  optsEl.appendChild(d);
+});
+const optEls=[...document.querySelectorAll('.opt')];
+
+function selectOpt(i){
+  if(answeredCorrect) return;
+  selected=i;
+  optEls.forEach((e,k)=>e.classList.toggle('sel',k===i && !e.classList.contains('correct')));
+  document.getElementById('answerBtn').disabled=false;
+}
+
+document.getElementById('answerBtn').onclick=submitAnswer;
+function submitAnswer(){
+  if(selected<0 || answeredCorrect) return;
+  const o=OPTS[selected];
+  const el=optEls[selected];
+  showFeedback(o);
+
+  if(o.kind==='correct'){
+    answeredCorrect=true;
+    el.classList.remove('sel'); el.classList.add('correct');
+    optEls.forEach(e=>e.classList.add('locked'));
+    document.getElementById('answerBtn').disabled=true;
+    setHealth(100);
+    ding();
+    setTimeout(winSequence,500);
+  } else if(o.kind==='danger'){
+    el.classList.add('wrong');
+    dangerFlash();
+    buzz();
+    setTimeout(()=>{ el.classList.remove('wrong','sel'); },700);
+    selected=-1; document.getElementById('answerBtn').disabled=true;
+  } else { /* soft */
+    el.classList.add('wrong'); buzz();
+    setTimeout(()=>{ el.classList.remove('wrong','sel'); },600);
+    selected=-1; document.getElementById('answerBtn').disabled=true;
+  }
+}
+
+function showFeedback(o){
+  const fb=document.getElementById('feedback');
+  fb.className='feedback show '+(o.kind==='correct'?'':o.kind);
+  const t=document.getElementById('fbTitle');
+  t.className='fb-title '+o.tcls; t.textContent=(o.kind==='correct'?'✅ ':o.kind==='danger'?'🚨 ':'⚠️ ')+o.title;
+  document.getElementById('fbText').textContent=o.fb;
+  document.getElementById('fbSnd').onclick=()=>speak(o.title+'. '+o.fb);
+  speak(o.title+'. '+o.fb);
+}
+
+/* ── health ── */
+function setHealth(v){
+  hp=v;
+  const f=document.getElementById('hpFill'), p=document.getElementById('hpPct');
+  f.style.width=v+'%'; p.textContent=v+'%';
+  f.classList.toggle('warn', v<60);
+}
+setHealth(85);
+
+/* ── win ── */
+function winSequence(){
+  if(won) return; won=true;
+  document.getElementById('cert').classList.add('show');
+  document.getElementById('finishBar').classList.add('show');
+  confetti();
+  // celebrate chat line
+  setTimeout(()=>aiSay('🎉 Жүйем қалпына келді — 100%! Рахмет, бас инженер! Маған тағы сұрақ қойсаң, көбірек кеңес беремін.'),700);
+}
+
+/* ── chat ── */
+const HELP=[
+  { q:'Неге міндетті түрде үзіліс жасау керек?',
+    a:'Өйткені ұзақ уақыт компьютерде тапжылмай отыру көзге және денеге зиян. Әр 20–30 минут сайын үзіліс жасау шаршауды азайтады, қан айналымын жақсартады және денсаулығыңды қорғайды! 🏃' },
+  { q:'Экранға тым жақын отырсам не болады?',
+    a:'Бұл көздің линзасына салмақ түсіреді. Экран мен көздің арасы кем дегенде 50–60 см (қол созым қашықтық) болуы тиіс. Әйтпесе көру қабілетің жылдам нашарлайды! 👁️' },
+  { q:'Дұрыс отыру ережесі қандай?',
+    a:'Арқаң түзу, нық болуы керек; шынтақ үстелде 90 градус бұрышта жатады; аяғың еденге тиіп тұруы тиіс. Суреттегі бала сияқты отыруға тырыс! 📐' },
+];
+const helpEl=document.getElementById('helpQs');
+HELP.forEach((h,i)=>{
+  const b=document.createElement('button');
+  b.className='help-q'; b.textContent=h.q;
+  b.onclick=()=>{ if(b.classList.contains('used'))return; b.classList.add('used'); meSay(h.q); setTimeout(()=>aiSay(h.a),550); };
+  helpEl.appendChild(b);
+});
+
+const log=document.getElementById('chatLog');
+function stamp(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function meSay(txt){
+  const m=document.createElement('div'); m.className='msg me';
+  m.innerHTML=`<div class="av">🧑‍🎓</div><div class="bub">${txt}<div style="font-size:10px;opacity:.7;margin-top:3px;text-align:right">${stamp()}</div></div>`;
+  log.appendChild(m); log.scrollTop=log.scrollHeight;
+}
+function aiSay(txt){
+  const m=document.createElement('div'); m.className='msg ai';
+  m.innerHTML=`<div class="av">🤖</div><div class="bub">${txt}<button class="snd" title="Тыңдау">🔊</button><div style="font-size:10px;opacity:.7;margin-top:3px">${stamp()}</div></div>`;
+  log.appendChild(m); log.scrollTop=log.scrollHeight;
+  m.querySelector('.snd').onclick=()=>speak(txt);
+  speak(txt);
+}
+
+/* free input → keyword-matched helpful reply */
+function freeReply(q){
+  const s=q.toLowerCase();
+  if(/үзіл|перерыв|демал/.test(s)) return HELP[0].a;
+  if(/жақын|қашық|см|экран|көз/.test(s)) return HELP[1].a;
+  if(/отыр|арқа|поза|дұрыс/.test(s)) return HELP[2].a;
+  return 'Жақсы сұрақ! Денсаулықты сақтау үшін: әр 20–30 мин сайын үзіліс жаса, экраннан 50–60 см қашықта отыр, арқаңды түзу ұста. 💪';
+}
+document.getElementById('chatSend').onclick=sendFree;
+document.getElementById('chatInput').addEventListener('keydown',e=>{ if(e.key==='Enter') sendFree(); });
+function sendFree(){
+  const inp=document.getElementById('chatInput'); const v=inp.value.trim();
+  if(!v) return; inp.value='';
+  meSay(v); setTimeout(()=>aiSay(freeReply(v)),500);
+}
+
+/* ── finish: mark map progress + submit score + return ── */
+let submitting=false;
+function finishGame(){
+  if(submitting) return; submitting=true;
+  // unlock progression on the quest map (block 1 done → block 2 active)
+  try{
+    const k='bilimquest_t4_progress_v1';
+    let s=JSON.parse(localStorage.getItem(k));
+    if(!s||!s.status||s.status.length!==5) s={status:['active','locked','locked','locked','locked']};
+    s.status[0]='done';
+    if(s.status[1]==='locked') s.status[1]='active';
+    localStorage.setItem(k,JSON.stringify(s));
+  }catch(e){}
+  // submit real score, then go back to the map
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Эргономика',score:0.1,stars:1,completed:true})})
+    .finally(()=>{ window.location.href='/toqsan_4'; });
+  setTimeout(()=>{ if(submitting) window.location.href='/toqsan_4'; },1500);
+}
+
+/* ── FX ── */
+function dangerFlash(){ const d=document.getElementById('dangerFx'); d.classList.remove('on'); void d.offsetWidth; d.classList.add('on'); }
+function confetti(){
+  const colors=['#7dffa0','#46e06a','#6d5dfc','#ffd24a','#37e1ff','#fff'];
+  for(let i=0;i<80;i++){const c=document.createElement('div');c.className='confetti';
+    const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+    c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${colors[i%colors.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
+}
+
+/* ── audio: TTS speech + cues ── */
+let voices=[];
+function loadVoices(){ try{voices=speechSynthesis.getVoices();}catch(e){} }
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text.replace(/[🎉🏃👁️📐💪✅🚨⚠️🔐]/g,''));
+    const v=voices.find(x=>/kk|kazakh/i.test(x.lang))||voices.find(x=>/ru/i.test(x.lang));
+    if(v){ u.voice=v; u.lang=v.lang; } else u.lang='ru-RU';
+    u.rate=.98; u.pitch=1.05;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+let actx;
+function tone(f1,f2,type,dur,gain){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+  const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);
+  o.type=type;o.frequency.setValueAtTime(f1,actx.currentTime);
+  if(f2)o.frequency.linearRampToValueAtTime(f2,actx.currentTime+dur);
+  g.gain.setValueAtTime(gain,actx.currentTime);g.gain.linearRampToValueAtTime(0,actx.currentTime+dur);
+  o.start();o.stop(actx.currentTime+dur);}catch(e){}}
+function ding(){ tone(660,1320,'sine',.4,.25); setTimeout(()=>tone(990,1760,'sine',.35,.2),120); }
+function buzz(){ tone(200,70,'sawtooth',.28,.18); }
+</script>
+</body>
+</html>

@@ -458,6 +458,11 @@ def game_result():
         "Лабиринт ойыны": 0.5,
         "Сызық робот": 0.5,
         "Сумо": 0.5,
+        "Эргономика": 0.1,
+        "Цифрлық детектив": 0.2,
+        "Кибер-бекініс": 0.3,
+        "Файл әлемі": 0.3,
+        "Желілік жүгіруші": 0.3,
     }
 
     max_score = MAX_SCORE.get(game_name)
@@ -944,35 +949,42 @@ def toqsan_3():
 def toqsan_4():
     student_id = session.get("user_id")
     student = Student.query.get_or_404(student_id)
+    return render_template("toqsan_4.html", student=student)
 
-    # Map display name → (route, game_name_in_db, icon)
-    GAMES = [
-        {"key": "Сәйкестік", "title": "Деректерді сұрыптау", "route": "/module1", "icon": "quest_1.png", "xp": 60},
-        {"key": "Лабиринт",  "title": "Алгоритм лабиринті",  "route": "/module2", "icon": "quest_2.png", "xp": 60},
-        {"key": "cipher_game","title": "Шифр коды",           "route": "/module3", "icon": "quest_3.1.png","xp": 60},
-        {"key": "Блоктар",   "title": "Блок моделі",          "route": "/module4", "icon": "quest_4.png", "xp": 60},
-    ]
+@app.route("/toqsan4/g1")
+@login_required("student")
+def toqsan4_g1():
+    student_id = session.get("user_id")
+    student = Student.query.get_or_404(student_id)
+    return render_template("toqsan4_g1.html", student=student)
 
-    progress_rows = GameProgress.query.filter_by(student_id=student_id, completed=True).all()
-    prog_map = {}
-    for p in progress_rows:
-        if p.game_name not in prog_map or p.stars > prog_map[p.game_name]["stars"]:
-            prog_map[p.game_name] = {"stars": p.stars, "score": p.score, "completed": p.completed}
+@app.route("/toqsan4/g2")
+@login_required("student")
+def toqsan4_g2():
+    student_id = session.get("user_id")
+    student = Student.query.get_or_404(student_id)
+    return render_template("toqsan4_g2.html", student=student)
 
-    for g in GAMES:
-        info = prog_map.get(g["key"], {})
-        g["completed"] = bool(info.get("completed", False))
-        g["stars"]     = int(info.get("stars", 0))
-        g["score"]     = float(info.get("score", 0))
+@app.route("/toqsan4/g3")
+@login_required("student")
+def toqsan4_g3():
+    student_id = session.get("user_id")
+    student = Student.query.get_or_404(student_id)
+    return render_template("toqsan4_g3.html", student=student)
 
-    total_stars = sum(g["stars"] for g in GAMES)
+@app.route("/toqsan4/g4")
+@login_required("student")
+def toqsan4_g4():
+    student_id = session.get("user_id")
+    student = Student.query.get_or_404(student_id)
+    return render_template("toqsan4_g4.html", student=student)
 
-    return render_template(
-        "toqsan_4.html",
-        student=student,
-        games=GAMES,
-        total_stars=total_stars
-    )
+@app.route("/toqsan4/g5")
+@login_required("student")
+def toqsan4_g5():
+    student_id = session.get("user_id")
+    student = Student.query.get_or_404(student_id)
+    return render_template("toqsan4_g5.html", student=student)
 
 @app.route("/game1")
 @login_required("student")

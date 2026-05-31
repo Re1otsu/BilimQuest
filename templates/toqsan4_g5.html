@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Кибер-Аквариум — Файл Әлемі</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#eaf6ff;overflow:hidden}
+body{background:
+  radial-gradient(ellipse 90% 60% at 50% 0%,rgba(40,160,220,.5),transparent 55%),
+  linear-gradient(180deg,#0b4a78 0%,#073a64 45%,#052943 100%)}
+.bubbles{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bub{position:absolute;bottom:-40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.5),rgba(160,220,255,.15));animation:rise linear infinite}
+@keyframes rise{to{transform:translateY(-110vh)}}
+.wrap{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;max-width:1000px;margin:0 auto;padding:10px 14px;gap:10px}
+
+/* header */
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+.hdr .fish{display:flex;align-items:center;gap:10px}
+.fish .face{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;
+  background:radial-gradient(circle at 38% 32%,#7fd6ff,#1d7fb0);border:2px solid rgba(255,255,255,.5);box-shadow:0 0 16px rgba(120,220,255,.5);animation:fishbob 3.5s ease-in-out infinite}
+@keyframes fishbob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(2deg)}}
+.bubble{position:relative;background:rgba(255,255,255,.95);color:#06324f;border-radius:14px;padding:8px 14px;font-size:12.5px;font-weight:700;line-height:1.35;max-width:430px;box-shadow:0 6px 16px rgba(0,0,0,.25);transition:transform .2s}
+.bubble.pop{animation:bpop .4s ease}
+@keyframes bpop{0%{transform:scale(.9)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.bubble::before{content:'';position:absolute;left:-7px;top:50%;transform:translateY(-50%);border:7px solid transparent;border-right-color:rgba(255,255,255,.95)}
+.hdr-stats{display:flex;gap:8px;flex-shrink:0}
+.stat{display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:14px;font-weight:900;font-size:15px;
+  background:linear-gradient(180deg,rgba(10,70,120,.85),rgba(6,40,70,.9));border:1.5px solid rgba(120,210,255,.4);box-shadow:0 4px 12px rgba(0,0,0,.3);transition:transform .2s}
+.stat.bump{animation:bump .35s ease}
+@keyframes bump{0%{transform:scale(1)}45%{transform:scale(1.22)}100%{transform:scale(1)}}
+.stat.moves{color:#ffe27a}.stat.crys{color:#9be9ff}.stat.star{color:#ffd24a}
+
+/* goals */
+.goals{display:flex;align-items:center;gap:14px;flex-wrap:wrap;flex-shrink:0;padding:8px 14px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(8,58,100,.7),rgba(5,36,62,.8));border:1.5px solid rgba(120,210,255,.3)}
+.goals .gl{font-size:11px;font-weight:800;color:#bfe9ff;margin-right:4px}
+.goal{display:flex;align-items:center;gap:6px;font-weight:900;font-size:15px;transition:transform .2s}
+.goal.hit{animation:bump .35s ease}
+.goal .ge{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25)}
+.goal.done{color:#7dffa0}.goal.done .ge{border-color:#46e06a;background:rgba(70,224,106,.2)}
+.goal .gn{font-variant-numeric:tabular-nums}
+
+/* ── match board (absolute tiles for smooth motion) ── */
+.match-area{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.board{position:relative;border-radius:18px;
+  background:linear-gradient(180deg,rgba(6,46,80,.75),rgba(4,28,50,.85));border:2px solid rgba(120,210,255,.35);
+  box-shadow:0 14px 40px rgba(0,0,0,.45),inset 0 2px 0 rgba(255,255,255,.08)}
+.board.flash{animation:bflash .25s ease}
+@keyframes bflash{50%{filter:brightness(1.25)}}
+.tile{position:absolute;width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;
+  border:2px solid rgba(255,255,255,.18);box-shadow:inset 0 -3px 6px rgba(0,0,0,.25),inset 0 2px 4px rgba(255,255,255,.25);
+  transition:transform .26s cubic-bezier(.34,1.45,.5,1);will-change:transform;-webkit-tap-highlight-color:transparent}
+.tile.t0{background:linear-gradient(160deg,#5bc8ff,#1d7fb0)}
+.tile.t1{background:linear-gradient(160deg,#4fd17a,#1e8e4a)}
+.tile.t2{background:linear-gradient(160deg,#ffd24a,#d99012)}
+.tile.t3{background:linear-gradient(160deg,#ff8a5b,#d9501e)}
+.tile.t4{background:linear-gradient(160deg,#b98bff,#6d3dd6)}
+.tile.sel{box-shadow:0 0 18px rgba(255,255,255,.9),0 0 0 3px #fff,inset 0 -3px 6px rgba(0,0,0,.25);z-index:5}
+.tile.sel .inner,.tile.sel{animation:selpulse .7s ease-in-out infinite}
+@keyframes selpulse{50%{filter:brightness(1.2)}}
+.tile.pop{animation:tpop .26s ease forwards;z-index:6}
+@keyframes tpop{0%{transform:var(--tf) scale(1)}45%{transform:var(--tf) scale(1.4);filter:brightness(1.9) drop-shadow(0 0 10px #fff)}100%{transform:var(--tf) scale(0);opacity:0}}
+.spark{position:absolute;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:7;animation:sparkfly .5s ease-out forwards}
+@keyframes sparkfly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--sx),var(--sy)) scale(0);opacity:0}}
+.combo-pop{position:absolute;z-index:9;font-weight:900;font-size:22px;color:#fff;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:comboUp .9s ease-out forwards}
+@keyframes comboUp{0%{transform:translateY(0) scale(.6);opacity:0}25%{transform:translateY(-6px) scale(1.15);opacity:1}100%{transform:translateY(-46px) scale(1);opacity:0}}
+
+/* ── workspace ── */
+.workspace{flex:1;display:none;gap:12px;min-height:0}
+.workspace.show{display:flex}
+@media(max-width:780px){.workspace{flex-direction:column;overflow:auto}}
+.ws-main{flex:1.6;min-width:0;display:flex;flex-direction:column;gap:10px;border-radius:16px;padding:14px;
+  background:linear-gradient(180deg,rgba(240,250,255,.97),rgba(214,236,250,.97));color:#0a3a5c;overflow:auto}
+.ws-title{font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.ws-combo{font-size:12px;font-weight:900;color:#d9501e;opacity:0;transition:opacity .3s}
+.ws-combo.on{opacity:1}
+.folders{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.folder{border-radius:14px;padding:12px 10px;text-align:center;border:2px dashed #6cb6e0;background:#eaf6ff;transition:transform .2s,border-color .2s,background .2s;min-height:104px;position:relative;overflow:hidden}
+.folder.over{border-color:#1d8fd0;background:#d6efff;transform:scale(1.04)}
+.folder.bounce{animation:fbounce .45s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fbounce{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
+.folder .fico{font-size:38px;transition:transform .3s}
+.folder.full .fico{transform:scale(1.05)}
+.folder .fname{font-weight:800;font-size:13px;margin-top:2px}
+.folder .fcount{font-size:11px;color:#5a8aa8}
+.folder .fbar{position:absolute;left:0;bottom:0;height:4px;background:linear-gradient(90deg,#1d8fd0,#46e06a);width:0;transition:width .4s}
+.files-pool{display:flex;flex-direction:column;gap:9px;min-height:40px}
+.pool-label{font-size:12px;font-weight:800;color:#3a6a8a}
+.file-card{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;background:#fff;border:1.5px solid #bcdcf0;
+  box-shadow:0 3px 8px rgba(0,40,80,.1);cursor:grab;transition:box-shadow .2s,transform .12s}
+.file-card:hover{box-shadow:0 5px 14px rgba(0,60,120,.2);transform:translateY(-1px)}
+.file-card.dragging{opacity:.4}
+.file-card.sel{outline:3px solid #1d8fd0;outline-offset:1px}
+.file-card .ficon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;color:#fff}
+.ficon.doc{background:#2a72c8}.ficon.ppt{background:#d35400}.ficon.img{background:#1e9e6a}
+.fc-meta{flex:1;min-width:0}.fc-name{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fc-sz{font-size:11px;color:#6a90aa}
+.fc-hint{font-size:10px;color:#8aabc4;margin-top:1px}
+.fc-btns{display:flex;gap:6px}
+.fc-btn{width:34px;height:34px;border-radius:9px;border:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;background:#eaf3fa;color:#1d6fb0;transition:.15s}
+.fc-btn:hover{background:#d6e9f7}
+.allsorted{text-align:center;font-weight:800;color:#1e8e4a;padding:14px;font-size:14px}
+
+.ws-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.todo{border-radius:16px;padding:14px;background:linear-gradient(180deg,rgba(8,58,100,.85),rgba(5,36,62,.9));border:1.5px solid rgba(120,210,255,.3)}
+.todo-title{font-size:13px;font-weight:900;color:#bfe9ff;margin-bottom:10px}
+.task{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(120,210,255,.12)}
+.task:last-child{border-bottom:none}
+.task .chk{width:22px;height:22px;border-radius:7px;flex-shrink:0;border:2px solid rgba(120,210,255,.5);display:flex;align-items:center;justify-content:center;font-size:14px;color:#06324f;transition:.2s;opacity:.3}
+.task.done .chk{background:#46e06a;border-color:#46e06a;opacity:1;animation:bump .4s ease}
+.task-txt{font-size:12.5px;font-weight:700;line-height:1.35}.task.done .task-txt{color:#9be9ff}
+.task-sub{font-size:10.5px;color:#7fb0cc;margin-top:1px}
+.ws-kr{border-radius:16px;padding:12px;background:linear-gradient(180deg,rgba(8,58,100,.85),rgba(5,36,62,.9));border:1.5px solid rgba(120,210,255,.3);display:flex;gap:10px;align-items:flex-start}
+.ws-kr .ico{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:21px;background:radial-gradient(circle at 40% 32%,#2a3a8a,#0e1640);border:1.5px solid rgba(120,150,255,.5)}
+.ws-kr .txt{font-size:12px;line-height:1.4;color:#dbe9ff;font-weight:600}
+
+/* modals */
+.ovl{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,18,34,.78);backdrop-filter:blur(4px)}
+.ovl.show{display:flex}
+.modal{max-width:440px;width:100%;border-radius:20px;overflow:hidden;background:#f4fbff;color:#0a3a5c;box-shadow:0 30px 70px rgba(0,0,0,.5);transform:scale(.9);transition:transform .3s}
+.ovl.show .modal{transform:scale(1)}
+.modal-h{padding:14px 18px;font-weight:900;font-size:15px;background:linear-gradient(180deg,#1d7fb0,#0d5a85);color:#fff;display:flex;justify-content:space-between;align-items:center}
+.modal-h .x{cursor:pointer;font-size:22px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.modal-h .x:hover{background:rgba(255,255,255,.2)}
+.modal-b{padding:18px}
+.slide{border:2px solid #cfe4f2;border-radius:12px;padding:20px;background:#fff;text-align:center;margin-bottom:14px}
+.slide h3{font-size:20px;margin-bottom:8px;color:#0a3a5c}
+.slide .typo{font-size:17px;font-weight:800}
+.slide .typo .bad{background:#ffd6d6;color:#c0392b;padding:1px 4px;border-radius:4px;animation:badpulse 1.1s ease-in-out infinite}
+@keyframes badpulse{50%{background:#ffb3b3}}
+.slide .typo .fixed{background:#d6ffe0;color:#1e8e4a;padding:1px 4px;border-radius:4px;animation:bpop .4s ease}
+.edit-btn{width:100%;padding:13px;border:none;border-radius:12px;cursor:pointer;font-family:inherit;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(180deg,#ff8a5b,#d9501e);box-shadow:0 6px 16px rgba(217,80,30,.4)}
+.edit-btn:disabled{opacity:.5}
+.share-q{font-size:14px;font-weight:700;margin-bottom:14px;line-height:1.4}
+.perm{display:flex;flex-direction:column;gap:9px}
+.perm-opt{display:flex;align-items:center;gap:11px;padding:13px 15px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;background:#eaf3fa;border:2px solid #cfe4f2;transition:.15s}
+.perm-opt:hover{border-color:#1d8fd0;background:#d6efff;transform:translateX(3px)}
+.perm-opt .pe{font-size:20px}
+.perm-opt.ok{background:#d6ffe0;border-color:#46e06a}
+.perm-opt.bad{background:#ffe0e0;border-color:#ef4444;animation:shk .4s}
+@keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* result */
+.result{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,18,34,.86);backdrop-filter:blur(6px)}
+.result.show{display:flex}
+.rcard{max-width:460px;width:100%;text-align:center;padding:32px 30px;border-radius:24px;background:linear-gradient(160deg,#0e5a8a,#063a60);border:2px solid rgba(120,210,255,.5);box-shadow:0 0 70px rgba(40,160,255,.35);transform:scale(.85);opacity:0;transition:.4s cubic-bezier(.34,1.56,.64,1)}
+.result.show .rcard{transform:scale(1);opacity:1}
+.r-medal{font-size:62px;margin-bottom:6px;animation:trophyB .7s ease}
+@keyframes trophyB{0%{transform:scale(0) rotate(-25deg)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.r-title{font-size:23px;font-weight:900}.r-sub{font-size:12px;font-weight:800;color:#9be9ff;letter-spacing:.6px;margin-bottom:10px}
+.r-crys{font-size:18px;font-weight:900;color:#9be9ff;margin:8px 0 12px}
+.r-text{font-size:13px;line-height:1.55;color:#cfe7f5;margin-bottom:18px}
+.r-btn{width:100%;padding:14px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;font-weight:900;font-size:16px;color:#06231a;background:linear-gradient(180deg,#7dffa0,#33c75e)}
+.r-btn:hover{filter:brightness(1.06)}
+.confetti{position:fixed;top:-12px;z-index:130;pointer-events:none;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+</style>
+</head>
+<body>
+<div class="bubbles" id="bubbles"></div>
+
+<div class="wrap">
+  <div class="hdr">
+    <div class="fish">
+      <div class="face">🐠</div>
+      <div class="bubble" id="krBubble">Детектив! Жұмыс кеңістігінің құлпын ашу үшін бұлттық энергия керек. Иконкаларды 3-тен жинап, мақсаттарды орында!</div>
+    </div>
+    <div class="hdr-stats">
+      <div class="stat moves" id="movesStat">🌀 <span id="movesVal">28</span></div>
+      <div class="stat crys" id="crysStat">💎 <span id="crysVal">0</span></div>
+      <div class="stat star">⭐ <span id="scoreVal">{{ "%.2f"|format(student.score) }}</span></div>
+    </div>
+  </div>
+
+  <div class="goals" id="goalsBar">
+    <span class="gl">🎯 Мақсаттар:</span>
+    <div class="goal" id="g0"><div class="ge">☁️</div><span class="gn">10</span></div>
+    <div class="goal" id="g2"><div class="ge">📥</div><span class="gn">8</span></div>
+    <div class="goal" id="g3"><div class="ge">✏️</div><span class="gn">6</span></div>
+    <div class="goal" id="g4"><div class="ge">📁</div><span class="gn">6</span></div>
+  </div>
+
+  <div class="match-area" id="matchArea"><div class="board" id="board"></div></div>
+
+  <div class="workspace" id="workspace">
+    <div class="ws-main">
+      <div class="ws-title"><span>☁️ Менің файлдарым</span><span class="ws-combo" id="wsCombo">🔥 Комбо ×1</span></div>
+      <div class="folders" id="folders">
+        <div class="folder" data-folder="edu"><div class="fico">📁</div><div class="fname">Сабақтар</div><div class="fcount" id="fc_edu">0 / 2</div><div class="fbar" id="fb_edu"></div></div>
+        <div class="folder" data-folder="proj"><div class="fico">📁</div><div class="fname">Жобалар</div><div class="fcount" id="fc_proj">0 / 2</div><div class="fbar" id="fb_proj"></div></div>
+        <div class="folder" data-folder="media"><div class="fico">📁</div><div class="fname">Суреттер</div><div class="fcount" id="fc_media">0 / 2</div><div class="fbar" id="fb_media"></div></div>
+      </div>
+      <div class="pool-label">📄 Файлдарды дұрыс папкаға сүйреп апар (немесе файлды → папканы бас):</div>
+      <div class="files-pool" id="pool"></div>
+    </div>
+    <div class="ws-side">
+      <div class="todo">
+        <div class="todo-title">📋 Тапсырмалар</div>
+        <div class="task" id="t1"><div class="chk">✓</div><div><div class="task-txt">Барлық файлды сұрыпта</div><div class="task-sub"><span id="sortCount">0</span> / 6 папкаға орналасты</div></div></div>
+        <div class="task" id="t2"><div class="chk">✓</div><div><div class="task-txt">Презентацияны бірлесе өңде</div><div class="task-sub">.pptx → ✏️ басып қатені түзет</div></div></div>
+        <div class="task" id="t3"><div class="chk">✓</div><div><div class="task-txt">Файлды бөліс (Share)</div><div class="task-sub">👥 → дұрыс құқық бер</div></div></div>
+      </div>
+      <div class="ws-kr"><div class="ico">🤖</div><div class="txt" id="wsKr">Файлды дұрыс папкаға қойсаң — комбо өседі! Қатарынан дұрыс сұрыпта.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- editor -->
+<div class="ovl" id="editOvl"><div class="modal">
+  <div class="modal-h">✏️ Diploma_Presentation.pptx <span class="x" onclick="closeEdit()">×</span></div>
+  <div class="modal-b">
+    <div class="slide"><h3>Менің жобам</h3><div class="typo" id="slideTypo">«<span class="bad" id="typoWord">Компютер</span> — болашақтың құралы»</div></div>
+    <button class="edit-btn" id="editFixBtn" onclick="fixTypo()">✏️ Қатені түзету (Edit)</button>
+  </div>
+</div></div>
+
+<!-- share -->
+<div class="ovl" id="shareOvl"><div class="modal">
+  <div class="modal-h">👥 Қолжетімділікті бөлісу <span class="x" onclick="closeShare()">×</span></div>
+  <div class="modal-b">
+    <div class="share-q">🤖 Досың саған слайдты безендіруге көмектесуі керек. Оған қандай құқық береміз?</div>
+    <div class="perm" id="permList"></div>
+  </div>
+</div></div>
+
+<!-- result -->
+<div class="result" id="result"><div class="rcard">
+  <div class="r-medal" id="rMedal">👑</div>
+  <div class="r-title" id="rTitle"></div>
+  <div class="r-sub" id="rSub"></div>
+  <div class="r-crys" id="rCrys"></div>
+  <div class="r-text" id="rText"></div>
+  <button class="r-btn" onclick="finishGame()">✓ Картаға оралу</button>
+</div></div>
+
+<script>
+/* ════════ 5-ОЙЫН: Кибер-Аквариум — Файл Әлемі ════════ */
+const EMO=['☁️','📤','📥','✏️','📁'];
+const N=6, TILE=50, GAP=6, PAD=10, STEP=TILE+GAP;
+let board=[], selTile=null, moves=28, busy=false, crystals=0, uid=0;
+const goals={0:10,2:8,3:6,4:6}, collected={0:0,1:0,2:0,3:0,4:0};
+
+const boardEl=document.getElementById('board');
+boardEl.style.width=(PAD*2+N*STEP-GAP)+'px';
+boardEl.style.height=(PAD*2+N*STEP-GAP)+'px';
+
+function rnd(){return Math.floor(Math.random()*5);}
+function typeAt(r,c){return board[r]&&board[r][c]?board[r][c].type:-9;}
+
+function mkTile(type,r,c,startRow){
+  const t={id:++uid,type,r,c,el:document.createElement('div')};
+  const e=t.el; e.className='tile t'+type; e.textContent=EMO[type];
+  const sy=(startRow!=null?startRow:r);
+  e.style.transform=`translate(${PAD+c*STEP}px,${PAD+sy*STEP}px)`;
+  e.style.setProperty('--tf',`translate(${PAD+c*STEP}px,${PAD+r*STEP}px)`);
+  e.addEventListener('click',()=>clickTile(t.r,t.c));
+  boardEl.appendChild(e);
+  if(startRow!=null) requestAnimationFrame(()=>requestAnimationFrame(()=>posTile(t)));
+  return t;
+}
+function posTile(t){
+  t.el.style.transform=`translate(${PAD+t.c*STEP}px,${PAD+t.r*STEP}px)`;
+  t.el.style.setProperty('--tf',`translate(${PAD+t.c*STEP}px,${PAD+t.r*STEP}px)`);
+}
+function genBoard(){
+  boardEl.innerHTML=''; board=[];
+  for(let r=0;r<N;r++){board[r]=[];for(let c=0;c<N;c++){
+    let t; do{t=rnd();}while((c>=2&&board[r][c-1]&&board[r][c-1].type===t&&board[r][c-2].type===t)||(r>=2&&board[r-1][c].type===t&&board[r-2][c].type===t));
+    board[r][c]=mkTile(t,r,c);
+  }}
+}
+
+/* input */
+function clickTile(r,c){
+  if(busy||moves<=0) return;
+  const t=board[r][c]; if(!t) return;
+  if(!selTile){ selTile=t; t.el.classList.add('sel'); return; }
+  if(selTile===t){ t.el.classList.remove('sel'); selTile=null; return; }
+  const adj=(Math.abs(selTile.r-t.r)+Math.abs(selTile.c-t.c))===1;
+  selTile.el.classList.remove('sel');
+  if(!adj){ selTile=t; t.el.classList.add('sel'); return; }
+  const a={r:selTile.r,c:selTile.c}, b={r:t.r,c:t.c}; selTile=null;
+  trySwap(a,b);
+}
+function swapTiles(a,b){
+  const ta=board[a.r][a.c], tb=board[b.r][b.c];
+  board[a.r][a.c]=tb; board[b.r][b.c]=ta;
+  ta.r=b.r;ta.c=b.c; tb.r=a.r;tb.c=a.c;
+  posTile(ta); posTile(tb);
+}
+async function trySwap(a,b){
+  busy=true;
+  swapTiles(a,b);
+  await wait(290);
+  if(findMatches().cells.size===0){ swapTiles(a,b); await wait(290); busy=false; return; }
+  moves--; updateMoves();
+  await resolveLoop();
+  busy=false; checkPhaseEnd();
+}
+
+/* matches */
+function findMatches(){
+  const cells=new Set(), lines=[];
+  for(let r=0;r<N;r++){let run=1;for(let c=1;c<=N;c++){ if(c<N&&typeAt(r,c)===typeAt(r,c-1))run++; else{ if(run>=3){for(let k=c-run;k<c;k++)cells.add(r+','+k); if(run>=4)lines.push({type:'row',r});} run=1; }}}
+  for(let c=0;c<N;c++){let run=1;for(let r=1;r<=N;r++){ if(r<N&&typeAt(r,c)===typeAt(r-1,c))run++; else{ if(run>=3){for(let k=r-run;k<r;k++)cells.add(k+','+c); if(run>=4)lines.push({type:'col',c});} run=1; }}}
+  return {cells,lines};
+}
+async function resolveLoop(){
+  let combo=0;
+  while(true){
+    const m=findMatches();
+    if(m.cells.size===0) break;
+    combo++;
+    if(m.lines.length){
+      for(const ln of m.lines){ if(ln.type==='row') for(let c=0;c<N;c++)m.cells.add(ln.r+','+c); else for(let r=0;r<N;r++)m.cells.add(r+','+ln.c); }
+    }
+    if(combo>=2||m.lines.length){ comboPop(m, combo); }
+    boardEl.classList.remove('flash'); void boardEl.offsetWidth; boardEl.classList.add('flash');
+    // pop + count
+    m.cells.forEach(k=>{ const [r,c]=k.split(',').map(Number); const t=board[r][c]; if(!t)return;
+      collected[t.type]++; if(goals[t.type]!==undefined){ goals[t.type]=Math.max(0,goals[t.type]-1); flashGoal(t.type); }
+      t.el.classList.add('pop'); sparkAt(t.r,t.c,t.type); const el=t.el; setTimeout(()=>el.remove(),260); board[r][c]=null; });
+    updateGoals(); blip(440+combo*70);
+    await wait(280);
+    // gravity + refill
+    for(let c=0;c<N;c++){
+      const surv=[];
+      for(let r=N-1;r>=0;r--){ if(board[r][c]){ surv.push(board[r][c]); board[r][c]=null; } }
+      let row=N-1;
+      for(const t of surv){ board[row][c]=t; t.r=row; t.c=c; posTile(t); row--; }
+      const need=row+1;
+      for(let i=0;i<need;i++){ const rr=row-i; board[rr][c]=mkTile(rnd(),rr,c,-(i+1)); }
+    }
+    await wait(300);
+  }
+}
+function sparkAt(r,c,type){
+  const cols=['#5bc8ff','#4fd17a','#ffd24a','#ff8a5b','#b98bff'];
+  const cx=PAD+c*STEP+TILE/2, cy=PAD+r*STEP+TILE/2;
+  for(let i=0;i<5;i++){ const s=document.createElement('div'); s.className='spark'; const a=Math.random()*6.28,d=18+Math.random()*22;
+    s.style.cssText=`left:${cx}px;top:${cy}px;background:${cols[type]};--sx:${Math.cos(a)*d}px;--sy:${Math.sin(a)*d}px`;
+    boardEl.appendChild(s); setTimeout(()=>s.remove(),500); }
+}
+function comboPop(m,combo){
+  let sr=0,sc=0,n=0; m.cells.forEach(k=>{const[r,c]=k.split(',').map(Number);sr+=r;sc+=c;n++;});
+  const r=sr/n,c=sc/n;
+  const p=document.createElement('div'); p.className='combo-pop';
+  p.textContent = combo>=2?('КОМБО ×'+combo+'! ⚡'):'🚀 Үлкен жинақ!';
+  p.style.left=(PAD+c*STEP)+'px'; p.style.top=(PAD+r*STEP)+'px';
+  boardEl.appendChild(p); setTimeout(()=>p.remove(),900);
+  if(combo===2) kron('🔥 Ғажап! Комбо жасадың — бонус энергия!');
+  if(m.lines.length) kron('🚀 Үлкен жинақ — бүкіл жолды тазалайтын бонус!');
+}
+
+/* goals / moves */
+function updateGoals(){
+  [['g0',0],['g2',2],['g3',3],['g4',4]].forEach(([id,t])=>{ const el=document.getElementById(id);
+    el.querySelector('.gn').textContent=goals[t]; el.classList.toggle('done',goals[t]<=0); });
+}
+function flashGoal(t){ const id={0:'g0',2:'g2',3:'g3',4:'g4'}[t]; if(!id)return; const el=document.getElementById(id);
+  el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit'); }
+function updateMoves(){ const el=document.getElementById('movesStat'); document.getElementById('movesVal').textContent=moves;
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+function allGoalsDone(){ return Object.values(goals).every(v=>v<=0); }
+function checkPhaseEnd(){
+  if(allGoalsDone()){ kron('🎉 Керемет! Барлық мақсат орындалды — жұмыс кеңістігі ашылды!'); setTimeout(toWorkspace,1100); }
+  else if(moves<=0){ kron('⏳ Қозғалыс бітті. Жұмыс кеңістігіне өтейік!'); setTimeout(toWorkspace,1100); }
+  else if(goals[0]>0&&Math.random()<.35) kron('💪 Тағы ☁️ Cloud иконкаларын жина — бұлттық энергия керек!');
+}
+
+/* ════ WORKSPACE ════ */
+const FILES=[
+  {id:'doc1',name:'Informatics_Lesson.docx',sz:'2.3 MB',cls:'doc',emo:'📄',folder:'edu',hint:'құжат'},
+  {id:'doc2',name:'Math_Test.docx',sz:'0.8 MB',cls:'doc',emo:'📄',folder:'edu',hint:'құжат'},
+  {id:'ppt1',name:'Diploma_Presentation.pptx',sz:'3.5 MB',cls:'ppt',emo:'📊',folder:'proj',hint:'презентация'},
+  {id:'ppt2',name:'Game_Project.pptx',sz:'4.1 MB',cls:'ppt',emo:'📊',folder:'proj',hint:'презентация'},
+  {id:'img1',name:'Cyber_Poster.png',sz:'1.2 MB',cls:'img',emo:'🖼️',folder:'media',hint:'сурет'},
+  {id:'img2',name:'Avatar.jpg',sz:'0.6 MB',cls:'img',emo:'🖼️',folder:'media',hint:'сурет'},
+];
+const FOLDER_NAME={edu:'Сабақтар',proj:'Жобалар',media:'Суреттер'};
+let placedFiles={}, typoFixed=false, shared=false, mistakes=0, sortCombo=0, selFile=null;
+
+function toWorkspace(){
+  document.getElementById('matchArea').style.display='none';
+  document.getElementById('goalsBar').style.display='none';
+  document.getElementById('movesStat').style.display='none';
+  document.getElementById('workspace').classList.add('show');
+  setKr('krBubble','Файлдарды дұрыс папкаға сұрыпта! Қатарынан дұрыс қойсаң — 🔥 комбо өседі.');
+  renderPool();
+}
+function renderPool(){
+  const pool=document.getElementById('pool'); pool.innerHTML='';
+  const left=FILES.filter(f=>!placedFiles[f.id]);
+  if(left.length===0){ pool.innerHTML='<div class="allsorted">✅ Барлық файл сұрыпталды!</div>'; return; }
+  left.forEach(f=>{
+    const d=document.createElement('div'); d.className='file-card'+(selFile===f.id?' sel':''); d.draggable=true; d.dataset.id=f.id;
+    d.innerHTML=`<div class="ficon ${f.cls}">${f.emo}</div><div class="fc-meta"><div class="fc-name">${f.name}</div><div class="fc-sz">${f.sz}</div><div class="fc-hint">${f.hint}</div></div>
+      <div class="fc-btns">${f.id==='ppt1'?'<button class="fc-btn ed" title="Өңдеу">✏️</button>':''}<button class="fc-btn sh" title="Бөлісу">👥</button></div>`;
+    d.addEventListener('dragstart',e=>{e.dataTransfer.setData('id',f.id);d.classList.add('dragging');});
+    d.addEventListener('dragend',()=>d.classList.remove('dragging'));
+    d.addEventListener('click',e=>{ if(e.target.closest('.fc-btn'))return; selFile=selFile===f.id?null:f.id; renderPool(); });
+    const ed=d.querySelector('.ed'); if(ed) ed.onclick=(e)=>{e.stopPropagation();openEdit();};
+    d.querySelector('.sh').onclick=(e)=>{e.stopPropagation();openShare(f.id);};
+    if(f.id==='ppt1') d.ondblclick=openEdit;
+    pool.appendChild(d);
+  });
+}
+
+document.querySelectorAll('.folder').forEach(fo=>{
+  fo.addEventListener('dragover',e=>{e.preventDefault();fo.classList.add('over');});
+  fo.addEventListener('dragleave',()=>fo.classList.remove('over'));
+  fo.addEventListener('drop',e=>{e.preventDefault();fo.classList.remove('over');dropFile(e.dataTransfer.getData('id'),fo);});
+  fo.addEventListener('click',()=>{ if(selFile){ dropFile(selFile,fo); selFile=null; } });
+});
+
+function dropFile(id,folderEl){
+  const f=FILES.find(x=>x.id===id); if(!f||placedFiles[id])return;
+  const folder=folderEl.dataset.folder;
+  const cardEl=document.querySelector(`.file-card[data-id="${id}"]`);
+  if(folder===f.folder){
+    placedFiles[id]=folder;
+    sortCombo++; showCombo();
+    if(cardEl) flyToFolder(cardEl,folderEl);
+    folderEl.classList.remove('bounce'); void folderEl.offsetWidth; folderEl.classList.add('bounce');
+    const cnt=Object.values(placedFiles).filter(v=>v===folder).length;
+    document.getElementById('fc_'+folder).textContent=cnt+' / 2';
+    document.getElementById('fb_'+folder).style.width=(cnt/2*100)+'%';
+    if(cnt>=2) folderEl.classList.add('full');
+    document.getElementById('sortCount').textContent=Object.keys(placedFiles).length;
+    blip(640+sortCombo*40);
+    let msg=`✅ Дұрыс! ${f.name} → ${FOLDER_NAME[folder]}.`;
+    if(sortCombo>=2) msg+=` 🔥 Комбо ×${sortCombo}!`;
+    if(sortCombo===3){ crystals++; updateCrys(); msg+=' Комбо бонусы 💎+1!'; }
+    wsKron(msg);
+    setTimeout(()=>{ renderPool();
+      if(Object.keys(placedFiles).length>=FILES.length){ markTask('t1'); wsKron('🎯 Барлық файл дұрыс сұрыпталды! Жүйе тамаша реттелді.'); checkWsEnd(); }
+    }, cardEl?420:0);
+  } else {
+    mistakes++; sortCombo=0; hideCombo(); blip(180);
+    if(cardEl){ cardEl.animate([{transform:'translateX(0)'},{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(0)'}],{duration:380}); }
+    wsKron(`⚠️ Қате папка! ${f.hint==='сурет'?'Кескіндер → Суреттер':f.hint==='құжат'?'Құжаттар → Сабақтар':'Презентациялар → Жобалар'} папкасында тұрады.`);
+  }
+}
+function flyToFolder(cardEl,folderEl){
+  const cr=cardEl.getBoundingClientRect(), fr=folderEl.getBoundingClientRect();
+  const dx=(fr.left+fr.width/2)-(cr.left+cr.width/2), dy=(fr.top+fr.height/2)-(cr.top+cr.height/2);
+  cardEl.style.pointerEvents='none';
+  cardEl.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${dx}px,${dy}px) scale(.25) rotate(8deg)`,opacity:0}],{duration:410,easing:'cubic-bezier(.5,-0.15,.7,1)'});
+}
+function showCombo(){ const c=document.getElementById('wsCombo'); if(sortCombo>=2){ c.textContent='🔥 Комбо ×'+sortCombo; c.classList.add('on'); c.animate([{transform:'scale(1.3)'},{transform:'scale(1)'}],{duration:300}); } }
+function hideCombo(){ document.getElementById('wsCombo').classList.remove('on'); }
+
+/* edit */
+function openEdit(){ document.getElementById('editOvl').classList.add('show'); }
+function closeEdit(){ document.getElementById('editOvl').classList.remove('show'); }
+function fixTypo(){
+  if(typoFixed) return; typoFixed=true;
+  document.getElementById('slideTypo').innerHTML='«<span class="fixed">Компьютер</span> — болашақтың құралы»';
+  const b=document.getElementById('editFixBtn'); b.disabled=true; b.textContent='✓ Түзетілді';
+  blip(720); markTask('t2');
+  wsKron('🎉 Керемет! Бұлттық файлды компьютерге жүктемей-ақ, браузерде бірлесе өңдедің. Уақыт үнемделді!');
+  setTimeout(closeEdit,1100); checkWsEnd();
+}
+
+/* share */
+const PERMS=[
+  {t:'Тек оқу (Viewer)',e:'👁️',ok:false,fb:'Бұл құқықпен досың тек қарай алады, бірақ көмектесе алмайды.'},
+  {t:'Пікір жазу (Commenter)',e:'💬',ok:false,fb:'Пікір жаза алады, бірақ слайдты өзгерте алмайды.'},
+  {t:'Редакциялау (Editor)',e:'✏️',ok:true,fb:'Мінсіз! Енді досың да бұл файлды сенімен бір уақытта өз үйінен өңдей алады! 💎 +1'},
+];
+function openShare(){ const list=document.getElementById('permList'); list.innerHTML='';
+  PERMS.forEach(p=>{ const b=document.createElement('div'); b.className='perm-opt'; b.innerHTML=`<span class="pe">${p.e}</span><span>${p.t}</span>`; b.onclick=()=>pickPerm(b,p); list.appendChild(b); });
+  document.getElementById('shareOvl').classList.add('show'); }
+function closeShare(){ document.getElementById('shareOvl').classList.remove('show'); }
+function pickPerm(el,p){
+  if(shared) return;
+  if(p.ok){ shared=true; el.classList.add('ok'); crystals++; updateCrys(); blip(740); markTask('t3');
+    wsKron('🤖 '+p.fb); setTimeout(closeShare,1200); checkWsEnd(); }
+  else { mistakes++; el.classList.add('bad'); setTimeout(()=>el.classList.remove('bad'),450); blip(200);
+    wsKron('⚠️ '+p.fb+' Безендіруге көмектесу үшін «Редакциялау (Editor)» керек.'); }
+}
+
+function markTask(id){ document.getElementById(id).classList.add('done'); }
+function wsKron(t){ setKr('wsKr',t); }
+function checkWsEnd(){ if(Object.keys(placedFiles).length>=FILES.length && typoFixed && shared) setTimeout(showResult,800); }
+
+/* result */
+function showResult(){
+  let pct,medal,title,sub,crys,text;
+  if(mistakes===0){ pct=100; medal='👑'; title='Сарапшы деңгейі'; sub='DATA EXPERT'; crys=3;
+    text='Ғажап! Барлық тапсырманы қатесіз орындадың — бұлттық жұмыс толық автоматтандырылған. Нағыз цифрлық сарапшысың!'; }
+  else if(mistakes<=2){ pct=100-mistakes*10; medal='🔵'; title='Ұйымдастырылған деңгей'; sub='ORGANIZED'; crys=2;
+    text='Жақсы! Файлдарды тамаша сұрыптадың. Бірнеше шағын қателік болды — қайталасаң, нағыз сарапшы боласың!'; }
+  else { pct=Math.max(30,55-mistakes*5); medal='🌱'; title='Бастапқы деңгей'; sub='BEGINNER'; crys=1;
+    text='Жұмыс орныңда аздап хаос болды. Файлдарды папкаларға дұрыс бөліп, құқықтарды дұрыс беріп, қайта байқап көр!'; }
+  crystals=Math.max(crystals,crys);
+  document.getElementById('rMedal').textContent=medal;
+  document.getElementById('rTitle').textContent=title;
+  document.getElementById('rSub').textContent=sub+' • '+pct+'%';
+  document.getElementById('rCrys').textContent='💎 '+crystals+' Деректер кристалы';
+  document.getElementById('rText').textContent=text;
+  document.getElementById('result').classList.add('show');
+  confetti(); window._crys=crystals;
+}
+let submitting=false;
+function finishGame(){
+  if(submitting)return; submitting=true;
+  const crys=window._crys||crystals||1;
+  try{ const k='bilimquest_t4_progress_v1'; let s=JSON.parse(localStorage.getItem(k));
+    if(!s||!s.status||s.status.length!==5) s={status:['active','locked','locked','locked','locked']};
+    s.status[4]='done'; localStorage.setItem(k,JSON.stringify(s)); }catch(e){}
+  const score=Math.round(crys/3*0.3*100)/100;
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Файл әлемі',score,stars:crys>=3?1:0,completed:true})}).finally(()=>{ location.href='/toqsan_4'; });
+  setTimeout(()=>{ if(submitting) location.href='/toqsan_4'; },1500);
+}
+
+/* helpers */
+function updateCrys(){ const el=document.getElementById('crysStat'); document.getElementById('crysVal').textContent=crystals;
+  el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+function kron(t){ setKr('krBubble',t); }
+function setKr(id,t){ const el=document.getElementById(id); el.textContent=t; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+function wait(ms){return new Promise(r=>setTimeout(r,ms));}
+let actx;
+function blip(f){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();
+  o.connect(g);g.connect(actx.destination);o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.15,actx.currentTime);
+  g.gain.linearRampToValueAtTime(0,actx.currentTime+.18);o.start();o.stop(actx.currentTime+.18);}catch(e){}}
+function confetti(){const cs=['#7dffa0','#46e06a','#37e1ff','#ffd24a','#b98bff','#fff'];
+  for(let i=0;i<70;i++){const c=document.createElement('div');c.className='confetti';const sz=6+Math.random()*7,d=2.2+Math.random()*1.8;
+  c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cs[i%cs.length]};border-radius:2px;animation-duration:${d}s;animation-delay:${Math.random()*.5}s`;
+  document.body.appendChild(c);setTimeout(()=>c.remove(),(d+.7)*1000);}}
+
+(function(){const b=document.getElementById('bubbles');for(let i=0;i<18;i++){const d=document.createElement('div');d.className='bub';
+  const s=6+Math.random()*22;d.style.cssText=`left:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${6+Math.random()*10}s;animation-delay:${-Math.random()*10}s`;b.appendChild(d);}})();
+
+/* init */
+genBoard(); updateGoals(); updateMoves();
+</script>
+</body>
+</html>
