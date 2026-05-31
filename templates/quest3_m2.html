@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Миссия 2 — Уақыт порталының коды</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;color:#e8eefc;overflow:hidden;background:#040a22;user-select:none}
+
+/* ══ BACKGROUND (time vortex) ══ */
+body{background:
+  radial-gradient(ellipse 120% 70% at 50% 40%,rgba(20,60,140,.45) 0%,transparent 60%),
+  radial-gradient(circle at 50% 45%,rgba(0,160,255,.10),transparent 55%),
+  #040a22}
+body::before{content:'';position:fixed;inset:-20%;z-index:0;pointer-events:none;
+  background:conic-gradient(from 0deg at 50% 45%,transparent 0deg,rgba(0,180,255,.05) 40deg,transparent 80deg,rgba(120,90,255,.05) 160deg,transparent 200deg,rgba(0,200,255,.05) 300deg,transparent 340deg);
+  animation:vortex 40s linear infinite}
+@keyframes vortex{to{transform:rotate(360deg)}}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.5) 1px,transparent 1px);
+  background-size:90px 90px;opacity:.12}
+
+/* ══ HUD ══ */
+.hud{position:relative;z-index:20;display:flex;align-items:center;height:52px;
+  background:linear-gradient(180deg,rgba(6,16,48,.98),rgba(3,9,32,.96));
+  border-bottom:1px solid rgba(0,180,255,.3);box-shadow:0 4px 22px rgba(0,140,255,.18);padding:0 12px}
+.hud-seg{display:flex;align-items:center;gap:6px;padding:0 13px;height:100%;
+  border-right:1px solid rgba(0,180,255,.14);font-weight:800;font-size:13px;white-space:nowrap}
+.hud-seg:last-child{border-right:none;margin-left:auto}
+.hud-icon{font-size:17px}.hud-label{color:rgba(148,170,210,.7);font-size:10.5px;font-weight:700}
+.hud-val{color:#fff;font-size:13px;font-weight:900}
+.hud-val.cyan{color:#34d6ff;text-shadow:0 0 9px rgba(0,229,255,.6)}
+.hud-val.gold{color:#ffd24a;text-shadow:0 0 9px rgba(251,191,36,.6)}
+.hud-timer.warn{color:#ff5d5d;animation:blink .5s infinite}
+.hud-back{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;transition:.2s;white-space:nowrap;flex-shrink:0;margin-right:6px}
+.hud-back.mod{background:rgba(0,180,255,.1);border:1px solid rgba(0,229,255,.4);color:#7dd3fc}
+.hud-back.mod:hover{background:rgba(0,229,255,.22)}
+.hud-back.prev{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fbbf24}
+.hud-back.prev:hover{background:rgba(245,158,11,.22)}
+@keyframes blink{50%{opacity:.4}}
+
+/* ══ STAGE ══ */
+.stage{position:relative;z-index:1;height:calc(100vh - 52px);display:flex;flex-direction:column;
+  padding:10px 16px 12px;gap:8px;overflow:hidden}
+
+/* ══ TOP ROW: kronos / portal / objective ══ */
+.top-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;position:relative;min-height:0}
+
+/* KRONOS character */
+.kronos{display:flex;flex-direction:column;align-items:center;gap:5px;width:150px;flex-shrink:0;z-index:3}
+.kr-avatar{width:78px;height:78px;border-radius:18px;position:relative;
+  background:radial-gradient(circle at 40% 30%,#2a4a8a,#0a1840);
+  border:2px solid rgba(0,200,255,.6);box-shadow:0 0 24px rgba(0,180,255,.4),inset 0 0 16px rgba(0,140,255,.25);
+  display:flex;align-items:center;justify-content:center;font-size:40px;
+  animation:floaty 3.5s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.kr-eye{position:absolute;top:34px;width:9px;height:9px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 8px #ff4d4d;animation:krBlink 4s infinite}
+.kr-eye.l{left:24px}.kr-eye.r{right:24px}
+@keyframes krBlink{0%,92%,100%{opacity:1}95%{opacity:.2}}
+.kr-name{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:#7dd3fc;letter-spacing:1px}
+.kr-bubble{position:relative;background:linear-gradient(160deg,rgba(10,30,70,.95),rgba(6,16,46,.95));
+  border:1.5px solid rgba(0,200,255,.4);border-radius:14px;padding:9px 12px;font-size:11px;font-weight:700;
+  color:#bfe9ff;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,.4);min-height:54px;
+  display:flex;align-items:center;transition:border-color .3s,background .3s}
+.kr-bubble.warn{border-color:rgba(251,191,36,.6);color:#fde68a}
+.kr-bubble.good{border-color:rgba(34,197,94,.6);color:#bbf7d0}
+.kr-bubble::after{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);
+  border:7px solid transparent;border-bottom-color:rgba(0,200,255,.4)}
+
+/* PORTAL */
+.portal-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-width:0}
+.portal{position:relative;width:170px;height:170px;display:flex;align-items:center;justify-content:center}
+.portal-ring{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,#00e5ff,#6366f1,#a855f7,#00e5ff);
+  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 11px),#000 calc(100% - 10px));
+          mask:radial-gradient(farthest-side,transparent calc(100% - 11px),#000 calc(100% - 10px));
+  animation:spin 6s linear infinite;opacity:.5;transition:opacity .5s,filter .5s;filter:saturate(.5)}
+.portal.charging .portal-ring{opacity:.85;filter:saturate(1)}
+.portal.open .portal-ring{opacity:1;filter:saturate(1.4) drop-shadow(0 0 16px rgba(0,229,255,.8));animation:spin 2.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.portal-ring2{position:absolute;inset:16px;border-radius:50%;border:2px dashed rgba(0,200,255,.3);animation:spin 14s linear infinite reverse}
+.portal-core{position:absolute;inset:28px;border-radius:50%;
+  background:radial-gradient(circle at 50% 45%,rgba(8,20,55,.95),rgba(3,8,26,.98));
+  border:1px solid rgba(0,180,255,.25);display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:3px;overflow:hidden;transition:background .6s}
+.portal.open .portal-core{background:radial-gradient(circle at 50% 45%,rgba(0,200,255,.55),rgba(40,20,90,.5));
+  animation:coreSwirl 3s linear infinite}
+@keyframes coreSwirl{to{filter:hue-rotate(360deg)}}
+.portal-lock{font-size:24px;filter:drop-shadow(0 0 6px rgba(0,0,0,.6))}
+.portal-status{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;letter-spacing:1px;color:#7dd3fc;text-align:center;padding:0 6px}
+.portal.open .portal-status{color:#7dffb0;text-shadow:0 0 10px rgba(74,222,128,.6)}
+.portal-pct{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-family:'Exo 2',sans-serif;
+  font-size:12px;font-weight:900;color:#34d6ff;white-space:nowrap}
+
+/* OBJECTIVE card (top right) */
+.obj-card{width:170px;flex-shrink:0;background:linear-gradient(160deg,rgba(10,24,64,.9),rgba(5,12,38,.92));
+  border:1.5px solid rgba(0,180,255,.3);border-radius:14px;padding:10px 12px;z-index:3}
+.obj-title{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:900;color:#fff;letter-spacing:.5px;margin-bottom:6px}
+.obj-line{font-size:10.5px;color:rgba(165,185,220,.85);font-weight:700;line-height:1.45;margin-bottom:8px}
+.obj-pips{display:flex;gap:5px;justify-content:center}
+.obj-pip{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);transition:.3s}
+.obj-pip.done{background:linear-gradient(90deg,#06b6d4,#22c55e);box-shadow:0 0 8px rgba(34,197,94,.5);border-color:transparent}
+
+/* ══ TIMELINE ══ */
+.timeline-wrap{flex-shrink:0;margin-top:18px}
+.tl-label{display:flex;align-items:center;gap:8px;font-family:'Exo 2',sans-serif;font-size:12px;font-weight:900;
+  color:#7dd3fc;letter-spacing:1.5px;margin-bottom:7px;text-transform:uppercase}
+.tl-label .line{flex:1;height:2px;background:linear-gradient(90deg,rgba(0,200,255,.5),transparent)}
+.timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.tl-slot{position:relative;border-radius:14px;aspect-ratio:1/1.18;
+  border:2px dashed rgba(0,180,255,.4);
+  background:linear-gradient(160deg,rgba(6,18,52,.6),rgba(3,9,30,.7));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  transition:.25s;overflow:hidden}
+.tl-slot .slot-num{position:absolute;top:6px;left:8px;font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;color:rgba(0,200,255,.55)}
+.tl-slot .slot-hint{font-size:9.5px;color:rgba(140,180,235,.5);font-weight:800;text-align:center;padding:0 6px;line-height:1.3}
+.tl-slot .slot-arrow{font-size:18px;color:rgba(0,200,255,.35);animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+.tl-slot.over{border-color:#00e5ff;border-style:solid;transform:translateY(-4px) scale(1.03);
+  background:rgba(0,90,180,.25);box-shadow:0 0 26px rgba(0,229,255,.45),inset 0 0 18px rgba(0,229,255,.12)}
+.tl-slot.pending{border-style:solid;border-color:rgba(251,191,36,.8);box-shadow:0 0 22px rgba(251,191,36,.35);animation:pulseP 1s ease-in-out infinite}
+@keyframes pulseP{50%{box-shadow:0 0 30px rgba(251,191,36,.6)}}
+.tl-slot.done{border-style:solid;border-color:rgba(34,197,94,.85);box-shadow:0 0 22px rgba(34,197,94,.3)}
+.tl-slot.paradox{animation:paradox .5s ease}
+@keyframes paradox{0%,100%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(8px) rotate(-2deg)}45%{transform:translateX(-7px)}60%{transform:translateX(7px) rotate(2deg)}75%{transform:translateX(-4px)}}
+
+/* placed mini-card inside slot */
+.slot-card{position:absolute;inset:0;display:flex;flex-direction:column;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+.slot-card .sc-art{flex:1;display:flex;align-items:center;justify-content:center;font-size:34px;position:relative;overflow:hidden}
+.slot-card .sc-year{font-family:'Exo 2',sans-serif;font-size:9.5px;font-weight:900;color:#fff;background:rgba(0,8,28,.7);padding:3px;text-align:center;letter-spacing:.3px}
+.slot-card.locked .sc-check{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:rgba(34,197,94,.95);display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 0 10px rgba(34,197,94,.6)}
+@keyframes popIn{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+
+/* ══ TRAY ══ */
+.tray-wrap{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.tray-label{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:#a5b4fc;letter-spacing:1px}
+.tray{flex:1;min-height:0;display:flex;gap:10px;align-items:stretch;justify-content:center}
+.pcard{position:relative;flex:1;max-width:200px;border-radius:15px;overflow:hidden;cursor:grab;
+  border:2px solid rgba(0,180,255,.35);box-shadow:0 6px 18px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .25s,border-color .25s,opacity .3s;
+  opacity:0;transform:translateY(16px);animation:cardIn .5s ease forwards}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+.pcard:hover:not(.used){transform:translateY(-5px) scale(1.03);border-color:rgba(0,229,255,.9);box-shadow:0 0 26px rgba(0,229,255,.4),0 12px 26px rgba(0,0,0,.55)}
+.pcard:active:not(.used){cursor:grabbing}
+.pcard.dragging{opacity:.3}
+.pcard.used{opacity:.2;pointer-events:none;filter:saturate(.4)}
+.pc-art{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;overflow:hidden}
+.pc-art .pc-emoji2{position:absolute;font-size:24px;bottom:7px;right:9px;opacity:.85}
+.pc-body{background:rgba(2,8,26,.85);padding:6px 9px;border-top:1px solid rgba(0,180,255,.18)}
+.pc-name{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-year{font-size:10px;font-weight:800;color:#34d6ff;margin-top:1px}
+
+/* ══ ANALYSIS DETECTOR MODAL ══ */
+.analyzer{position:fixed;inset:0;z-index:200;background:rgba(2,6,20,.8);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.analyzer.show{opacity:1;pointer-events:all}
+.an-card{position:relative;width:92%;max-width:460px;border-radius:22px;padding:24px 26px;
+  background:linear-gradient(160deg,rgba(10,24,68,.99),rgba(4,10,32,.99));
+  border:1.5px solid rgba(0,200,255,.5);box-shadow:0 0 60px rgba(0,180,255,.25);
+  transform:scale(.85);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.analyzer.show .an-card{transform:scale(1)}
+.an-tag{display:inline-flex;align-items:center;gap:6px;font-family:'Exo 2',sans-serif;font-size:10px;font-weight:900;
+  letter-spacing:1.5px;color:#7dd3fc;text-transform:uppercase;margin-bottom:8px;
+  padding:4px 10px;border-radius:20px;background:rgba(0,200,255,.12);border:1px solid rgba(0,200,255,.3)}
+.an-q{font-family:'Exo 2',sans-serif;font-size:16px;font-weight:900;color:#fff;line-height:1.35;margin-bottom:6px}
+.an-ctx{font-size:11.5px;color:rgba(165,185,220,.8);font-weight:700;margin-bottom:16px;line-height:1.4}
+.an-opts{display:flex;flex-direction:column;gap:9px}
+.an-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:13px;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1.5px solid rgba(120,150,200,.3);
+  font-size:12.5px;font-weight:700;color:#dbe6f7;text-align:left;transition:.18s;font-family:inherit}
+.an-opt:hover{background:rgba(0,180,255,.12);border-color:rgba(0,200,255,.6);transform:translateX(3px)}
+.an-opt .dot{width:18px;height:18px;border-radius:50%;border:2px solid rgba(120,150,200,.5);flex-shrink:0;transition:.18s}
+.an-opt:hover .dot{border-color:#00e5ff}
+.an-opt.correct{background:rgba(34,197,94,.18);border-color:#22c55e;color:#bbf7d0}
+.an-opt.correct .dot{border-color:#22c55e;background:#22c55e;box-shadow:0 0 10px rgba(34,197,94,.6)}
+.an-opt.wrong{background:rgba(239,68,68,.16);border-color:#ef4444;color:#fca5a5;animation:shakeX .4s}
+@keyframes shakeX{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.an-opt.disabled{pointer-events:none;opacity:.55}
+
+/* ══ RESULT OVERLAY ══ */
+.result-overlay{position:fixed;inset:0;background:rgba(2,6,20,.86);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .35s}
+.result-overlay.show{opacity:1;pointer-events:all}
+.result-card{position:relative;background:linear-gradient(160deg,rgba(10,24,72,.99),rgba(4,10,32,.99));
+  border:1.5px solid rgba(0,229,255,.5);border-radius:26px;padding:36px 44px;text-align:center;max-width:440px;width:92%;
+  box-shadow:0 0 70px rgba(0,200,255,.28);transform:scale(.82) translateY(20px);transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.result-overlay.show .result-card{transform:scale(1) translateY(0)}
+.result-icon{font-size:64px;margin-bottom:10px;display:block;animation:trophyB .7s ease}
+@keyframes trophyB{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1)}}
+.result-title{font-family:'Exo 2',sans-serif;font-size:27px;font-weight:900;margin-bottom:8px}
+.result-title.win{color:#5ef08a;text-shadow:0 0 20px rgba(74,222,128,.5)}
+.result-title.lose{color:#ff8a8a}
+.result-sub{font-size:13.5px;color:rgba(175,195,225,.92);line-height:1.6;margin-bottom:14px}
+.stars-row{display:flex;justify-content:center;gap:12px;margin:6px 0 18px}
+.star-icon{font-size:34px;filter:grayscale(1) opacity(.4);transition:.3s}
+.star-icon.lit{filter:none;animation:starPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes starPop{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 30px;border:none;border-radius:50px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;transition:transform .18s,box-shadow .18s}
+.btn:hover{transform:translateY(-2px)}
+.btn-cyan{background:linear-gradient(135deg,#06b6d4,#6366f1);color:#fff;box-shadow:0 6px 22px rgba(0,180,255,.4)}
+
+/* confetti / particles */
+.particle{position:fixed;pointer-events:none;z-index:500;border-radius:50%;animation:pFly 1s ease-out forwards}
+@keyframes pFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.confetti{position:fixed;top:-12px;z-index:480;pointer-events:none;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+
+@media(max-height:660px){
+  .portal{width:130px;height:130px}.kr-avatar{width:60px;height:60px;font-size:30px}
+  .hud{height:46px}.pc-art{font-size:36px}
+}
+</style>
+</head>
+<body>
+
+<!-- ghost -->
+<div id="ghost" style="position:fixed;z-index:9999;display:none;pointer-events:none;width:74px;height:74px;border-radius:13px;overflow:hidden;border:2.5px solid rgba(0,229,255,.95);box-shadow:0 0 28px rgba(0,229,255,.7);transform:translate(-50%,-50%) rotate(-4deg);background:#0a1640;align-items:center;justify-content:center;font-size:38px"></div>
+
+<!-- HUD -->
+<div class="hud">
+  <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
+  <a href="{{ url_for('quest3_m1') }}" class="hud-back prev">← М1</a>
+  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Mission</span><span class="hud-val cyan">2 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
+  <div class="hud-seg"><span class="hud-icon">🌀</span><span class="hud-label">Портал:</span><span class="hud-val cyan" id="hudPortal">0%</span></div>
+  <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">03:00</span></div>
+</div>
+
+<!-- STAGE -->
+<div class="stage">
+
+  <!-- TOP ROW -->
+  <div class="top-row">
+    <!-- KRONOS -->
+    <div class="kronos">
+      <div class="kr-avatar">🤖<span class="kr-eye l"></span><span class="kr-eye r"></span></div>
+      <div class="kr-name">KRONOS-1</div>
+      <div class="kr-bubble" id="krBubble">Маған көмектесіңіз! Уақыт сызығын ежелгіден қазіргіге дейін қалпына келтіріңіз — сонда портал ашылады.</div>
+    </div>
+
+    <!-- PORTAL -->
+    <div class="portal-wrap">
+      <div class="portal" id="portal">
+        <div class="portal-ring"></div>
+        <div class="portal-ring2"></div>
+        <div class="portal-core">
+          <span class="portal-lock" id="portalLock">🔒</span>
+          <span class="portal-status" id="portalStatus">ҚҰЛЫПТАУЛЫ</span>
+        </div>
+        <div class="portal-pct" id="portalPct">0 / 5 блок</div>
+      </div>
+    </div>
+
+    <!-- OBJECTIVE -->
+    <div class="obj-card">
+      <div class="obj-title">🎯 Мақсат</div>
+      <div class="obj-line">Робототехника тарихының 5 кезеңін дұрыс ретпен орналастыр (ежелгі → болашақ).</div>
+      <div class="obj-pips">
+        <div class="obj-pip" id="op0"></div><div class="obj-pip" id="op1"></div>
+        <div class="obj-pip" id="op2"></div><div class="obj-pip" id="op3"></div>
+        <div class="obj-pip" id="op4"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="timeline-wrap">
+    <div class="tl-label"><span>⏳ Уақыт сызығы</span><span class="line"></span><span style="font-size:10px;color:rgba(140,180,235,.6)">ежелгі → болашақ</span></div>
+    <div class="timeline" id="timeline">
+      <div class="tl-slot" data-pos="1"><span class="slot-num">1</span><span class="slot-arrow">⬇</span><span class="slot-hint">Ең ежелгі</span></div>
+      <div class="tl-slot" data-pos="2"><span class="slot-num">2</span><span class="slot-arrow">⬇</span><span class="slot-hint">…</span></div>
+      <div class="tl-slot" data-pos="3"><span class="slot-num">3</span><span class="slot-arrow">⬇</span><span class="slot-hint">…</span></div>
+      <div class="tl-slot" data-pos="4"><span class="slot-num">4</span><span class="slot-arrow">⬇</span><span class="slot-hint">…</span></div>
+      <div class="tl-slot" data-pos="5"><span class="slot-num">5</span><span class="slot-arrow">⬇</span><span class="slot-hint">Ең жаңа</span></div>
+    </div>
+  </div>
+
+  <!-- TRAY -->
+  <div class="tray-wrap">
+    <div class="tray-label">🧩 Тарихи кезеңдер — дұрыс орынға сүйреп апар</div>
+    <div class="tray" id="tray"></div>
+  </div>
+
+</div>
+
+<!-- ANALYSIS DETECTOR -->
+<div class="analyzer" id="analyzer">
+  <div class="an-card">
+    <span class="an-tag">🔬 Талдау детекторы</span>
+    <div class="an-q" id="anQ">Неліктен бұл кезең маңызды?</div>
+    <div class="an-ctx" id="anCtx"></div>
+    <div class="an-opts" id="anOpts"></div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-icon" id="resIcon">🌀</span>
+    <div class="result-title" id="resTitle">Портал ашылды!</div>
+    <div class="stars-row" id="resStars"></div>
+    <p class="result-sub" id="resSub"></p>
+    <button class="btn btn-cyan" onclick="goNext()">Келесі миссия →</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   MISSION 2 — УАҚЫТ ПОРТАЛЫНЫҢ КОДЫ
+   Робототехника эволюциясын дұрыс ретпен қалпына келтір.
+   Әр кезеңді дұрыс слотқа қою + «Талдау детекторы» сұрағына жауап.
+═══════════════════════════════════════════════════════════ */
+
+const PERIODS = [
+  { id:'ancient', order:1, name:'Ежелгі автоматтар', year:'б.з.д. IV ғ.–XVIII ғ.',
+    art:'🕊️', art2:'⚙️', grad:'linear-gradient(160deg,#7c5a1e,#3a2608,#1a1304)',
+    ctx:'Архиттың механикалық көгершіні, Леонардоның сауытты рыцарі.',
+    q:'Бұл кезеңде роботтар не болды?',
+    opts:[
+      {t:'Тек механикалық автоматтар мен ойыншықтар', ok:true},
+      {t:'Зауыттарда жұмыс істейтін машиналар', ok:false},
+      {t:'Жасанды интеллекті бар жүйелер', ok:false},
+    ]},
+  { id:'term', order:2, name:'«Робот» термині', year:'1920–1921',
+    art:'🎭', art2:'📜', grad:'linear-gradient(160deg,#7c1d2e,#3a0a14,#1a0508)',
+    ctx:'Карел Чапек «R.U.R» пьесасында «робот» сөзін енгізді.',
+    q:'Бұл кезеңнің басты жаңалығы неде?',
+    opts:[
+      {t:'«Робот» сөзі алғаш рет қолданылды', ok:true},
+      {t:'Алғашқы зауыт роботы жасалды', ok:false},
+      {t:'Роботтар ғарышты зерттей бастады', ok:false},
+    ]},
+  { id:'industrial', order:3, name:'Алғашқы өнеркәсіптік робот', year:'1954–1961',
+    art:'🦾', art2:'🏭', grad:'linear-gradient(160deg,#1f3a5c,#2a4a6a,#0a1424)',
+    ctx:'Джордж Девол бағдарламаланатын Unimate роботын жасады.',
+    q:'Unimate роботының басты функциясы қандай?',
+    opts:[
+      {t:'Өнеркәсіпті автоматтандыру (зауыт жұмысы)', ok:true},
+      {t:'Адаммен сөйлесу', ok:false},
+      {t:'Ғарышты зерттеу', ok:false},
+    ]},
+  { id:'space', order:4, name:'Ғарыш және дербес роботтар', year:'1970–1990',
+    art:'🛰️', art2:'🌑', grad:'linear-gradient(160deg,#1a2a5c,#0a1840,#050a20)',
+    ctx:'Луноходтар мен алғашқы гуманоидтар (ASIMO прототиптері).',
+    q:'Бұл кезеңде роботтар нені үйренді?',
+    opts:[
+      {t:'Қоршаған ортаны сезініп, өздігінен қозғалуды', ok:true},
+      {t:'Тек бір орында тұрып жұмыс істеуді', ok:false},
+      {t:'Ойыншық болуды', ok:false},
+    ]},
+  { id:'ai', order:5, name:'Жасанды интеллект дәуірі', year:'XXI ғ. – Болашақ',
+    art:'🧠', art2:'🤖', grad:'linear-gradient(160deg,#1a4a6c,#3a1a6c,#0a1430)',
+    ctx:'Boston Dynamics, нейрожелілер, медициналық нанороботтар.',
+    q:'Қазіргі заманғы роботтарды не басқарады?',
+    opts:[
+      {t:'Жасанды интеллект пен нейрожелілер', ok:true},
+      {t:'Бу қозғалтқышы', ok:false},
+      {t:'Тек механикалық серіппелер', ok:false},
+    ]},
+];
+
+/* ─── State ─── */
+let lockedCount = 0;
+let mistakes = 0;
+let gameOver = false;
+let dragId = null;
+let pendingId = null, pendingPos = null;
+let timerSec = 180, timerInterval;
+const TOTAL = PERIODS.length;
+
+const ghost = document.getElementById('ghost');
+
+/* ─── Build shuffled tray ─── */
+function buildTray(){
+  const tray = document.getElementById('tray');
+  const order = [...PERIODS];
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  order.forEach((p,i)=>{
+    const c = document.createElement('div');
+    c.className='pcard'; c.id='pc_'+p.id; c.dataset.id=p.id; c.draggable=true;
+    c.style.animationDelay=(0.08+i*0.08)+'s';
+    c.innerHTML=`<div class="pc-art" style="background:${p.grad}"><span>${p.art}</span><span class="pc-emoji2">${p.art2}</span></div>
+      <div class="pc-body"><div class="pc-name">${p.name}</div><div class="pc-year">${p.year}</div></div>`;
+    tray.appendChild(c);
+    attachDrag(c, p.id);
+  });
+}
+
+/* ─── Drag handlers ─── */
+function attachDrag(card, id){
+  card.addEventListener('dragstart', e=>{
+    if(card.classList.contains('used')){e.preventDefault();return;}
+    dragId=id; card.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',id);
+    ghost.textContent=PERIODS.find(p=>p.id===id).art; ghost.style.display='flex';
+    const cv=document.createElement('canvas');cv.width=cv.height=1;e.dataTransfer.setDragImage(cv,0,0);
+  });
+  card.addEventListener('dragend', ()=>{card.classList.remove('dragging');ghost.style.display='none';dragId=null;
+    document.querySelectorAll('.tl-slot').forEach(s=>s.classList.remove('over'));});
+  // touch
+  card.addEventListener('touchstart', e=>{
+    if(card.classList.contains('used'))return;
+    dragId=id; card.classList.add('dragging');
+    ghost.textContent=PERIODS.find(p=>p.id===id).art;
+    const t=e.touches[0]; ghost.style.left=t.clientX+'px'; ghost.style.top=t.clientY+'px'; ghost.style.display='flex';
+  },{passive:true});
+  card.addEventListener('touchmove', e=>{
+    e.preventDefault(); const t=e.touches[0];
+    ghost.style.left=t.clientX+'px'; ghost.style.top=t.clientY+'px';
+    const el=document.elementFromPoint(t.clientX,t.clientY); const z=el?el.closest('.tl-slot'):null;
+    document.querySelectorAll('.tl-slot').forEach(s=>s.classList.toggle('over', s===z && !s.classList.contains('done')));
+  },{passive:false});
+  card.addEventListener('touchend', e=>{
+    const t=e.changedTouches[0]; ghost.style.display='none'; card.classList.remove('dragging');
+    document.querySelectorAll('.tl-slot').forEach(s=>s.classList.remove('over'));
+    const el=document.elementFromPoint(t.clientX,t.clientY); const z=el?el.closest('.tl-slot'):null;
+    if(z && dragId) tryPlace(dragId, +z.dataset.pos);
+    dragId=null;
+  });
+}
+document.addEventListener('dragover', e=>{ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';});
+document.querySelectorAll('.tl-slot').forEach(slot=>{
+  slot.addEventListener('dragover', e=>{e.preventDefault();if(!slot.classList.contains('done'))slot.classList.add('over');});
+  slot.addEventListener('dragleave', ()=>slot.classList.remove('over'));
+  slot.addEventListener('drop', e=>{e.preventDefault();slot.classList.remove('over');
+    const id=e.dataTransfer.getData('text/plain')||dragId; if(id) tryPlace(id, +slot.dataset.pos);});
+});
+
+/* ─── Placement logic ─── */
+function tryPlace(id, pos){
+  if(gameOver || pendingId) return;
+  const slot = document.querySelector(`.tl-slot[data-pos="${pos}"]`);
+  if(slot.classList.contains('done')) return;
+  const p = PERIODS.find(x=>x.id===id);
+
+  if(p.order !== pos){
+    // ⚠️ TIME PARADOX — wrong chronological position
+    mistakes++;
+    slot.classList.add('paradox');
+    setTimeout(()=>slot.classList.remove('paradox'),520);
+    flashPortalError();
+    setKronos('⚠️ Уақыт парадоксы! Бұл кезең бұл орынға сәйкес келмейді. Жылдарға қарап, дұрыс ретпен қой!','warn');
+    playSound(false);
+    return;
+  }
+
+  // Correct position → tentative, ask Analysis Detector
+  pendingId = id; pendingPos = pos;
+  slot.classList.add('pending');
+  // place tentative mini-card
+  renderSlotCard(slot, p, false);
+  openAnalyzer(p);
+}
+
+function renderSlotCard(slot, p, locked){
+  slot.querySelectorAll('.slot-num,.slot-arrow,.slot-hint,.slot-card').forEach(e=>e.remove());
+  const sc=document.createElement('div');
+  sc.className='slot-card'+(locked?' locked':'');
+  sc.innerHTML=`<div class="sc-art" style="background:${p.grad}">${p.art}</div><div class="sc-year">${p.year}</div>`+(locked?'<div class="sc-check">✓</div>':'');
+  slot.appendChild(sc);
+}
+
+/* ─── Analysis Detector ─── */
+function openAnalyzer(p){
+  document.getElementById('anQ').textContent = p.q;
+  document.getElementById('anCtx').textContent = '📅 '+p.year+' — '+p.ctx;
+  const box = document.getElementById('anOpts'); box.innerHTML='';
+  // shuffle options
+  const opts=[...p.opts];
+  for(let i=opts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[opts[i],opts[j]]=[opts[j],opts[i]];}
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='an-opt';
+    b.innerHTML=`<span class="dot"></span><span>${o.t}</span>`;
+    b.onclick=()=>answerAnalysis(b,o.ok,p);
+    box.appendChild(b);
+  });
+  setKronos('🔬 Портал растауды талап етеді: бұл кезең неліктен маңызды?','');
+  document.getElementById('analyzer').classList.add('show');
+}
+
+function answerAnalysis(btn, ok, p){
+  if(ok){
+    btn.classList.add('correct');
+    document.querySelectorAll('.an-opt').forEach(b=>b.classList.add('disabled'));
+    playSound(true);
+    setTimeout(()=>{
+      document.getElementById('analyzer').classList.remove('show');
+      lockCard(p);
+    },600);
+  } else {
+    mistakes++;
+    btn.classList.add('wrong','disabled');
+    playSound(false);
+    setKronos('❌ Дәл емес. Қайта ойлан — бұл кезеңнің НЕГІЗГІ функциясы қандай?','warn');
+  }
+}
+
+function lockCard(p){
+  const slot=document.querySelector(`.tl-slot[data-pos="${pendingPos}"]`);
+  slot.classList.remove('pending'); slot.classList.add('done');
+  renderSlotCard(slot, p, true);
+  // remove from tray
+  const card=document.getElementById('pc_'+p.id); if(card) card.classList.add('used');
+  // portal charge
+  lockedCount++;
+  document.getElementById('op'+(p.order-1)).classList.add('done');
+  spawnParticles(slot);
+  updatePortal();
+  setKronos('✅ Жарайсың! '+p.name+' уақыт сызығына бекітілді.','good');
+  pendingId=null; pendingPos=null;
+
+  if(lockedCount>=TOTAL) winGame();
+}
+
+/* ─── Portal ─── */
+function updatePortal(){
+  const pct=Math.round(lockedCount/TOTAL*100);
+  document.getElementById('hudPortal').textContent=pct+'%';
+  document.getElementById('hudScore').textContent=lockedCount*10;
+  document.getElementById('portalPct').textContent=lockedCount+' / '+TOTAL+' блок';
+  const portal=document.getElementById('portal');
+  if(lockedCount>0 && lockedCount<TOTAL){ portal.classList.add('charging'); }
+  document.getElementById('portalStatus').textContent = lockedCount<TOTAL ? 'ҚҰЛЫПТАУЛЫ' : 'АШЫҚ';
+}
+function flashPortalError(){
+  const core=document.querySelector('.portal-core');
+  core.style.transition='box-shadow .1s';
+  core.style.boxShadow='0 0 30px rgba(239,68,68,.8), inset 0 0 20px rgba(239,68,68,.5)';
+  setTimeout(()=>{core.style.boxShadow='';},400);
+}
+
+/* ─── Win ─── */
+function winGame(){
+  gameOver=true; clearInterval(timerInterval);
+  const portal=document.getElementById('portal');
+  portal.classList.remove('charging'); portal.classList.add('open');
+  document.getElementById('portalLock').textContent='🌀';
+  document.getElementById('portalStatus').textContent='АШЫҚ';
+  setKronos('🎉 Рахмет! Уақыт порталы қайта іске қосылды! Менің жадым қалпына келді.','good');
+  const stars = mistakes===0?3 : mistakes<=2?2 : 1;
+  const score = mistakes===0?0.5 : mistakes<=2?0.3 : 0.1;
+  setTimeout(()=>showResult(stars,score),1100);
+}
+
+function showResult(stars,score){
+  document.getElementById('resIcon').textContent='🌀';
+  document.getElementById('resTitle').textContent='Портал ашылды!';
+  document.getElementById('resTitle').className='result-title win';
+  document.getElementById('resSub').textContent = mistakes===0
+    ? 'Робототехника тарихын мінсіз қалпына келтірдің! KRONOS-1 болашаққа орала алады. 🎯'
+    : `Уақыт сызығы қалпына келтірілді! Қателер: ${mistakes}.`;
+  const sr=document.getElementById('resStars'); sr.innerHTML='';
+  for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='star-icon';s.textContent='⭐';sr.appendChild(s);if(i<=stars)setTimeout(()=>s.classList.add('lit'),i*220);}
+  document.getElementById('resultOverlay').classList.add('show');
+  spawnConfetti();
+  submitResult(score,stars);
+}
+
+let submitted=false;
+function submitResult(score,stars){
+  if(submitted)return; submitted=true;
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Робот тарихы',score,stars,completed:stars>0})}).catch(()=>{});
+}
+function goNext(){ window.location.href='/quest3/m3'; }
+
+/* ─── KRONOS speech ─── */
+let krTimer;
+function setKronos(msg, cls){
+  const b=document.getElementById('krBubble');
+  b.textContent=msg; b.className='kr-bubble'+(cls?' '+cls:'');
+  clearTimeout(krTimer);
+  if(cls==='warn'||cls==='good') krTimer=setTimeout(()=>{ if(!gameOver) b.className='kr-bubble'; },4000);
+}
+
+/* ─── Timer ─── */
+function startTimer(){
+  timerInterval=setInterval(()=>{
+    timerSec--;
+    const m=Math.floor(timerSec/60),s=timerSec%60;
+    const el=document.getElementById('hudTimer');
+    el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if(timerSec<=30) el.classList.add('warn');
+    if(timerSec<=0){clearInterval(timerInterval);if(!gameOver){gameOver=true;
+      const stars=lockedCount>=TOTAL?2:lockedCount>=3?1:0;
+      const score=lockedCount>=TOTAL?0.3:lockedCount>=3?0.1:0.03;
+      document.getElementById('resIcon').textContent='⏱️';
+      document.getElementById('resTitle').textContent='Уақыт бітті';
+      document.getElementById('resTitle').className='result-title lose';
+      document.getElementById('resSub').textContent=`${lockedCount} / ${TOTAL} кезең бекітілді.`;
+      const sr=document.getElementById('resStars');sr.innerHTML='';
+      for(let i=1;i<=3;i++){const sp=document.createElement('span');sp.className='star-icon';sp.textContent='⭐';sr.appendChild(sp);if(i<=stars)setTimeout(()=>sp.classList.add('lit'),i*220);}
+      document.getElementById('resultOverlay').classList.add('show');
+      if(stars>0) submitResult(score,stars);
+    }}
+  },1000);
+}
+
+/* ─── FX ─── */
+function spawnParticles(el){
+  const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const colors=['#22c55e','#00e5ff','#fbbf24','#a78bfa'];
+  for(let i=0;i<14;i++){const p=document.createElement('div');p.className='particle';
+    const a=Math.random()*Math.PI*2,d=40+Math.random()*60,sz=5+Math.random()*4;
+    p.style.cssText=`left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;background:${colors[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1000);}
+}
+function spawnConfetti(){
+  const colors=['#00e5ff','#fbbf24','#4ade80','#a78bfa','#f87171','#fff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';
+    const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+    c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${colors[i%colors.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.6}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.8)*1000);}
+}
+
+/* ─── Audio ─── */
+let audioCtx;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playSound(ok){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);
+  if(ok){o.type='sine';o.frequency.setValueAtTime(523,a.currentTime);o.frequency.linearRampToValueAtTime(1046,a.currentTime+.18);g.gain.setValueAtTime(.22,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.35);o.start();o.stop(a.currentTime+.35);}
+  else{o.type='sawtooth';o.frequency.value=150;g.gain.setValueAtTime(.16,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.28);o.start();o.stop(a.currentTime+.28);}
+}catch(e){}}
+
+/* ─── Init ─── */
+buildTray();
+startTimer();
+</script>
+</body>
+</html>

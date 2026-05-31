@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Миссия 3 — Гироскоп + PID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/*──────────────────── RESET ────────────────────*/
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;
+  color:#e2e8f0;overflow:hidden;background:#060d2e;user-select:none}
+
+/*──────────────────── BACKGROUND ────────────────────*/
+body{
+  background-image:
+    radial-gradient(ellipse 130% 55% at 50% -5%,rgba(0,90,180,.38) 0%,transparent 55%),
+    radial-gradient(ellipse 55% 35% at 5%  55%, rgba(0,180,255,.07) 0%,transparent 50%),
+    radial-gradient(ellipse 55% 35% at 95% 55%, rgba(0,100,220,.07) 0%,transparent 50%);
+  background-color:#050c1e;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);
+  background-size:44px 44px;
+}
+
+/*──────────────────── HUD ────────────────────*/
+.hud{
+  position:relative;z-index:10;display:flex;align-items:center;height:52px;
+  background:linear-gradient(180deg,rgba(4,12,42,.98),rgba(2,8,30,.97));
+  border-bottom:2px solid rgba(0,180,255,.32);
+  box-shadow:0 2px 22px rgba(0,180,255,.14);padding:0 12px;
+}
+.hud-seg{display:flex;align-items:center;gap:6px;padding:0 14px;height:100%;
+  border-right:1px solid rgba(0,180,255,.16);font-weight:800;font-size:13px;white-space:nowrap}
+.hud-seg:last-child{border-right:none;margin-left:auto}
+.hud-icon{font-size:17px;flex-shrink:0}
+.hud-label{color:rgba(148,163,184,.65);font-size:10.5px;font-weight:700;margin-right:1px}
+.hud-val{color:#fff;font-size:13px;font-weight:900}
+.hud-val.cyan{color:#00e5ff;text-shadow:0 0 8px rgba(0,229,255,.5)}
+.hud-val.gold{color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.5)}
+.hud-timer.warn{color:#ef4444;animation:blink .5s infinite}
+.hud-gear{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:18px;transition:background .2s}
+.hud-gear:hover{background:rgba(255,255,255,.14)}
+.hud-back{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;transition:background .2s;white-space:nowrap;flex-shrink:0;margin-right:5px}
+.hud-back.mod{background:rgba(0,180,255,.1);border:1px solid rgba(0,229,255,.35);color:#7dd3fc}
+.hud-back.mod:hover{background:rgba(0,229,255,.2)}
+.hud-back.prev{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fbbf24}
+.hud-back.prev:hover{background:rgba(245,158,11,.22)}
+
+/*──────────────────── MISSION STRIP ────────────────────*/
+.mission-strip{
+  position:relative;z-index:10;display:flex;align-items:center;
+  justify-content:space-between;padding:7px 18px;gap:12px;
+  background:linear-gradient(90deg,rgba(0,50,120,.55),rgba(0,40,100,.42),rgba(0,50,120,.55));
+  border-bottom:1px solid rgba(0,180,255,.18);
+}
+.mission-text{text-align:center;flex:1}
+.m-title{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;
+  color:#e2e8f0;letter-spacing:.2px}
+.m-sub{font-size:11px;color:rgba(148,163,184,.72);margin-top:2px}
+.hint-box{flex-shrink:0;width:200px;padding:6px 10px;
+  background:rgba(0,229,255,.07);border:1.5px solid rgba(0,229,255,.32);
+  border-radius:10px;font-size:10.5px;font-weight:700;color:#a5f3fc;
+  text-align:center;line-height:1.4;transition:all .5s}
+.hint-box.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.5);color:#fde68a}
+.hint-box.good{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.5);color:#bbf7d0}
+
+/*──────────────────── STAGE ────────────────────*/
+.stage{
+  position:relative;z-index:1;display:flex;gap:10px;padding:10px 12px;
+  height:calc(100vh - 52px - 50px);overflow:hidden;
+}
+
+/*──────────────────── PANELS ────────────────────*/
+.panel{display:flex;flex-direction:column;gap:8px;min-width:0}
+.panel.left{flex:1.25}
+.panel.right{flex:1}
+.panel-header{
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:7px 14px;border-radius:12px;
+  background:linear-gradient(135deg,rgba(0,80,180,.48),rgba(0,50,140,.58));
+  border:1.5px solid rgba(0,180,255,.32);
+  font-family:'Exo 2',sans-serif;font-weight:900;font-size:14px;color:#fff;
+  letter-spacing:1.2px;text-shadow:0 0 12px rgba(0,229,255,.45);
+}
+.panel-body{
+  flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;
+  border:1.5px solid rgba(0,180,255,.2);border-radius:14px;padding:10px;
+  background:linear-gradient(160deg,rgba(5,14,50,.75),rgba(3,8,30,.85));
+  overflow:hidden;
+}
+
+/*──────────────────── ROBOT CANVAS ────────────────────*/
+.robot-stage{
+  position:relative;flex:1;min-height:0;border-radius:12px;overflow:hidden;
+  background:
+    radial-gradient(ellipse 90% 50% at 50% 20%,rgba(0,100,200,.18),transparent 70%),
+    linear-gradient(180deg,rgba(1,6,24,.55),rgba(1,4,18,.9));
+  border:1px solid rgba(0,180,255,.16);
+}
+#robotCanvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* tilt badge */
+.tilt-badge{
+  position:absolute;top:10px;left:10px;z-index:3;
+  padding:5px 14px;border-radius:22px;
+  font-family:'Exo 2',sans-serif;font-weight:900;font-size:14px;
+  background:rgba(0,8,32,.88);border:1.5px solid rgba(0,229,255,.5);
+  color:#00e5ff;box-shadow:0 0 16px rgba(0,229,255,.22);
+  transition:border-color .2s,color .2s,box-shadow .2s;
+}
+.tilt-badge.danger{
+  border-color:rgba(239,68,68,.75);color:#fca5a5;
+  box-shadow:0 0 18px rgba(239,68,68,.35);
+}
+
+/* push indicator */
+.push-indicator{
+  position:absolute;top:50%;z-index:4;
+  transform:translateY(-50%);
+  display:none;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:10px;
+  font-family:'Exo 2',sans-serif;font-weight:900;font-size:13px;
+  background:rgba(239,68,68,.2);border:1.5px solid rgba(239,68,68,.7);
+  color:#fca5a5;pointer-events:none;
+  animation:pushFlash .5s ease;
+}
+.push-indicator.left-hit{left:8px}
+.push-indicator.right-hit{right:8px}
+@keyframes pushFlash{0%{opacity:0;transform:translateY(-50%) scale(.7)}60%{opacity:1;transform:translateY(-50%) scale(1.08)}100%{opacity:1;transform:translateY(-50%) scale(1)}}
+
+/* bias indicator */
+.bias-arrow{
+  position:absolute;bottom:55px;z-index:4;font-size:11px;font-weight:800;
+  color:#fbbf24;opacity:0;transition:opacity .4s;pointer-events:none;
+  font-family:'Exo 2',sans-serif;letter-spacing:.3px;
+}
+.bias-arrow.show{opacity:1}
+
+/* charge bar */
+.charge-wrap{position:absolute;bottom:8px;left:8px;right:8px;z-index:3}
+.charge-label{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:10px;font-weight:800;color:#a5f3fc;margin-bottom:4px;
+}
+.charge-phase-tag{
+  font-family:'Exo 2',sans-serif;font-size:10px;font-weight:900;
+  color:#7dd3fc;letter-spacing:.5px;
+}
+.charge-track{
+  height:10px;border-radius:5px;background:rgba(0,20,50,.85);
+  border:1px solid rgba(0,180,255,.28);overflow:hidden;position:relative;
+}
+.charge-fill{
+  height:100%;width:0%;border-radius:5px;
+  background:linear-gradient(90deg,#06b6d4,#22c55e);
+  transition:width .12s;box-shadow:0 0 12px rgba(34,197,94,.45);
+}
+
+/*──────────────────── PHASE PILLS ────────────────────*/
+.phase-row{display:flex;gap:6px;flex-shrink:0}
+.phase-pill{
+  flex:1;padding:5px 6px;border-radius:8px;
+  font-size:9.5px;font-weight:800;text-align:center;
+  background:rgba(0,12,40,.65);border:1px solid rgba(0,180,255,.16);
+  color:rgba(148,163,184,.65);transition:.3s;letter-spacing:.2px;
+}
+.phase-pill.active{
+  background:rgba(0,229,255,.12);border-color:rgba(0,229,255,.52);
+  color:#a5f3fc;box-shadow:0 0 10px rgba(0,229,255,.15);
+}
+.phase-pill.done{
+  background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.48);color:#86efac;
+}
+
+/*──────────────────── PARAM CARDS ────────────────────*/
+.param-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex-shrink:0}
+.pcrd{
+  padding:10px 12px 10px;border-radius:12px;
+  background:linear-gradient(155deg,rgba(7,18,58,.9),rgba(4,10,38,.95));
+  border:1.5px solid var(--c,#38bdf8);
+  transition:box-shadow .25s,border-color .25s;
+}
+.pcrd.glow{box-shadow:0 0 20px rgba(var(--cr),0.32)}
+.pcrd-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.pcrd-name{
+  font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;
+  letter-spacing:.8px;color:var(--c,#38bdf8);
+}
+.pcrd-val{
+  font-family:'Exo 2',sans-serif;font-size:20px;font-weight:900;
+  color:#fff;line-height:1;
+}
+.pcrd-desc{font-size:9px;color:rgba(148,163,184,.6);margin-bottom:6px;font-weight:700}
+/* REAL VISIBLE SLIDER — no opacity trick */
+.pslider{
+  -webkit-appearance:none;appearance:none;
+  display:block;width:100%;height:6px;
+  border-radius:3px;outline:none;cursor:pointer;
+  border:none;margin:0;
+  /* fill gradient updated via JS --p variable */
+  background:linear-gradient(to right, var(--c,#38bdf8) 0%, var(--c,#38bdf8) var(--p,50%), rgba(255,255,255,.12) var(--p,50%));
+  transition:box-shadow .15s;
+}
+.pslider:hover{box-shadow:0 0 8px var(--c,#38bdf8)}
+.pslider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:#fff;border:2.5px solid var(--c,#38bdf8);
+  box-shadow:0 0 10px var(--c,#38bdf8);cursor:pointer;
+}
+.pslider::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;background:#fff;
+  border:2.5px solid var(--c,#38bdf8);cursor:pointer;box-sizing:border-box;
+}
+.slr-hint{font-size:8.5px;color:rgba(148,163,184,.5);margin-top:3px;font-weight:700;text-align:right}
+
+/*──────────────────── GYRO (right) ────────────────────*/
+.gyro-stage{
+  flex-shrink:0;height:145px;display:flex;align-items:center;
+  justify-content:center;position:relative;
+}
+.gimbal{position:relative;width:120px;height:120px}
+.gring{
+  position:absolute;border-radius:50%;border:2.5px solid;
+  left:50%;top:50%;transform:translate(-50%,-50%);transition:transform .05s linear;
+}
+.gring.outer{
+  width:120px;height:120px;border-color:rgba(56,189,248,.5);
+  animation:spinY 7s linear infinite;
+}
+.gring.mid{width:86px;height:86px;border-color:rgba(167,139,250,.5)}
+.gring.inner{width:52px;height:52px;border-color:rgba(251,146,60,.55);
+  animation:spinZ 3s linear infinite}
+@keyframes spinY{from{transform:translate(-50%,-50%) rotateY(0)}to{transform:translate(-50%,-50%) rotateY(360deg)}}
+@keyframes spinZ{from{transform:translate(-50%,-50%) rotateZ(0)}to{transform:translate(-50%,-50%) rotateZ(360deg)}}
+.gimbal-core{
+  position:absolute;left:50%;top:50%;width:32px;height:32px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 38% 32%,#22d3ee,#0e7490);
+  box-shadow:0 0 24px rgba(34,211,238,.65);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  transition:background .3s,box-shadow .3s;
+}
+.gimbal-core.stable{
+  background:radial-gradient(circle at 38% 32%,#4ade80,#166534);
+  box-shadow:0 0 24px rgba(74,222,128,.65);
+}
+
+/* axis labels around gimbal */
+.gyro-axis{
+  position:absolute;font-family:'Exo 2',sans-serif;font-size:9px;font-weight:900;
+  letter-spacing:.5px;
+}
+.gyro-axis.yaw{top:4px;left:50%;transform:translateX(-50%);color:#38bdf8}
+.gyro-axis.pitch{right:4px;top:50%;transform:translateY(-50%);color:#a78bfa}
+.gyro-axis.roll{bottom:4px;left:50%;transform:translateX(-50%);color:#fb923c}
+
+/*──────────────────── RAW DATA ────────────────────*/
+.rawdata{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex-shrink:0}
+.raw-cell{
+  padding:6px 4px;border-radius:10px;text-align:center;
+  background:rgba(0,10,38,.75);border:1px solid rgba(0,180,255,.18);
+}
+.raw-k{font-size:8.5px;font-weight:800;color:rgba(148,163,184,.75);
+  text-transform:uppercase;letter-spacing:.6px}
+.raw-v{
+  font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;
+  color:#00e5ff;margin-top:2px;transition:color .2s;
+}
+.raw-v.warn{color:#fbbf24}
+.raw-v.bad{color:#f87171}
+
+/*──────────────────── GRAPH ────────────────────*/
+.graph-wrap{
+  flex:1;min-height:0;border-radius:10px;overflow:hidden;position:relative;
+  background:rgba(0,6,24,.75);border:1px solid rgba(0,180,255,.18);
+}
+#graphCanvas{position:absolute;inset:0;width:100%;height:100%}
+.graph-top{
+  position:absolute;top:5px;left:0;right:0;z-index:2;
+  display:flex;justify-content:space-between;padding:0 8px;
+}
+.graph-label{font-size:9px;font-weight:800;color:rgba(148,163,184,.7)}
+.status-tag{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900}
+.status-tag.bad{color:#f87171}.status-tag.warn{color:#fbbf24}.status-tag.good{color:#4ade80}
+
+/*──────────────────── COACH ────────────────────*/
+.coach{
+  flex-shrink:0;padding:9px 12px;border-radius:11px;
+  font-size:11.5px;font-weight:700;line-height:1.45;
+  display:flex;align-items:flex-start;gap:7px;
+  background:rgba(99,102,241,.1);border:1.5px solid rgba(99,102,241,.38);
+  color:#c7d2fe;transition:background .35s,border-color .35s,color .35s;
+}
+.coach.good{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.42);color:#bbf7d0}
+.coach.bad{background:rgba(239,68,68,.09);border-color:rgba(239,68,68,.38);color:#fecaca}
+.coach.warn{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.38);color:#fde68a}
+.coach-ico{font-size:16px;flex-shrink:0;margin-top:1px}
+.coach-txt{flex:1}
+
+/*──────────────────── PHASE TRANSITION OVERLAY ────────────────────*/
+.ptrans{
+  position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.75);opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.ptrans.show{opacity:1;pointer-events:all}
+.ptrans-card{
+  text-align:center;padding:40px 56px;
+  background:linear-gradient(155deg,rgba(6,16,56,.99),rgba(3,8,30,.99));
+  border:2px solid rgba(0,229,255,.4);border-radius:24px;
+  box-shadow:0 0 70px rgba(0,229,255,.16);
+  transform:scale(.82);transition:transform .35s;
+}
+.ptrans.show .ptrans-card{transform:scale(1)}
+.ptrans-num{
+  font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;
+  letter-spacing:3px;color:#7dd3fc;text-transform:uppercase;margin-bottom:8px;
+}
+.ptrans-title{
+  font-family:'Exo 2',sans-serif;font-size:32px;font-weight:900;
+  color:#fff;text-shadow:0 0 24px rgba(0,229,255,.5);margin-bottom:8px;
+}
+.ptrans-desc{font-size:14px;color:rgba(148,163,184,.9);line-height:1.5;margin-bottom:4px}
+.ptrans-hint{
+  margin-top:16px;display:inline-block;padding:7px 18px;border-radius:20px;
+  background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.35);
+  font-size:12px;font-weight:700;color:#a5f3fc;
+}
+.ptrans-bar{
+  margin-top:22px;height:5px;border-radius:3px;background:rgba(0,180,255,.15);
+  overflow:hidden;
+}
+.ptrans-bar-fill{height:100%;background:#00e5ff;animation:countDown 2s linear forwards}
+@keyframes countDown{from{width:100%}to{width:0%}}
+
+/*──────────────────── RESULT OVERLAY ────────────────────*/
+.result-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.84);
+  display:flex;align-items:center;justify-content:center;
+  z-index:300;opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.result-overlay.show{opacity:1;pointer-events:all}
+.result-card{
+  background:linear-gradient(155deg,rgba(7,18,60,.99),rgba(3,8,28,.99));
+  border:2px solid rgba(0,229,255,.38);border-radius:24px;
+  padding:32px 42px;text-align:center;max-width:440px;width:92%;
+  box-shadow:0 0 65px rgba(0,229,255,.16);transform:scale(.8);transition:transform .32s;
+}
+.result-overlay.show .result-card{transform:scale(1)}
+.result-icon{font-size:56px;margin-bottom:10px;display:block}
+.result-title{font-family:'Exo 2',sans-serif;font-size:26px;font-weight:900;margin-bottom:8px}
+.result-title.win{color:#4ade80;text-shadow:0 0 16px rgba(74,222,128,.4)}
+.result-title.lose{color:#f87171;text-shadow:0 0 16px rgba(248,113,113,.4)}
+.result-sub{font-size:13px;color:rgba(148,163,184,.9);line-height:1.6;margin-bottom:14px}
+.learn-box{
+  text-align:left;font-size:11.5px;line-height:1.55;color:#cbd5e1;
+  background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.22);
+  border-radius:12px;padding:11px 13px;margin-bottom:16px;
+}
+.learn-box b{color:#7dd3fc}
+.stars-row{display:flex;justify-content:center;gap:10px;margin:6px 0 16px}
+.star-icon{font-size:30px;filter:grayscale(1);transition:filter .3s,transform .3s}
+.star-icon.lit{filter:none;animation:starPop .4s ease}
+@keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 24px;border:none;
+  border-radius:50px;font-weight:800;font-size:14px;cursor:pointer;font-family:inherit;
+  transition:transform .18s;margin:0 4px}
+.btn:hover{transform:translateY(-2px)}
+.btn-cyan{background:linear-gradient(135deg,#06b6d4,#6366f1);color:#fff;box-shadow:0 4px 18px rgba(0,229,255,.3)}
+.btn-ghost{background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid rgba(255,255,255,.18)}
+
+/*──────────────────── PARTICLES ────────────────────*/
+.particle{
+  position:fixed;pointer-events:none;border-radius:50%;z-index:500;
+  animation:particleFly .9s ease-out forwards;
+}
+@keyframes particleFly{
+  0%{transform:translate(0,0) scale(1);opacity:1}
+  100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}
+}
+
+/*──────────────────── MISC ANIMATIONS ────────────────────*/
+@keyframes blink{50%{opacity:.35}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/*──────────────────── TUTORIAL ────────────────────*/
+.tut-overlay{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,.88);
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .3s;
+}
+.tut-overlay.hide{opacity:0;pointer-events:none}
+.tut-card{
+  background:linear-gradient(155deg,rgba(6,16,56,.99),rgba(3,9,28,.99));
+  border:2px solid rgba(0,229,255,.38);border-radius:22px;
+  padding:28px 32px;max-width:520px;width:94%;
+  box-shadow:0 0 60px rgba(0,229,255,.14);
+}
+.tut-header{
+  font-family:'Exo 2',sans-serif;font-size:20px;font-weight:900;
+  color:#fff;text-align:center;margin-bottom:8px;
+  text-shadow:0 0 18px rgba(0,229,255,.45);
+}
+.tut-sub{
+  font-size:12px;color:rgba(148,163,184,.85);text-align:center;
+  line-height:1.55;margin-bottom:18px;
+}
+.tut-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.tut-step{display:flex;gap:12px;align-items:flex-start}
+.tut-step-num{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:rgba(0,229,255,.15);border:1.5px solid rgba(0,229,255,.5);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Exo 2',sans-serif;font-weight:900;font-size:13px;color:#00e5ff;
+}
+.tut-step-body{flex:1}
+.tut-step-title{font-size:12.5px;font-weight:800;color:#e2e8f0;margin-bottom:3px}
+.tut-step-desc{font-size:11px;color:rgba(148,163,184,.75);line-height:1.45}
+.tut-params{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;
+}
+.tut-param{
+  padding:8px 6px;border-radius:10px;text-align:center;
+  background:rgba(0,12,40,.7);border:1.5px solid var(--c,#38bdf8);
+  font-size:11px;font-weight:700;color:#e2e8f0;line-height:1.5;
+}
+.tut-param b{color:var(--c,#38bdf8);font-family:'Exo 2',sans-serif;font-size:13px}
+.tut-param small{font-size:9px;color:rgba(148,163,184,.6)}
+.tut-btn{
+  display:block;width:100%;padding:13px;border:none;border-radius:50px;
+  background:linear-gradient(135deg,#06b6d4,#6366f1);
+  color:#fff;font-family:inherit;font-weight:900;font-size:16px;
+  cursor:pointer;letter-spacing:.5px;
+  box-shadow:0 4px 20px rgba(0,229,255,.3);transition:transform .18s,box-shadow .18s;
+}
+.tut-btn:hover{transform:translateY(-2px);box-shadow:0 6px 26px rgba(0,229,255,.45)}
+
+@media(max-height:660px){
+  .gyro-stage{height:110px}.gimbal{width:90px;height:90px}
+  .gring.outer{width:90px;height:90px}.gring.mid{width:65px;height:65px}.gring.inner{width:40px;height:40px}
+  .pcrd-val{font-size:16px}.hud{height:44px}
+}
+</style>
+</head>
+<body>
+
+<!--══ HUD ══-->
+<div class="hud">
+  <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
+  <a href="{{ url_for('quest3_m2') }}" class="hud-back prev">← М2</a>
+  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Mission</span><span class="hud-val cyan">3 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
+  <div class="hud-seg"><span class="hud-icon">🧩</span><span class="hud-label">Тұрақтылық</span><span class="hud-val cyan" id="hudProg">0%</span></div>
+  <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">02:30</span></div>
+</div>
+
+<!--══ MISSION STRIP ══-->
+<div class="mission-strip">
+  <div class="hint-box" id="hintLeft" style="visibility:hidden"></div>
+  <div class="mission-text">
+    <div class="m-title">3-миссия: Гироскоптық датчик және PID реттеу</div>
+    <div class="m-sub">Мақсат: Роботты 3 кезеңде тік ұстау үшін PID параметрлерін бапта</div>
+  </div>
+  <div class="hint-box" id="hintRight">Kp-ні 0.65-тен жоғары қой!</div>
+</div>
+
+<!--══ STAGE ══-->
+<div class="stage">
+
+  <!--── LEFT: Robot + Controls ──-->
+  <div class="panel left">
+    <div class="panel-header">🤖 ТЕҢГЕРЕТІН РОБОТ</div>
+    <div class="panel-body">
+
+      <!--── Robot canvas ──-->
+      <div class="robot-stage" id="robotStage">
+        <canvas id="robotCanvas"></canvas>
+        <div class="tilt-badge" id="tiltBadge">Көлбеу: 0°</div>
+        <div class="push-indicator" id="pushLeft">◀ СОҚҚЫ!</div>
+        <div class="push-indicator right-hit" id="pushRight">СОҚҚЫ! ▶</div>
+        <div class="bias-arrow" id="biasArrow" style="right:10px">⇒ Ауытқу</div>
+        <div class="charge-wrap">
+          <div class="charge-label">
+            <span>Тепе-теңдік заряды</span>
+            <span class="charge-phase-tag" id="chargePhaseTag">ФАЗА 1</span>
+            <span id="chargeTxt">0%</span>
+          </div>
+          <div class="charge-track"><div class="charge-fill" id="chargeFill"></div></div>
+        </div>
+      </div>
+
+      <!--── Phase pills ──-->
+      <div class="phase-row">
+        <div class="phase-pill active" id="ph0">⚡ 1. Тыныш (P)</div>
+        <div class="phase-pill" id="ph1">📡 2. Ауытқу (I)</div>
+        <div class="phase-pill" id="ph2">💥 3. Соққылар (D)</div>
+      </div>
+
+      <!--── Parameter cards ──-->
+      <div class="param-grid">
+
+        <!-- Kp -->
+        <div class="pcrd" id="pcrd_kp" style="--c:#38bdf8;--cr:56,189,248">
+          <div class="pcrd-top">
+            <span class="pcrd-name">Kp — P</span>
+            <span class="pcrd-val" id="pv_kp">0.50</span>
+          </div>
+          <div class="pcrd-desc">Пропорционал тіктеу күші</div>
+          <input class="pslider" type="range" id="sl_kp" min="0" max="100" value="50" style="--p:50%">
+          <div class="slr-hint">мақсат: 0.65+</div>
+        </div>
+
+        <!-- Ki -->
+        <div class="pcrd" id="pcrd_ki" style="--c:#a78bfa;--cr:167,139,250">
+          <div class="pcrd-top">
+            <span class="pcrd-name">Ki — I</span>
+            <span class="pcrd-val" id="pv_ki">0.00</span>
+          </div>
+          <div class="pcrd-desc">Ауытқуды жоятын интеграл</div>
+          <input class="pslider" type="range" id="sl_ki" min="0" max="100" value="0" style="--p:0%">
+          <div class="slr-hint">фаза 2-де қос</div>
+        </div>
+
+        <!-- Kd -->
+        <div class="pcrd" id="pcrd_kd" style="--c:#fb923c;--cr:251,146,60">
+          <div class="pcrd-top">
+            <span class="pcrd-name">Kd — D</span>
+            <span class="pcrd-val" id="pv_kd">0.00</span>
+          </div>
+          <div class="pcrd-desc">Тербелісті басатын демпфер</div>
+          <input class="pslider" type="range" id="sl_kd" min="0" max="100" value="0" style="--p:0%">
+          <div class="slr-hint">фаза 3-те қос</div>
+        </div>
+
+        <!-- Filter -->
+        <div class="pcrd" id="pcrd_flt" style="--c:#34d399;--cr:52,211,153">
+          <div class="pcrd-top">
+            <span class="pcrd-name">Фильтр — F</span>
+            <span class="pcrd-val" id="pv_flt">0.20</span>
+          </div>
+          <div class="pcrd-desc">Сенсор шуын тегістеу</div>
+          <input class="pslider" type="range" id="sl_flt" min="0" max="100" value="20" style="--p:20%">
+          <div class="slr-hint">шу болса 0.35+</div>
+        </div>
+
+      </div><!--/param-grid-->
+    </div><!--/panel-body-->
+  </div><!--/panel.left-->
+
+  <!--── RIGHT: Sensor panel ──-->
+  <div class="panel right">
+    <div class="panel-header">🧭 ГИРОСКОП ДАТЧИГІ</div>
+    <div class="panel-body">
+
+      <!--── Gyro gimbal ──-->
+      <div class="gyro-stage">
+        <div class="gimbal">
+          <div class="gring outer"></div>
+          <div class="gring mid" id="gimbalMid"></div>
+          <div class="gring inner"></div>
+          <div class="gimbal-core" id="gimbalCore">🛰️</div>
+        </div>
+        <div class="gyro-axis yaw">YAW</div>
+        <div class="gyro-axis pitch">PITCH</div>
+        <div class="gyro-axis roll">ROLL</div>
+      </div>
+
+      <!--── Raw sensor data ──-->
+      <div class="rawdata">
+        <div class="raw-cell">
+          <div class="raw-k">Yaw</div>
+          <div class="raw-v" id="rawYaw">0°</div>
+        </div>
+        <div class="raw-cell">
+          <div class="raw-k">Pitch</div>
+          <div class="raw-v" id="rawPitch">0°</div>
+        </div>
+        <div class="raw-cell">
+          <div class="raw-k">ω (рад/с)</div>
+          <div class="raw-v" id="rawOmega">0.0</div>
+        </div>
+      </div>
+
+      <!--── Oscilloscope ──-->
+      <div class="graph-wrap">
+        <canvas id="graphCanvas"></canvas>
+        <div class="graph-top">
+          <span class="graph-label">Pitch графигі (сенсор)</span>
+          <span class="status-tag bad" id="statusTag">Тұрақсыз</span>
+        </div>
+      </div>
+
+      <!--── Coach ──-->
+      <div class="coach" id="coach">
+        <span class="coach-ico">💡</span>
+        <span class="coach-txt">Роботты бақыла — ол қай жаққа ауытқиды? Kp-ді баяу көтер.</span>
+      </div>
+
+    </div><!--/panel-body-->
+  </div><!--/panel.right-->
+
+</div><!--/stage-->
+
+<!--══ TUTORIAL OVERLAY ══-->
+<div class="tut-overlay" id="tutOverlay">
+  <div class="tut-card">
+    <div class="tut-header">🤖 Миссия 3: Роботты теңгеру</div>
+    <div class="tut-sub">Бұл — Segway сияқты өзін-өзі теңгеретін робот.<br>Ол үнемі құлап кетуге тырысады. Сенің міндетің — оны тік ұстау.</div>
+
+    <div class="tut-steps">
+      <div class="tut-step">
+        <div class="tut-step-num">1</div>
+        <div class="tut-step-body">
+          <div class="tut-step-title">Kp ползунокты <span style="color:#38bdf8">0.70-тен жоғары</span> қой</div>
+          <div class="tut-step-desc">Робот наклоняется → колёса едут в ту же сторону → робот выпрямляется. Kp — сила этой реакции. Слишком мало — падает.</div>
+        </div>
+      </div>
+      <div class="tut-step">
+        <div class="tut-step-num">2</div>
+        <div class="tut-step-body">
+          <div class="tut-step-title">Kd ползунокты <span style="color:#fb923c">0.35-тен жоғары</span> қой</div>
+          <div class="tut-step-desc">Без Kd робот дрожит туда-сюда. Kd гасит колебания — добавь его как только робот начнёт качаться.</div>
+        </div>
+      </div>
+      <div class="tut-step">
+        <div class="tut-step-num">3</div>
+        <div class="tut-step-body">
+          <div class="tut-step-title">Зелёная полоска → <span style="color:#22c55e">100%</span></div>
+          <div class="tut-step-desc">Когда робот стоит тихо (наклон &lt;8°), полоска заряда растёт. Заполни её — перейдёшь в следующую фазу.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tut-params">
+      <div class="tut-param" style="--c:#38bdf8"><b>Kp</b> — тіктеу күші<br><small>0.70+ бастап</small></div>
+      <div class="tut-param" style="--c:#a78bfa"><b>Ki</b> — ауытқуды жою<br><small>фаза 2-де қос</small></div>
+      <div class="tut-param" style="--c:#fb923c"><b>Kd</b> — тербелісті бас<br><small>0.35+ бастап</small></div>
+      <div class="tut-param" style="--c:#34d399"><b>Фильтр</b> — шуды тегістеу<br><small>0.30 жеткілікті</small></div>
+    </div>
+
+    <button class="tut-btn" onclick="startFromTutorial()">▶ Бастау!</button>
+  </div>
+</div>
+
+<!--══ PHASE TRANSITION OVERLAY ══-->
+<div class="ptrans" id="pTrans">
+  <div class="ptrans-card">
+    <div class="ptrans-num" id="ptNum">ФАЗА 1 АЯҚТАЛДЫ</div>
+    <div class="ptrans-title" id="ptTitle">Ауытқу</div>
+    <div class="ptrans-desc" id="ptDesc">Тұрақты ауытқу пайда болды — тек Kp жеткіліксіз!</div>
+    <div class="ptrans-hint" id="ptHint">Ki параметрін қос</div>
+    <div class="ptrans-bar"><div class="ptrans-bar-fill" id="ptBarFill"></div></div>
+  </div>
+</div>
+
+<!--══ RESULT OVERLAY ══-->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-icon" id="resIcon">🎉</span>
+    <div class="result-title" id="resTitle">Тепе-теңдік сақталды!</div>
+    <div class="stars-row" id="resStars"></div>
+    <p class="result-sub" id="resSub"></p>
+    <div class="learn-box" id="learnBox"></div>
+    <div>
+      <button class="btn btn-ghost" id="retryBtn" onclick="restartGame()" style="display:none">↻ Қайталау</button>
+      <button class="btn btn-cyan" id="nextBtn" onclick="goNext()">Келесі миссия →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   MISSION 3: ГИРОСКОП + PID РЕТТЕУ
+   Инверттелген маятник физикасы — шынайы PID контроллері.
+   3 кезең:
+     Phase 0 (P)  — тыныш орта, тек Kp қажет
+     Phase 1 (I)  — тұрақты ауытқу (bias) пайда болады → Ki қажет
+     Phase 2 (D)  — кездейсоқ соққылар → Kd + Ki + Filter қажет
+════════════════════════════════════════════════════════════════ */
+
+/* ─── Physics constants ─── */
+const g = 11, L = 1.0;
+
+/* ─── Phase config ─── */
+const PH = {
+  bias   : [0,     0.52,  0.58 ],   // тұрақты ауытқу (рад·с⁻²)
+  noise  : [0,     0.018, 0.026],   // сенсор шуы (рад амплитуда)
+  disturb: [false, false, true ],   // соққылар белсенді ме?
+  rate   : [32,    24,    18   ],   // заряд жылдамдығы (/с)
+  drain  : [14,    10,    8    ],   // разряд жылдамдығы (/с)
+};
+const PH_TITLES = [
+  {num:'ФАЗА 1 АЯҚТАЛДЫ', title:'Ауытқу фазасы',   desc:'Тұрақты ауытқу пайда болды. Тек Kp жеткіліксіз!',              hint:'Ki параметрін баяу қос (0.2–0.5)'},
+  {num:'ФАЗА 2 АЯҚТАЛДЫ', title:'Соққылар фазасы', desc:'Кездейсоқ импульстер! Жылдам демпфер қажет.',                  hint:'Kd параметрін қос (0.3–0.5)'},
+];
+
+/* ─── State ─── */
+const P = { kp:0.50, ki:0.00, kd:0.00, flt:0.20 };
+function kpEff(){ return P.kp * 20 }
+function kiEff(){ return P.ki * 6  }
+function kdEff(){ return P.kd * 12 }
+function alpha(){ return P.flt * 0.96 }
+
+let theta, omega, filtTheta, filtOmega, prevFilt, integral;
+let disturb = 0;
+let phase = 0, phaseCharge = 0, charge = 0;
+let gameOver = false, paused = false;
+let timerSec = 150;
+let timerInterval, rafId, lastT;
+let coachTimer = 0, coachKey = '', glowTimer = {};
+let wheelX = 0;                    // visual wheel offset (px from center)
+let fallCount = 0;
+
+/* ─── Oscilloscope history ─── */
+const hist = [], HIST_MAX = 180;
+
+/* ════ INIT ════ */
+function resetPhysics(t0) {
+  theta = t0; omega = 0;
+  filtTheta = prevFilt = t0; filtOmega = 0;
+  integral = 0; disturb = 0; wheelX = 0;
+  hist.length = 0;
+}
+
+/* ════ PARAM SLIDERS ════ */
+const SLIDER_MAP = {
+  kp:  { elId:'sl_kp',  valId:'pv_kp',  max:1,    color:'#38bdf8' },
+  ki:  { elId:'sl_ki',  valId:'pv_ki',  max:1,    color:'#a78bfa' },
+  kd:  { elId:'sl_kd',  valId:'pv_kd',  max:1,    color:'#fb923c' },
+  flt: { elId:'sl_flt', valId:'pv_flt', max:0.95, color:'#34d399' },
+};
+
+function setParam(key, rawVal) {
+  const cfg = SLIDER_MAP[key];
+  const v = Math.max(0, Math.min(cfg.max, rawVal));
+  P[key] = v;
+  // value display
+  document.getElementById(cfg.valId).textContent = v.toFixed(2);
+  // update slider fill via CSS custom property --p
+  const pct = (v / cfg.max * 100).toFixed(1) + '%';
+  const slider = document.getElementById(cfg.elId);
+  slider.style.setProperty('--p', pct);
+  // glow on param card
+  const card = document.getElementById('pcrd_'+key);
+  card.classList.add('glow');
+  clearTimeout(glowTimer[key]);
+  glowTimer[key] = setTimeout(() => card.classList.remove('glow'), 800);
+}
+
+Object.keys(SLIDER_MAP).forEach(key => {
+  const cfg = SLIDER_MAP[key];
+  document.getElementById(cfg.elId).addEventListener('input', e => {
+    setParam(key, (e.target.value / 100) * cfg.max);
+  });
+});
+
+/* ════ CANVAS ════ */
+const rCv = document.getElementById('robotCanvas');
+const rCtx = rCv.getContext('2d');
+const gCv = document.getElementById('graphCanvas');
+const gCtx = gCv.getContext('2d');
+let rSz, gSz;
+let pushTimeout; // must be declared to avoid strict-mode errors
+
+function sizeCanvas(cv) {
+  // Use parentElement dimensions if canvas itself reports 0 (flex not yet resolved)
+  let w = cv.offsetWidth  || cv.parentElement.offsetWidth  || 300;
+  let h = cv.offsetHeight || cv.parentElement.offsetHeight || 200;
+  if (w < 2 || h < 2) { w = 300; h = 200; }
+  const dpr = window.devicePixelRatio || 1;
+  cv.width  = Math.round(w * dpr);
+  cv.height = Math.round(h * dpr);
+  cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { w, h };
+}
+function resizeAll() {
+  rSz = sizeCanvas(rCv);
+  gSz = sizeCanvas(gCv);
+}
+window.addEventListener('resize', resizeAll);
+
+/* ════ DRAW ROBOT ════ */
+function drawRobot() {
+  if (!rSz) return;
+  const { w, h } = rSz;
+  rCtx.clearRect(0, 0, w, h);
+
+  const baseY = h * 0.83;
+  // wheel x position: drifts with theta (controller moves wheels to compensate)
+  const wX = w * 0.5 + wheelX;
+
+  /* ── floor grid ── */
+  rCtx.strokeStyle = 'rgba(0,180,255,.2)'; rCtx.lineWidth = 1.5;
+  rCtx.beginPath(); rCtx.moveTo(w*0.04, baseY); rCtx.lineTo(w*0.96, baseY); rCtx.stroke();
+  for (let i = 0; i <= 14; i++) {
+    const x = w * 0.04 + i * (w * 0.92 / 14);
+    rCtx.strokeStyle = 'rgba(0,180,255,.09)'; rCtx.lineWidth = 1;
+    rCtx.beginPath(); rCtx.moveTo(x, baseY); rCtx.lineTo(x - 9, baseY + 11); rCtx.stroke();
+  }
+
+  /* ── wheel shadow (ground truth position) ── */
+  rCtx.save();
+  rCtx.globalAlpha = 0.18;
+  rCtx.beginPath(); rCtx.ellipse(wX, baseY + 4, 22, 5, 0, 0, Math.PI * 2);
+  rCtx.fillStyle = '#00e5ff'; rCtx.fill();
+  rCtx.restore();
+
+  const danger = Math.abs(theta) > 0.55;
+  const poleLen = h * 0.44, bodyW = w * 0.17, bodyH = h * 0.25;
+
+  rCtx.save();
+  rCtx.translate(wX, baseY);
+  rCtx.rotate(theta);
+
+  /* ── left wheel ── */
+  for (const side of [-1, 1]) {
+    const wx = side * 14;
+    rCtx.fillStyle = danger ? '#450a0a' : '#0c2a50';
+    rCtx.strokeStyle = danger ? '#ef4444' : '#22d3ee';
+    rCtx.lineWidth = 2;
+    rCtx.beginPath(); rCtx.arc(wx, 0, 12, 0, Math.PI * 2); rCtx.fill(); rCtx.stroke();
+    // hub
+    rCtx.fillStyle = danger ? '#ef4444' : '#00e5ff';
+    rCtx.beginPath(); rCtx.arc(wx, 0, 4, 0, Math.PI * 2); rCtx.fill();
+    // spoke
+    const spk = theta * 12; // rotate spoke with motion
+    rCtx.strokeStyle = danger ? '#f87171' : '#7dd3fc'; rCtx.lineWidth = 1.5;
+    rCtx.beginPath();
+    rCtx.moveTo(wx + Math.cos(spk)*5, Math.sin(spk)*5);
+    rCtx.lineTo(wx + Math.cos(spk+Math.PI)*5, Math.sin(spk+Math.PI)*5);
+    rCtx.stroke();
+  }
+
+  /* ── axle ── */
+  rCtx.strokeStyle = danger ? '#ef4444' : '#38bdf8'; rCtx.lineWidth = 4;
+  rCtx.beginPath(); rCtx.moveTo(-14, 0); rCtx.lineTo(14, 0); rCtx.stroke();
+
+  /* ── pole ── */
+  const poleGrad = rCtx.createLinearGradient(0, 0, 0, -poleLen);
+  poleGrad.addColorStop(0, danger ? 'rgba(239,68,68,.6)' : 'rgba(56,189,248,.5)');
+  poleGrad.addColorStop(1, danger ? 'rgba(239,68,68,.15)' : 'rgba(0,229,255,.15)');
+  rCtx.strokeStyle = poleGrad; rCtx.lineWidth = 7;
+  rCtx.beginPath(); rCtx.moveTo(0, -4); rCtx.lineTo(0, -poleLen); rCtx.stroke();
+  // pole center line
+  rCtx.strokeStyle = danger ? '#ef4444' : '#38bdf8'; rCtx.lineWidth = 2;
+  rCtx.beginPath(); rCtx.moveTo(0, -4); rCtx.lineTo(0, -poleLen); rCtx.stroke();
+
+  /* ── body (robot head) ── */
+  const bgrd = rCtx.createLinearGradient(0, -poleLen - bodyH, 0, -poleLen);
+  bgrd.addColorStop(0, danger ? '#ef4444' : '#22d3ee');
+  bgrd.addColorStop(0.5, danger ? '#b91c1c' : '#0891b2');
+  bgrd.addColorStop(1, danger ? '#7f1d1d' : '#0e7490');
+  rCtx.fillStyle = bgrd;
+  rCtx.strokeStyle = danger ? '#fca5a5' : '#67e8f9'; rCtx.lineWidth = 2;
+  roundRect(rCtx, -bodyW/2, -poleLen-bodyH, bodyW, bodyH, 9);
+  rCtx.fill(); rCtx.stroke();
+
+  /* ── antenna ── */
+  rCtx.strokeStyle = danger ? '#f87171' : '#7dd3fc'; rCtx.lineWidth = 1.5;
+  rCtx.beginPath(); rCtx.moveTo(0, -poleLen-bodyH); rCtx.lineTo(0, -poleLen-bodyH-12); rCtx.stroke();
+  rCtx.fillStyle = danger ? '#ef4444' : '#00e5ff';
+  rCtx.beginPath(); rCtx.arc(0, -poleLen-bodyH-14, 3.5, 0, Math.PI*2); rCtx.fill();
+
+  /* ── eyes ── */
+  const eyeY = -poleLen - bodyH * 0.62;
+  const eyeOpen = Math.abs(theta) < 0.3; // eyes wide when stable
+  const blink = danger ? 0.3 : 1;
+  // eye whites
+  rCtx.fillStyle = '#fff';
+  rCtx.beginPath();
+  rCtx.ellipse(-bodyW*0.19, eyeY, 5, eyeOpen?5:2, 0, 0, Math.PI*2);
+  rCtx.ellipse( bodyW*0.19, eyeY, 5, eyeOpen?5:2, 0, 0, Math.PI*2);
+  rCtx.fill();
+  // pupils (look in direction of tilt)
+  const px = Math.sin(theta) * 2;
+  rCtx.fillStyle = danger ? '#ef4444' : '#0a1230';
+  rCtx.beginPath();
+  rCtx.arc(-bodyW*0.19+px, eyeY, 2.5, 0, Math.PI*2);
+  rCtx.arc( bodyW*0.19+px, eyeY, 2.5, 0, Math.PI*2);
+  rCtx.fill();
+
+  /* ── mouth (smile/frown) ── */
+  const mouthY = -poleLen - bodyH * 0.3;
+  rCtx.strokeStyle = danger ? '#fca5a5' : '#67e8f9'; rCtx.lineWidth = 2;
+  rCtx.beginPath();
+  if (danger) {
+    // frown
+    rCtx.arc(0, mouthY+4, 7, Math.PI*0.1, Math.PI*0.9); rCtx.stroke();
+  } else {
+    // smile
+    rCtx.arc(0, mouthY-4, 7, Math.PI*0.1, Math.PI*0.9, true); rCtx.stroke();
+  }
+
+  rCtx.restore();
+
+  /* ── target vertical ── */
+  const cx = w * 0.5;
+  rCtx.strokeStyle = 'rgba(255,255,255,.1)'; rCtx.setLineDash([5,7]); rCtx.lineWidth = 1.5;
+  rCtx.beginPath(); rCtx.moveTo(cx, baseY); rCtx.lineTo(cx, baseY-poleLen-bodyH-18); rCtx.stroke();
+  rCtx.setLineDash([]);
+
+  /* ── bias arrow on canvas ── */
+  if (phase >= 1 && PH.bias[phase] > 0) {
+    const bx = cx + Math.sign(PH.bias[phase]) * (w * 0.3);
+    rCtx.font = 'bold 11px Exo 2,sans-serif';
+    rCtx.fillStyle = 'rgba(251,191,36,.55)';
+    rCtx.fillText('⇒ Bias', cx + (PH.bias[phase]>0?20:-60), baseY - poleLen * 0.5);
+  }
+}
+
+function roundRect(c, x, y, w, h, r) {
+  c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r);
+  c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+
+/* ════ DRAW GRAPH ════ */
+function drawGraph() {
+  if (!gSz) return;
+  const { w, h } = gSz;
+  gCtx.clearRect(0, 0, w, h);
+
+  // grid
+  gCtx.strokeStyle = 'rgba(0,180,255,.07)'; gCtx.lineWidth = 1;
+  for (let i = 1; i < 4; i++) {
+    const yy = h * i / 4;
+    gCtx.beginPath(); gCtx.moveTo(0, yy); gCtx.lineTo(w, yy); gCtx.stroke();
+  }
+  // zero line
+  gCtx.strokeStyle = 'rgba(255,255,255,.2)'; gCtx.setLineDash([4, 6]);
+  gCtx.beginPath(); gCtx.moveTo(0, h/2); gCtx.lineTo(w, h/2); gCtx.stroke();
+  gCtx.setLineDash([]);
+
+  if (hist.length < 2) return;
+
+  // colored wave
+  const amp = Math.abs(filtTheta);
+  const clr = amp < 0.12 ? '#4ade80' : amp < 0.28 ? '#fbbf24' : '#f87171';
+  gCtx.lineWidth = 2;
+  gCtx.shadowBlur = 8; gCtx.shadowColor = clr;
+  gCtx.strokeStyle = clr;
+  gCtx.beginPath();
+  for (let i = 0; i < hist.length; i++) {
+    const x = w * i / (HIST_MAX - 1);
+    const y = h/2 - hist[i] * (h * 0.4) / 0.8;
+    i === 0 ? gCtx.moveTo(x, y) : gCtx.lineTo(x, y);
+  }
+  gCtx.stroke();
+  gCtx.shadowBlur = 0;
+
+  // fill area under wave
+  gCtx.globalAlpha = 0.08;
+  gCtx.fillStyle = clr;
+  gCtx.lineTo(w, h/2); gCtx.lineTo(0, h/2); gCtx.closePath(); gCtx.fill();
+  gCtx.globalAlpha = 1;
+}
+
+/* ════ PHYSICS STEP ════ */
+function step(dt) {
+  if (gameOver || paused || dt < 0.0005) return; // guard: never divide by near-zero dt
+
+  // 1. sensor noise
+  const rawNoise = PH.noise[phase] ? (Math.random()*2-1) * PH.noise[phase] : 0;
+  const meas = theta + rawNoise;
+
+  // 2. low-pass filter
+  prevFilt  = filtTheta;
+  filtTheta = alpha() * filtTheta + (1 - alpha()) * meas;
+  filtOmega = (filtTheta - prevFilt) / dt;
+
+  // 3. PID
+  const error = filtTheta;
+  integral   += error * dt;
+  integral    = Math.max(-2.5, Math.min(2.5, integral));
+  const control = kpEff()*error + kiEff()*integral + kdEff()*filtOmega;
+
+  // 4. phase bias (constant offset → needs Ki to nullify)
+  const bias = PH.bias[phase];
+
+  // 5. random impulse disturbances (phase 2) — direct omega kick
+  if (PH.disturb[phase] && Math.random() < 0.006) {
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    omega += dir * (0.7 + Math.random() * 0.5); // 0.7–1.2 rad/s kick
+    showPush(dir);
+  }
+  disturb *= 0.82;
+
+  // 6. dynamics
+  const accel = (g/L) * Math.sin(theta) - control + bias + disturb;
+  omega += accel * dt;
+  omega *= 0.994;
+  theta += omega * dt;
+
+  // 7. wheel visual: wheels move to "catch" the robot
+  wheelX += omega * dt * (rSz ? rSz.w * 0.25 : 60);
+  wheelX = Math.max(-(rSz ? rSz.w*0.3 : 90), Math.min(rSz ? rSz.w*0.3 : 90, wheelX));
+
+  // 8. fall check
+  if (Math.abs(theta) > 0.65) {
+    onFall(); return;
+  }
+
+  // 9. history
+  hist.push(filtTheta);
+  if (hist.length > HIST_MAX) hist.shift();
+
+  // 10. charge
+  const stable = Math.abs(filtTheta) < 0.13 && Math.abs(omega) < 0.50;
+  if (stable) phaseCharge += dt * PH.rate[phase];
+  else        phaseCharge -= dt * PH.drain[phase];
+  phaseCharge = Math.max(0, Math.min(100, phaseCharge));
+
+  if (phaseCharge >= 100) advancePhase();
+}
+
+/* ════ FALL ════ */
+function onFall() {
+  if (gameOver) return;
+  fallCount++;
+  resetPhysics((Math.random()*2-1) * 0.22);
+  phaseCharge = Math.max(0, phaseCharge - 35);
+  hist.length = 0;
+  setCoach('💥', 'Робот құлады! Параметрлерді баптап, тұрақтандыр.', 'bad', 2.5);
+  spawnParticles(document.getElementById('robotStage'), '#ef4444');
+}
+
+/* ════ PHASE ADVANCE ════ */
+function advancePhase() {
+  document.getElementById('ph'+phase).classList.remove('active');
+  document.getElementById('ph'+phase).classList.add('done');
+  spawnParticles(document.getElementById('robotStage'), '#4ade80');
+
+  if (phase >= 2) { winGame(); return; }
+
+  const nextData = PH_TITLES[phase]; // data for transition screen
+  phaseCharge = 0;
+  paused = true;
+
+  // show transition overlay
+  document.getElementById('ptNum').textContent   = nextData.num;
+  document.getElementById('ptTitle').textContent = nextData.title;
+  document.getElementById('ptDesc').textContent  = nextData.desc;
+  document.getElementById('ptHint').textContent  = nextData.hint;
+  // restart bar animation
+  const barEl = document.getElementById('ptBarFill');
+  barEl.style.animation = 'none'; barEl.offsetHeight; // reflow
+  barEl.style.animation = 'countDown 2.2s linear forwards';
+
+  const overlay = document.getElementById('pTrans');
+  overlay.classList.add('show');
+
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    phase++;
+    document.getElementById('ph'+phase).classList.add('active');
+    document.getElementById('chargePhaseTag').textContent = 'ФАЗА ' + (phase+1);
+    // reset integral to avoid windup carrying over
+    integral = 0;
+    // small disturbance on phase start
+    omega += (Math.random()*2-1) * 1.8;
+    paused = false;
+    updateHintForPhase();
+  }, 2300);
+}
+
+function updateHintForPhase() {
+  const hints = [
+    'Kp-ні 0.65+ ұста',
+    'Ki-ді 0.2–0.5 аралығына қос',
+    'Kd-ні 0.35+ ұста, Ki сақта',
+  ];
+  const el = document.getElementById('hintRight');
+  el.textContent = hints[phase];
+  el.className = 'hint-box ' + (phase===0?'':'warn');
+}
+
+/* ════ COACHING ════ */
+function setCoach(ico, txt, cls, dur) {
+  const el = document.getElementById('coach');
+  document.querySelector('.coach-ico').textContent = ico;
+  document.querySelector('.coach-txt').textContent = txt;
+  el.className = 'coach' + (cls ? ' '+cls : '');
+  if (dur && dur > 0) {
+    // Timed flash — block updateCoach during the duration
+    coachKey = '__flash__';
+    coachTimer = dur;
+  }
+  // If dur=0 (called from updateCoach directly), don't lock the key
+}
+
+function updateCoach() {
+  if (gameOver || coachKey === '__flash__') return;
+  const t = Math.abs(filtTheta), o = Math.abs(omega);
+  const recent = hist.slice(-50);
+  let mx=0, mn=0;
+  recent.forEach(v => { mx = Math.max(mx,v); mn = Math.min(mn,v); });
+  const amp = mx - mn;
+
+  let ico = '💡', txt = '', cls = '';
+
+  if (kpEff() < 13) {
+    ico='⚠️'; txt='Робот тік тұра алмайды → Kp-ді 0.65-тен жоғары қой!'; cls='bad';
+  } else if (phase >= 1 && kiEff() < 0.5 && Math.abs(filtTheta) > 0.10) {
+    ico='🔄'; txt='Тұрақты ауытқу бар → Ki-ды 0.2-ден жоғары қой!'; cls='warn';
+  } else if (amp > 0.40 && kdEff() < 3.5) {
+    ico='〰️'; txt='Робот тербеліп тұр → Kd (демпфер) аз. Kd-ні көтер!'; cls='warn';
+  } else if (phase >= 1 && P.flt < 0.25 && amp > 0.30) {
+    ico='📡'; txt='Сенсор шуынан діріл → Фильтрді 0.35-тен жоғары қой!'; cls='warn';
+  } else if (kpEff() > 18 && amp > 0.35) {
+    ico='⚡'; txt='Kp тым жоғары — тербеліс туды. Kp азайт немесе Kd қос.'; cls='warn';
+  } else if (t < 0.12 && o < 0.45) {
+    ico='✅'; txt='Тамаша! Тұрақты ұста — заряд толып жатыр ⚡'; cls='good';
+  } else {
+    ico='💡'; txt='Параметрлерді бір-бірлеп баяу өзгерт, нәтижені бақыла.'; cls='';
+  }
+
+  const key = ico + txt;
+  if (key !== coachKey) {
+    coachKey = key;
+    // Update DOM directly — don't call setCoach (which would lock the key)
+    const el = document.getElementById('coach');
+    document.querySelector('.coach-ico').textContent = ico;
+    document.querySelector('.coach-txt').textContent = txt;
+    el.className = 'coach' + (cls ? ' ' + cls : '');
+  }
+}
+
+/* ════ HUD / UI UPDATE ════ */
+function updateUI() {
+  const deg = theta * 180 / Math.PI;
+
+  const tb = document.getElementById('tiltBadge');
+  tb.textContent = 'Көлбеу: ' + (deg >= 0 ? '+' : '') + deg.toFixed(0) + '°';
+  tb.classList.toggle('danger', Math.abs(theta) > 0.55);
+
+  // raw sensor data
+  document.getElementById('rawYaw').textContent = '0°';
+  const pEl = document.getElementById('rawPitch');
+  pEl.textContent = (deg>=0?'+':'') + deg.toFixed(0) + '°';
+  pEl.className = 'raw-v' + (Math.abs(deg)>20?' bad': Math.abs(deg)>10?' warn':'');
+
+  const oEl = document.getElementById('rawOmega');
+  oEl.textContent = (omega>=0?'+':'') + omega.toFixed(1);
+  oEl.className = 'raw-v' + (Math.abs(omega)>2?' bad': Math.abs(omega)>0.8?' warn':'');
+
+  // charge / progress
+  charge = Math.round((phase * 100 + phaseCharge) / 3);
+  document.getElementById('chargeFill').style.width = phaseCharge + '%';
+  document.getElementById('chargeTxt').textContent = Math.round(phaseCharge) + '%';
+  document.getElementById('hudProg').textContent = charge + '%';
+  document.getElementById('hudScore').textContent = charge;
+
+  // status tag
+  const st = document.getElementById('statusTag');
+  const tAbs = Math.abs(filtTheta);
+  if (tAbs < 0.10) { st.textContent='✓ Тұрақты'; st.className='status-tag good'; }
+  else if (tAbs < 0.28) { st.textContent='≈ Дірілдеп'; st.className='status-tag warn'; }
+  else { st.textContent='✗ Тұрақсыз'; st.className='status-tag bad'; }
+
+  // gimbal: middle ring tilts with pitch angle
+  const midEl = document.getElementById('gimbalMid');
+  midEl.style.transform = `translate(-50%,-50%) rotateX(${(deg * 1.1).toFixed(0)}deg)`;
+  // core glow changes based on stability
+  document.getElementById('gimbalCore').classList.toggle('stable', tAbs < 0.12);
+
+  // bias arrow
+  if (phase >= 1) {
+    const ba = document.getElementById('biasArrow');
+    ba.style.right = PH.bias[phase] > 0 ? '10px' : 'auto';
+    ba.style.left  = PH.bias[phase] > 0 ? 'auto' : '10px';
+    ba.textContent = (PH.bias[phase] > 0 ? '⇒ ' : '⇐ ') + 'Ауытқу';
+    ba.classList.toggle('show', Math.abs(filtTheta) > 0.06);
+  }
+}
+
+/* ════ PUSH VISUAL ════ */
+function showPush(dir) {
+  clearTimeout(pushTimeout);
+  const elL = document.getElementById('pushLeft');
+  const elR = document.getElementById('pushRight');
+  elL.style.display = elR.style.display = 'none';
+  const el = dir > 0 ? elR : elL;
+  el.style.display = 'flex';
+  pushTimeout = setTimeout(() => { el.style.display = 'none'; }, 600);
+}
+
+/* ════ PARTICLES ════ */
+function spawnParticles(container, color) {
+  const rect = container.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const angle = Math.random() * Math.PI * 2;
+    const dist  = 35 + Math.random() * 70;
+    p.style.cssText = `left:${cx}px;top:${cy}px;width:6px;height:6px;background:${color};--dx:${Math.cos(angle)*dist}px;--dy:${Math.sin(angle)*dist}px`;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 920);
+  }
+}
+
+/* ════ MAIN LOOP ════ */
+function loop(ts) {
+  // Skip first frame — dt would be 0 causing 0/0=NaN in filtOmega
+  if (!lastT) { lastT = ts; rafId = requestAnimationFrame(loop); return; }
+  let dt = (ts - lastT) / 1000; lastT = ts;
+  dt = Math.min(Math.max(dt, 0.001), 0.04); // clamp: never 0, never too large
+
+  // Auto-heal canvas size if it was 0 on init
+  if (!rSz || rSz.w < 2) resizeAll();
+
+  if (!paused) {
+    const sub = 4, sdt = dt / sub;
+    for (let i = 0; i < sub && !gameOver; i++) step(sdt);
+    drawRobot();
+    drawGraph();
+    updateUI();
+  }
+
+  // Coach state: flash timer decrements; when done, reset so updateCoach can run
+  if (coachTimer > 0) {
+    coachTimer -= dt;
+    if (coachTimer <= 0) { coachTimer = 0; coachKey = ''; }
+  } else {
+    // Only call updateCoach if not in flash mode
+    if (coachKey !== '__flash__') updateCoach();
+    else coachKey = ''; // clear flash so next frame updateCoach runs
+  }
+
+  if (!gameOver) rafId = requestAnimationFrame(loop);
+}
+
+/* ════ WIN / TIME-UP ════ */
+function winGame() {
+  if (gameOver) return;
+  gameOver = true;
+  cancelAnimationFrame(rafId);
+  clearInterval(timerInterval);
+  const tl = timerSec;
+  const stars = tl > 90 ? 3 : tl > 40 ? 2 : 1;
+  const score = tl > 90 ? 0.3 : tl > 40 ? 0.18 : 0.06;
+  setTimeout(() => showResult(true, stars, score), 400);
+}
+
+function timeUp() {
+  if (gameOver) return;
+  gameOver = true;
+  cancelAnimationFrame(rafId);
+  clearInterval(timerInterval);
+  const st = charge >= 66 ? 2 : charge >= 33 ? 1 : 0;
+  const sc = charge >= 66 ? 0.15 : charge >= 33 ? 0.06 : 0;
+  showResult(charge >= 66, st, sc, true);
+}
+
+/* ════ RESULT ════ */
+function showResult(win, stars, score, timeout) {
+  document.getElementById('resIcon').textContent = win ? '🏆' : '⏱️';
+  const rt = document.getElementById('resTitle');
+  rt.textContent = win ? 'Тепе-теңдік сақталды!' : (timeout ? 'Уақыт бітті' : 'Жалғастыр');
+  rt.className = 'result-title ' + (win ? 'win' : 'lose');
+  document.getElementById('resSub').textContent = win
+    ? `Роботты 3 кезеңде тік ұстадың! PID контроллерін шынайы баптадың.`
+    : `Жеткен тұрақтылық: ${charge}%. Параметрлерді нақтылап, қайта көр.`;
+  document.getElementById('learnBox').innerHTML =
+    `<b>📘 Нені үйрендің:</b><br>` +
+    `• <b style="color:#38bdf8">Kp</b> — пропорционал: тік тұруға негізгі күш.<br>` +
+    `• <b style="color:#fb923c">Kd</b> — туынды: тербелісті басады, соққыдан тез қалпына келеді.<br>` +
+    `• <b style="color:#a78bfa">Ki</b> — интеграл: тұрақты ауытқуды (offset) жояды.<br>` +
+    `• <b style="color:#34d399">Фильтр</b> — сенсор шуын тегістейді.<br>` +
+    `Дәл осылай Segway, дрондар және мобильді роботтар жұмыс істейді!`;
+  const sr = document.getElementById('resStars'); sr.innerHTML = '';
+  for (let i = 1; i <= 3; i++) {
+    const s = document.createElement('span'); s.className='star-icon'; s.textContent='⭐';
+    sr.appendChild(s);
+    if (i <= stars) setTimeout(() => s.classList.add('lit'), i * 200);
+  }
+  document.getElementById('retryBtn').style.display = win ? 'none' : 'inline-flex';
+  document.getElementById('nextBtn').style.display = (win || stars > 0) ? 'inline-flex' : 'none';
+  document.getElementById('resultOverlay').classList.add('show');
+  if (win || stars > 0) submitResult(score, stars, win);
+}
+
+function submitResult(score, stars, completed) {
+  fetch('/game_result', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ game_name:'Гироскоп', score, stars, completed })
+  }).catch(() => {});
+}
+
+/* ════ RESTART ════ */
+function restartGame() {
+  document.getElementById('resultOverlay').classList.remove('show');
+  ['ph0','ph1','ph2'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('done','active');
+  });
+  document.getElementById('ph0').classList.add('active');
+  document.getElementById('chargePhaseTag').textContent = 'ФАЗА 1';
+  phase=0; phaseCharge=0; charge=0; gameOver=false; paused=false;
+  fallCount=0; hist.length=0;
+  timerSec=150; coachKey=''; coachTimer=0;
+  document.getElementById('hudTimer').classList.remove('warn');
+  resetPhysics(0.20);
+  updateHintForPhase();
+  beginGame();
+}
+
+function goNext() { window.location.href = '/quest3/m4'; }
+
+/* ════ TUTORIAL ════ */
+function startFromTutorial() {
+  const ov = document.getElementById('tutOverlay');
+  ov.classList.add('hide');
+  // Actually remove after transition so it doesn't block clicks
+  setTimeout(() => { ov.style.display = 'none'; }, 350);
+  // Now start the game
+  beginGame();
+}
+
+/* ════ TIMER ════ */
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (paused) return;
+    timerSec--;
+    const m = Math.floor(timerSec/60), s = timerSec%60;
+    const el = document.getElementById('hudTimer');
+    el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (timerSec <= 20) el.classList.add('warn');
+    if (timerSec <= 0)  { clearInterval(timerInterval); timeUp(); }
+  }, 1000);
+}
+
+function beginGame() {
+  resizeAll();
+  resetPhysics(0.20);
+  updateHintForPhase();
+  startTimer();
+  lastT = 0;
+  rafId = requestAnimationFrame(loop);
+}
+
+/* ════ START ════ */
+window.addEventListener('load', () => {
+  // 200ms ensures flex layout is computed, then show tutorial (game waits for button)
+  setTimeout(() => {
+    resizeAll();
+    // Draw a static "preview" of the robot so canvas isn't blank behind the tutorial
+    resetPhysics(0.20);
+    drawRobot();
+    drawGraph();
+  }, 200);
+});
+</script>
+</body>
+</html>

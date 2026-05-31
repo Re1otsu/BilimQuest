@@ -111,17 +111,7 @@ function endGame(message = "") {
     score = parseFloat(score); // приводим к числу
   }
 
-  finalScore.textContent = `Ұпай: ${score}`;
-  gameOverBox.classList.remove("hidden");
-
-  // звезда, если набрали максимум
-  starContainer.innerHTML = "";
-  if (score === maxScore && mistakes === 0) {
-      const star = document.createElement("img");
-      star.src = "static/img/star.png";
-      star.style.width = "30vw";
-      starContainer.appendChild(star);
-  }
+  const stars = (score === maxScore && mistakes === 0) ? 1 : 0;
 
   fetch("/game_result", {
     method: "POST",
@@ -129,10 +119,11 @@ function endGame(message = "") {
     body: JSON.stringify({
       game_name: "Сәйкестік",
       score: score,
-      stars: score === maxScore && mistakes === 0 ? 1 : 0,
+      stars: stars,
       completed: true
     })
-  });
+  }).then(r => r.json()).then(d => showGameResult(d))
+    .catch(() => showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }
 
 

@@ -135,7 +135,6 @@ function endGame() {
         starContainer.appendChild(star);
   }
 
-  gameOverModal.style.display = "flex";
 
   // Отправка результата на сервер
   fetch("/game_result", {
@@ -147,7 +146,8 @@ function endGame() {
       stars: finalScoreValue === 0.3 ? 1 : 0,
       completed: true
     })
-  }).then(res => res.json()).then(data=>console.log("Отправлено:",data));
+  }).then(res => res.json()).then(data => showGameResult(data))
+    .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }
 
 // Начало игры

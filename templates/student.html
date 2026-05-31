@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>БілімQuest</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/opensans-local.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
       <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
@@ -18,7 +18,7 @@
   <div class="s-actions">
     <a href="/rating" class="s-score">⭐ {{ "%.3f"|format(student.score) }}</a>
 
-    <a href="{{ url_for('student_dashboard', student_id=student.id) }}" class="s-profile">
+    <a href="/my_profile" class="s-profile">
       <img src="{{ url_for('static', filename='img/user.png') }}" alt="user" class="s-avatar">
       <span class="s-name">{{ student.name }}</span>
       <span class="s-arrow">›</span>
@@ -32,22 +32,18 @@
     <section class="s-classes">
       <a class="s-class-card s-c5" href="/1module">
         <div class="s-class-title">Ақпаратты ұсыну</div>
-        <div class="s-class-cta">⭐ 1-тоқсан ойындары›</div>
       </a>
 
       <a class="s-class-card s-c6" href="/toqsan_2">
         <div class="s-class-title">Компьютерлік графика</div>
-        <div class="s-class-cta">⭐ 2-тоқсан ойындары›</div>
       </a>
 
       <a class="s-class-card s-c7" href="/toqsan_3">
         <div class="s-class-title">Робототехника</div>
-        <div class="s-class-cta">⭐ 3-тоқсан ойындары›</div>
       </a>
 
       <a class="s-class-card s-c8" href="/toqsan_4">
         <div class="s-class-title">Компьютер және қауіпсіздік</div>
-        <div class="s-class-cta">⭐ 4-тоқсан ойындары></div>
       </a>
     </section>
 

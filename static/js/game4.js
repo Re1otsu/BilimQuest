@@ -62,8 +62,7 @@ function endGameTimeUp() {
   const gameOverModal = document.getElementById("game-over");
   const finalScore = document.getElementById("final-score");
 
-  finalScore.textContent = "Ұпай: 0"; // обнуляем счёт
-  gameOverModal.style.display = "flex";
+  finalScore.textContent = "Ұпай: 0";
 
   // Можно отправить на сервер результат
   fetch("/game_result", {
@@ -75,7 +74,7 @@ function endGameTimeUp() {
       stars: 0,
       completed: false
     })
-  }).then(res => res.json()).then(data => console.log("Отправлено:", data));
+  }).then(res => res.json());
 }
 
 // Жақындағанын тексеру
@@ -153,8 +152,6 @@ function endGame() {
         starContainer.appendChild(star);
   }
 
-  gameOverModal.style.display = "flex";
-
   // Отправка результата на сервер
   fetch("/game_result", {
     method:"POST",
@@ -165,5 +162,6 @@ function endGame() {
       stars: finalScoreValue === 0.3 ? 1 : 0,
       completed: true
     })
-  }).then(res => res.json()).then(data=>console.log("Отправлено:",data));
+  }).then(res => res.json()).then(data => showGameResult(data))
+    .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }

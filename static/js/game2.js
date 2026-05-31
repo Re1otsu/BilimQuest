@@ -115,7 +115,6 @@ document.addEventListener("DOMContentLoaded", () => {
     stopTimer();
     const finalScoreValue = hadMistake ? 0 : score;
     finalScore.textContent = `Ұпай: ${finalScoreValue.toFixed(2)}`;
-    gameOverModal.classList.remove("hidden");
 
     const starContainer = document.getElementById("star-container");
     starContainer.innerHTML = "";
@@ -137,6 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
         stars: (finalScoreValue === maxScore ? 1 : 0),
         completed: true
       })
-    });
+    }).then(r => r.json()).then(data => showGameResult(data))
+      .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
   }
 });

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Миссия 5 — Сызық бойынша жүру</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;color:#e2e8f0;overflow:hidden;background:#060d2e;user-select:none}
+body{background-image:radial-gradient(ellipse 120% 60% at 50% 0%,rgba(0,80,160,.35) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 10% 50%,rgba(0,180,255,.08) 0%,transparent 50%),radial-gradient(ellipse 60% 40% at 90% 50%,rgba(0,100,200,.08) 0%,transparent 50%);background-color:#050c1e}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,229,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.04) 1px,transparent 1px);background-size:40px 40px}
+
+/* HUD */
+.hud{position:relative;z-index:10;display:flex;align-items:center;height:52px;background:linear-gradient(180deg,rgba(4,12,40,.98),rgba(2,8,30,.96));border-bottom:2px solid rgba(0,180,255,.32);box-shadow:0 2px 20px rgba(0,180,255,.14);padding:0 10px;gap:4px}
+.hud-seg{display:flex;align-items:center;gap:6px;padding:0 12px;height:100%;border-right:1px solid rgba(0,180,255,.16);font-weight:800;font-size:13px;white-space:nowrap}
+.hud-seg:last-child{border-right:none;margin-left:auto}
+.hud-icon{font-size:17px}.hud-label{color:rgba(148,163,184,.65);font-size:10.5px;font-weight:700}
+.hud-val{color:#fff;font-size:13px;font-weight:900}
+.hud-val.cyan{color:#00e5ff;text-shadow:0 0 8px rgba(0,229,255,.5)}
+.hud-val.gold{color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.5)}
+.hud-timer.warn{color:#ef4444;animation:blink .5s infinite}
+.hud-back{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;transition:background .2s;white-space:nowrap;flex-shrink:0}
+.hud-back.mod{background:rgba(0,180,255,.1);border:1px solid rgba(0,229,255,.35);color:#7dd3fc}
+.hud-back.mod:hover{background:rgba(0,229,255,.2)}
+.hud-back.prev{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fbbf24}
+.hud-back.prev:hover{background:rgba(245,158,11,.22)}
+
+/* Mission strip */
+.mission-strip{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:6px 16px;gap:12px;background:linear-gradient(90deg,rgba(0,50,120,.55),rgba(0,40,100,.42),rgba(0,50,120,.55));border-bottom:1px solid rgba(0,180,255,.18)}
+.mission-text{text-align:center;flex:1}
+.m-title{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;color:#e2e8f0;letter-spacing:.2px}
+.m-sub{font-size:11px;color:rgba(148,163,184,.72);margin-top:1px}
+.tip-badge{flex-shrink:0;padding:5px 11px;background:rgba(0,229,255,.08);border:1.5px solid rgba(0,229,255,.32);border-radius:10px;font-size:10.5px;font-weight:700;color:#a5f3fc;text-align:center;line-height:1.4}
+
+/* Stage */
+.stage{position:relative;z-index:1;display:flex;gap:10px;padding:10px 12px;height:calc(100vh - 52px - 48px);overflow:hidden}
+.panel{display:flex;flex-direction:column;gap:7px;min-width:0}
+.panel.left{flex:1}
+.panel.right{flex:1}
+.panel-header{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(0,80,180,.48),rgba(0,50,140,.58));border:1.5px solid rgba(0,180,255,.32);font-family:'Exo 2',sans-serif;font-weight:900;font-size:14px;color:#fff;letter-spacing:1.2px;text-shadow:0 0 12px rgba(0,229,255,.45)}
+.panel-body{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;border:1.5px solid rgba(0,180,255,.2);border-radius:14px;padding:10px;background:linear-gradient(160deg,rgba(5,14,50,.75),rgba(3,8,30,.85));overflow:hidden}
+
+/* Track */
+.track-center{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#trackCanvas{border-radius:10px;border:1.5px solid rgba(0,180,255,.25);box-shadow:0 0 28px rgba(0,229,255,.12);display:block;max-height:100%}
+
+/* Sensor strip */
+.sensor-row{display:flex;gap:6px;flex-shrink:0}
+.sensor-box{flex:1;padding:6px 4px;border-radius:9px;border:1.5px solid rgba(0,180,255,.22);background:rgba(0,12,40,.6);text-align:center;transition:.12s}
+.sensor-box .s-label{font-size:8.5px;font-weight:800;color:rgba(148,163,184,.7);letter-spacing:.3px}
+.sensor-box .s-val{font-family:'Exo 2',sans-serif;font-size:15px;font-weight:900;color:#475569;margin-top:1px}
+.sensor-box.on{border-color:#10b981;background:rgba(16,185,129,.16);box-shadow:0 0 10px rgba(16,185,129,.25)}
+.sensor-box.on .s-val{color:#4ade80}
+
+/* Sliders */
+.slider-card{flex-shrink:0;padding:9px 11px;border-radius:12px;background:linear-gradient(155deg,rgba(7,18,58,.85),rgba(4,10,38,.92));border:1.5px solid var(--c,#38bdf8);transition:box-shadow .25s}
+.slider-card.glow{box-shadow:0 0 16px rgba(var(--cr),.3)}
+.sc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px}
+.sc-name{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;letter-spacing:.6px;color:var(--c,#38bdf8)}
+.sc-val{font-family:'Exo 2',sans-serif;font-size:18px;font-weight:900;color:#fff;line-height:1}
+.sc-desc{font-size:9px;color:rgba(148,163,184,.6);font-weight:700;margin-bottom:6px}
+.sc-slider{-webkit-appearance:none;appearance:none;display:block;width:100%;height:6px;border-radius:3px;outline:none;cursor:pointer;border:none;background:linear-gradient(to right,var(--c) 0%,var(--c) var(--p,50%),rgba(255,255,255,.12) var(--p,50%))}
+.sc-slider::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:#fff;border:2.5px solid var(--c,#38bdf8);box-shadow:0 0 9px var(--c,#38bdf8);cursor:pointer}
+.sc-slider::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:#fff;border:2.5px solid var(--c,#38bdf8);cursor:pointer;box-sizing:border-box}
+.sc-hint{font-size:8px;color:rgba(148,163,184,.45);margin-top:3px;display:flex;justify-content:space-between;font-weight:700}
+
+/* Error graph */
+.graph-wrap{flex:1;min-height:46px;border-radius:10px;overflow:hidden;position:relative;background:rgba(0,6,24,.7);border:1px solid rgba(0,180,255,.18)}
+#graphCanvas{position:absolute;inset:0;width:100%;height:100%}
+.graph-tag{position:absolute;top:4px;left:8px;z-index:2;font-size:9px;font-weight:800;color:rgba(148,163,184,.7)}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex-shrink:0}
+.stat{padding:6px 4px;border-radius:9px;background:rgba(0,10,38,.6);border:1px solid rgba(0,180,255,.16);text-align:center}
+.stat .v{font-family:'Exo 2',sans-serif;font-size:14px;font-weight:900;color:#00e5ff}
+.stat .l{font-size:8px;font-weight:700;color:rgba(148,163,184,.65);margin-top:1px}
+
+/* Attempt dots */
+.run-row{display:flex;gap:7px;justify-content:center;align-items:center;flex-shrink:0}
+.run-row .lbl{font-size:10px;color:rgba(148,163,184,.7);font-weight:700}
+.rdot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);transition:.3s}
+.rdot.pass{background:#22c55e;border-color:#16a34a;box-shadow:0 0 7px rgba(34,197,94,.55)}
+.rdot.fail{background:#ef4444;border-color:#dc2626}
+
+/* Status + actions */
+.status-box{flex-shrink:0;padding:7px 12px;border-radius:10px;font-size:11.5px;font-weight:700;text-align:center;min-height:34px;display:flex;align-items:center;justify-content:center;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.2);color:#e2e8f0;line-height:1.35;transition:.3s}
+.status-box.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:#4ade80}
+.status-box.err{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.35);color:#f87171}
+.status-box.warn{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.38);color:#fde68a}
+.action-row{flex-shrink:0;display:flex;gap:6px}
+.abtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 12px;border:none;border-radius:50px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit;transition:transform .15s;flex:1}
+.abtn:hover{transform:translateY(-1px)}.abtn:disabled{opacity:.4;pointer-events:none}
+.abtn-run{background:linear-gradient(135deg,#06b6d4,#6366f1);color:#fff;box-shadow:0 3px 14px rgba(0,229,255,.3)}
+.abtn-stop{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.32);color:#fca5a5}
+
+/* Result overlay */
+.result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.84);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s}
+.result-overlay.show{opacity:1;pointer-events:all}
+.result-card{background:linear-gradient(155deg,rgba(7,18,60,.99),rgba(3,8,28,.99));border:2px solid rgba(0,229,255,.38);border-radius:24px;padding:30px 40px;text-align:center;max-width:430px;width:92%;box-shadow:0 0 60px rgba(0,229,255,.16);transform:scale(.8);transition:transform .32s}
+.result-overlay.show .result-card{transform:scale(1)}
+.result-icon{font-size:54px;margin-bottom:8px;display:block}
+.result-title{font-family:'Exo 2',sans-serif;font-size:24px;font-weight:900;margin-bottom:6px}
+.result-title.win{color:#4ade80;text-shadow:0 0 16px rgba(74,222,128,.4)}
+.result-title.lose{color:#f87171}
+.result-sub{font-size:12.5px;color:rgba(148,163,184,.9);line-height:1.6;margin-bottom:12px}
+.learn-box{text-align:left;font-size:11px;line-height:1.5;color:#cbd5e1;background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.22);border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.learn-box b{color:#7dd3fc}
+.stars-row{display:flex;justify-content:center;gap:10px;margin:4px 0 12px}
+.star-icon{font-size:28px;filter:grayscale(1);transition:filter .3s,transform .3s}
+.star-icon.lit{filter:none;animation:starPop .4s ease}
+@keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+.rbtn-row{display:flex;gap:7px;justify-content:center}
+.rbtn{padding:9px 18px;border:none;border-radius:50px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit;transition:transform .18s}
+.rbtn:hover{transform:translateY(-2px)}
+.rbtn-cyan{background:linear-gradient(135deg,#06b6d4,#6366f1);color:#fff;box-shadow:0 4px 16px rgba(0,229,255,.3)}
+.rbtn-ghost{background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid rgba(255,255,255,.18)}
+
+@keyframes blink{50%{opacity:.35}}
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div class="hud">
+  <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
+  <a href="{{ url_for('quest3_m4') }}" class="hud-back prev">← М4</a>
+  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Mission</span><span class="hud-val cyan">5 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
+  <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">03:00</span></div>
+</div>
+
+<!-- Mission strip -->
+<div class="mission-strip">
+  <div class="tip-badge" style="visibility:hidden;width:150px"></div>
+  <div class="mission-text">
+    <div class="m-title">5-миссия: Сызық бойымен жүретін робот</div>
+    <div class="m-sub">5 датчик сызықты оқиды → робот өзі рульді бұрады. Kp, Kd, Жылдамдықты бапта!</div>
+  </div>
+  <div class="tip-badge">Жылдам ≠ дәл — тепе-теңдік тап!</div>
+</div>
+
+<!-- Stage -->
+<div class="stage">
+
+  <!-- LEFT: track + sensors -->
+  <div class="panel left">
+    <div class="panel-header">🛣️ ТРАССА</div>
+    <div class="panel-body">
+      <div class="track-center">
+        <canvas id="trackCanvas" width="330" height="400"></canvas>
+      </div>
+      <div class="sensor-row">
+        <div class="sensor-box" id="sb0"><div class="s-label">◀◀ S1</div><div class="s-val" id="sv0">0</div></div>
+        <div class="sensor-box" id="sb1"><div class="s-label">◀ S2</div><div class="s-val" id="sv1">0</div></div>
+        <div class="sensor-box" id="sb2"><div class="s-label">▮ S3</div><div class="s-val" id="sv2">0</div></div>
+        <div class="sensor-box" id="sb3"><div class="s-label">S4 ▶</div><div class="s-val" id="sv3">0</div></div>
+        <div class="sensor-box" id="sb4"><div class="s-label">S5 ▶▶</div><div class="s-val" id="sv4">0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: controls -->
+  <div class="panel right">
+    <div class="panel-header">⚙️ БАПТАУ</div>
+    <div class="panel-body">
+
+      <!-- Kp -->
+      <div class="slider-card" id="card_kp" style="--c:#38bdf8;--cr:56,189,248">
+        <div class="sc-top"><span class="sc-name">Kp — бұру күші</span><span class="sc-val" id="v_kp">0.40</span></div>
+        <div class="sc-desc">Сызыққа қарай бұрылу күші</div>
+        <input class="sc-slider" type="range" id="s_kp" min="0" max="100" value="40" style="--p:40%">
+        <div class="sc-hint"><span>аз → бұрылыста шығады</span><span>көп → зигзаг</span></div>
+      </div>
+
+      <!-- Kd -->
+      <div class="slider-card" id="card_kd" style="--c:#fb923c;--cr:251,146,60">
+        <div class="sc-top"><span class="sc-name">Kd — демпфер</span><span class="sc-val" id="v_kd">0.10</span></div>
+        <div class="sc-desc">Зигзагты басады</div>
+        <input class="sc-slider" type="range" id="s_kd" min="0" max="100" value="10" style="--p:10%">
+        <div class="sc-hint"><span>аз → тербеліс</span><span>көп → баяу реакция</span></div>
+      </div>
+
+      <!-- Speed -->
+      <div class="slider-card" id="card_spd" style="--c:#34d399;--cr:52,211,153">
+        <div class="sc-top"><span class="sc-name">Жылдамдық</span><span class="sc-val" id="v_spd">45</span></div>
+        <div class="sc-desc">Қозғалыс жылдамдығы</div>
+        <input class="sc-slider" type="range" id="s_spd" min="20" max="100" value="45" style="--p:31%">
+        <div class="sc-hint"><span>баяу → дәл</span><span>жылдам → шығып кетеді</span></div>
+      </div>
+
+      <!-- Error graph -->
+      <div class="graph-wrap">
+        <canvas id="graphCanvas"></canvas>
+        <div class="graph-tag">Қате (сызықтан ауытқу)</div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat"><div class="v" id="stHold">--</div><div class="l">Ұстау %</div></div>
+        <div class="stat"><div class="v" id="stProg">0%</div><div class="l">Жол</div></div>
+        <div class="stat"><div class="v" id="stBest">--</div><div class="l">Үздік %</div></div>
+        <div class="stat"><div class="v" id="stRuns">5</div><div class="l">Қалды</div></div>
+      </div>
+
+      <!-- Attempts -->
+      <div class="run-row">
+        <span class="lbl">Жүрістер:</span>
+        <div class="rdot" id="r0"></div><div class="rdot" id="r1"></div><div class="rdot" id="r2"></div>
+        <div class="rdot" id="r3"></div><div class="rdot" id="r4"></div>
+      </div>
+
+      <div class="status-box" id="statusBox">Параметрлерді бапта да «Іске қос» бас</div>
+
+      <div class="action-row">
+        <button class="abtn abtn-run" id="runBtn" onclick="startRun()">▶ Іске қос</button>
+        <button class="abtn abtn-stop" id="stopBtn" onclick="stopRun()" disabled>■ Тоқтат</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Result overlay -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-icon" id="resIcon">🎉</span>
+    <div class="result-title" id="resTitle">Тамаша!</div>
+    <div class="stars-row" id="resStars"></div>
+    <p class="result-sub" id="resSub"></p>
+    <div class="learn-box" id="learnBox"></div>
+    <div class="rbtn-row" id="rBtnRow"></div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   MISSION 5 — LINE FOLLOWER (нақты физика)
+   5 датчик сызыққа дейінгі қашықтықты өлшейді →
+   орташаланған қате есептеледі →
+   PD контроллері (Kp·қате + Kd·Δқате) рульді бұрады →
+   робот алға жүреді әрі сызыққа өзі оралады.
+════════════════════════════════════════════════════════════ */
+
+const W = 330, H = 400;
+const tc = document.getElementById('trackCanvas');
+const ctx = tc.getContext('2d');
+const gc = document.getElementById('graphCanvas');
+const gx = gc.getContext('2d');
+
+/* ── Track control points (normalized) — winding, but no hairpin tighter
+       than the robot can follow (verified by simulation) ── */
+const PATH_PTS = [
+  {x:0.50,y:0.07},
+  {x:0.50,y:0.18},
+  {x:0.70,y:0.26},   // gentle right
+  {x:0.72,y:0.40},
+  {x:0.55,y:0.48},
+  {x:0.32,y:0.54},   // sweep left
+  {x:0.30,y:0.68},
+  {x:0.48,y:0.76},   // S back right
+  {x:0.68,y:0.82},
+  {x:0.55,y:0.90},
+  {x:0.50,y:0.95},
+];
+
+let pathPoints = [];
+function catmull(p0,p1,p2,p3,t){return 0.5*((2*p1)+(-p0+p2)*t+(2*p0-5*p1+4*p2-p3)*t*t+(-p0+3*p1-3*p2+p3)*t*t*t);}
+function buildPath(){
+  pathPoints=[];
+  const n=PATH_PTS.length;
+  for(let s=0;s<n-1;s++){
+    const p0=PATH_PTS[Math.max(0,s-1)], p1=PATH_PTS[s], p2=PATH_PTS[s+1], p3=PATH_PTS[Math.min(n-1,s+2)];
+    for(let t=0;t<1;t+=0.02){
+      pathPoints.push({x:catmull(p0.x,p1.x,p2.x,p3.x,t)*W, y:catmull(p0.y,p1.y,p2.y,p3.y,t)*H});
+    }
+  }
+  pathPoints.push({x:PATH_PTS[n-1].x*W, y:PATH_PTS[n-1].y*H});
+}
+buildPath();
+
+/* ── Robot params (from sliders) ── */
+const P = { kp:0.40, kd:0.10, spd:45 };
+function kpEff(){ return P.kp * 0.16; }    // turn authority per unit-error
+function kdEff(){ return P.kd * 0.32; }    // derivative damping
+function speedPx(){ return 0.7 + P.spd*0.026; } // px per sim-step → ~1.2..3.3
+const TURN = 1.0;            // steering→heading scale (decoupled from speed)
+
+/* ── Sensor geometry ── */
+const N_SENS = 5;
+const SENS_SPACING = 7;      // px between sensors
+const SENS_LOOKAHEAD = 13;   // px ahead of robot center
+const SENS_RADIUS = 13;      // detection radius (px)
+const SENS_WEIGHT = [-2,-1,0,1,2];
+const LOST_DIST = 24;        // robot center too far from line → off track
+
+/* ── Fixed-timestep sim ── */
+const STEP_MS = 16.67;       // one logical step
+const SUBSTEPS = 3;          // physics sub-steps per logical step
+let simAcc = 0;
+
+/* ── State ── */
+let robot = {x:0,y:0,h:0};
+let prevError = 0;
+let nearIdx = 0;
+let running = false;
+let rafId = null;
+let lastT = 0;
+let sumDev = 0, totalFrames = 0;   // accumulate center-to-line deviation
+let runCount = 0;
+let bestHold = 0;
+let gameOver = false;
+let timerSec = 180, timerInterval;
+const MAX_RUNS = 5;
+const errHist = [];
+const ERR_MAX = 120;
+let glowTimer = {};
+
+/* ════ SLIDERS ════ */
+const SMAP = {
+  kp:  {el:'s_kp',  v:'v_kp',  card:'card_kp',  min:0,  max:100, scale:x=>x/100,        fmt:x=>(x/100).toFixed(2)},
+  kd:  {el:'s_kd',  v:'v_kd',  card:'card_kd',  min:0,  max:100, scale:x=>x/100,        fmt:x=>(x/100).toFixed(2)},
+  spd: {el:'s_spd', v:'v_spd', card:'card_spd', min:20, max:100, scale:x=>x,            fmt:x=>String(x)},
+};
+function setParam(key, raw){
+  const m=SMAP[key];
+  P[key]=m.scale(raw);
+  document.getElementById(m.v).textContent=m.fmt(raw);
+  const pct=((raw-m.min)/(m.max-m.min)*100).toFixed(1)+'%';
+  const sl=document.getElementById(m.el); sl.style.setProperty('--p',pct);
+  const card=document.getElementById(m.card); card.classList.add('glow');
+  clearTimeout(glowTimer[key]); glowTimer[key]=setTimeout(()=>card.classList.remove('glow'),700);
+}
+Object.keys(SMAP).forEach(key=>{
+  document.getElementById(SMAP[key].el).addEventListener('input',e=>setParam(key,parseInt(e.target.value)));
+});
+
+/* ════ GRAPH SIZE ════ */
+let gSz;
+function sizeGraph(){
+  const r=gc.getBoundingClientRect(); const dpr=window.devicePixelRatio||1;
+  const w=r.width||300,h=r.height||50;
+  gc.width=Math.round(w*dpr); gc.height=Math.round(h*dpr);
+  gc.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  gSz={w,h};
+}
+window.addEventListener('resize',()=>{sizeGraph();});
+
+/* ════ DRAW TRACK ════ */
+function drawTrack(trail){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#070f24'; ctx.fillRect(0,0,W,H);
+  // grid
+  ctx.strokeStyle='rgba(0,229,255,.035)'; ctx.lineWidth=1;
+  for(let x=0;x<W;x+=22){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=22){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  // line glow
+  ctx.beginPath(); ctx.moveTo(pathPoints[0].x,pathPoints[0].y);
+  for(const p of pathPoints) ctx.lineTo(p.x,p.y);
+  ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=13; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
+  // line
+  ctx.beginPath(); ctx.moveTo(pathPoints[0].x,pathPoints[0].y);
+  for(const p of pathPoints) ctx.lineTo(p.x,p.y);
+  ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=3; ctx.stroke();
+  // start / finish
+  ctx.fillStyle='#10b981'; ctx.beginPath(); ctx.arc(pathPoints[0].x,pathPoints[0].y,7,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#0a2a1a'; ctx.font='bold 9px "Exo 2"'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('S',pathPoints[0].x,pathPoints[0].y);
+  const fp=pathPoints[pathPoints.length-1];
+  const pulse=0.5+Math.abs(Math.sin(performance.now()/350))*0.5;
+  ctx.fillStyle='#f59e0b'; ctx.globalAlpha=pulse; ctx.beginPath(); ctx.arc(fp.x,fp.y,7,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
+  ctx.fillStyle='#3a2606'; ctx.fillText('F',fp.x,fp.y);
+  // trail
+  if(trail && trail.length>1){
+    ctx.beginPath(); ctx.moveTo(trail[0].x,trail[0].y);
+    for(const p of trail) ctx.lineTo(p.x,p.y);
+    ctx.strokeStyle='rgba(99,102,241,.55)'; ctx.lineWidth=2.5; ctx.stroke();
+  }
+}
+
+function drawRobot(){
+  ctx.save();
+  ctx.translate(robot.x,robot.y);
+  ctx.rotate(robot.h);
+  // body
+  ctx.shadowColor='rgba(99,102,241,.7)'; ctx.shadowBlur=12;
+  ctx.fillStyle='#6366f1';
+  ctx.beginPath(); ctx.roundRect(-9,-7,18,14,4); ctx.fill();
+  ctx.shadowBlur=0;
+  // direction arrow (forward = +x after rotate)
+  ctx.fillStyle='#c7d2fe'; ctx.beginPath(); ctx.moveTo(9,0); ctx.lineTo(3,-4); ctx.lineTo(3,4); ctx.closePath(); ctx.fill();
+  // sensor bar (front of robot, perpendicular = y axis after rotate)
+  for(let i=0;i<N_SENS;i++){
+    const off=SENS_WEIGHT[i]*SENS_SPACING;
+    ctx.fillStyle = lastReadings[i] > 0.25 ? '#10b981' : '#475569';
+    ctx.beginPath(); ctx.arc(SENS_LOOKAHEAD, off, 2.4, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+let lastReadings=[0,0,0,0,0];
+
+/* ════ SENSOR READ ════ */
+function readSensors(){
+  const fx=Math.cos(robot.h), fy=Math.sin(robot.h);   // forward
+  const rx=-Math.sin(robot.h), ry=Math.cos(robot.h);  // right-perp
+  const readings=[];
+  // limit nearest-search window using nearIdx
+  const lo=Math.max(0,nearIdx-40), hi=Math.min(pathPoints.length-1,nearIdx+60);
+  for(let i=0;i<N_SENS;i++){
+    const off=SENS_WEIGHT[i]*SENS_SPACING;
+    const sx=robot.x+fx*SENS_LOOKAHEAD+rx*off;
+    const sy=robot.y+fy*SENS_LOOKAHEAD+ry*off;
+    let best=Infinity;
+    for(let k=lo;k<=hi;k++){
+      const d=Math.hypot(pathPoints[k].x-sx,pathPoints[k].y-sy);
+      if(d<best) best=d;
+    }
+    // reading: 1 on the line, →0 at radius. + small sensor noise
+    let r=Math.max(0,1-best/SENS_RADIUS);
+    r=Math.min(1, r + (Math.random()-0.5)*0.04);
+    readings.push(Math.max(0,r));
+  }
+  return readings;
+}
+
+/* ════ UPDATE nearIdx (progress + search window) ════ */
+function updateNearIdx(){
+  const lo=Math.max(0,nearIdx-15), hi=Math.min(pathPoints.length-1,nearIdx+60);
+  let best=Infinity,bi=nearIdx;
+  for(let k=lo;k<=hi;k++){
+    const d=Math.hypot(pathPoints[k].x-robot.x,pathPoints[k].y-robot.y);
+    if(d<best){best=d;bi=k;}
+  }
+  nearIdx=bi;
+  return best; // distance of robot center to line
+}
+
+/* deviation (px) → "hold %" for display & scoring */
+function devToHold(avgDev){ return Math.round(100*Math.max(0,Math.min(1,1-avgDev/12))); }
+
+/* one fixed logical step (verified physics). Returns 'run' | 'fail' | 'finish' */
+function simStep(){
+  for(let su=0;su<SUBSTEPS;su++){
+    lastReadings=readSensors();
+    const tot=lastReadings.reduce((a,b)=>a+b,0);
+    let error = tot<0.08
+      ? prevError*1.05               // line lost → keep curving harder (recover or fail)
+      : lastReadings.reduce((a,r,i)=>a+SENS_WEIGHT[i]*r,0)/tot;
+    const steer=kpEff()*error + kdEff()*(error-prevError);
+    prevError=error;
+    robot.h += steer*TURN/SUBSTEPS;
+    robot.x += Math.cos(robot.h)*speedPx()/SUBSTEPS;
+    robot.y += Math.sin(robot.h)*speedPx()/SUBSTEPS;
+  }
+  const centerDist=updateNearIdx();
+  totalFrames++; sumDev+=centerDist;
+  errHist.push(prevError); if(errHist.length>ERR_MAX) errHist.shift();
+  if(centerDist>LOST_DIST) return 'fail';
+  if(nearIdx>=pathPoints.length-3 &&
+     Math.hypot(robot.x-pathPoints[pathPoints.length-1].x, robot.y-pathPoints[pathPoints.length-1].y)<16)
+    return 'finish';
+  return 'run';
+}
+
+/* ════ RUN ════ */
+function startRun(){
+  if(running||gameOver) return;
+  if(runCount>=MAX_RUNS) return;
+  running=true;
+  document.getElementById('runBtn').disabled=true;
+  document.getElementById('stopBtn').disabled=false;
+  // init robot at start, heading along path
+  robot.x=pathPoints[0].x; robot.y=pathPoints[0].y;
+  robot.h=Math.atan2(pathPoints[3].y-robot.y, pathPoints[3].x-robot.x);
+  prevError=0; nearIdx=0; sumDev=0; totalFrames=0;
+  errHist.length=0; simAcc=0;
+  const trail=[];
+  lastT=performance.now();
+  setStatus('🤖 Робот жүруде...','');
+
+  function frame(now){
+    if(!running) return;
+    simAcc += now-lastT; lastT=now;
+    if(simAcc>120) simAcc=120;            // avoid spiral of death
+    let status='run';
+    while(simAcc>=STEP_MS && status==='run'){ status=simStep(); simAcc-=STEP_MS; }
+
+    // render
+    trail.push({x:robot.x,y:robot.y});
+    if(trail.length>300) trail.shift();
+    drawTrack(trail); drawRobot(); drawGraph();
+    updateSensorUI(lastReadings);
+    const prog=Math.round(nearIdx/(pathPoints.length-1)*100);
+    document.getElementById('stProg').textContent=prog+'%';
+    document.getElementById('stHold').textContent=devToHold(sumDev/Math.max(1,totalFrames))+'%';
+
+    if(status==='fail'){ finishRun(false, trail); return; }
+    if(status==='finish'){ finishRun(true, trail); return; }
+    rafId=requestAnimationFrame(frame);
+  }
+  rafId=requestAnimationFrame(frame);
+}
+
+function stopRun(){
+  if(!running) return;
+  running=false;
+  cancelAnimationFrame(rafId);
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('stopBtn').disabled=true;
+  setStatus('⏹ Тоқтатылды. Параметрлерді өзгерт те, қайта қос.','warn');
+}
+
+function finishRun(reachedEnd, trail){
+  running=false;
+  cancelAnimationFrame(rafId);
+  document.getElementById('stopBtn').disabled=true;
+  const hold=devToHold(sumDev/Math.max(1,totalFrames));
+  const prog=Math.round(nearIdx/(pathPoints.length-1)*100);
+  // success = reached the finish line while holding reasonably well
+  const success = reachedEnd && hold>=60;
+  bestHold=Math.max(bestHold, reachedEnd?hold:Math.round(hold*prog/100));
+  document.getElementById('stBest').textContent=bestHold+'%';
+
+  const dot=document.getElementById('r'+runCount);
+  if(dot) dot.className='rdot '+(success?'pass':'fail');
+  runCount++;
+  document.getElementById('stRuns').textContent=Math.max(0,MAX_RUNS-runCount);
+
+  playClick(success);
+
+  if(success){
+    setStatus(`✅ Аяқтады! Сызықта ұстау: ${hold}%`,'ok');
+    endGame(hold);
+  } else {
+    if(!reachedEnd) setStatus(`⚠️ Сызықтан шығып кетті (${prog}% жол). Kp/Kd-ні түзет!`,'err');
+    else setStatus(`⚠️ Аяқтады, бірақ ұстау ${hold}% (60%+ керек). Дәлдікті арттыр!`,'warn');
+    document.getElementById('runBtn').disabled=false;
+    if(runCount>=MAX_RUNS){
+      endGame(bestHold, true);
+    }
+  }
+}
+
+/* ════ SENSOR UI ════ */
+function updateSensorUI(readings){
+  for(let i=0;i<N_SENS;i++){
+    const v=Math.round(readings[i]*100);
+    document.getElementById('sv'+i).textContent=v;
+    document.getElementById('sb'+i).className='sensor-box'+(readings[i]>0.25?' on':'');
+  }
+}
+
+/* ════ GRAPH ════ */
+function drawGraph(){
+  if(!gSz) sizeGraph();
+  const {w,h}=gSz;
+  gx.clearRect(0,0,w,h);
+  // zero line
+  gx.strokeStyle='rgba(255,255,255,.18)'; gx.setLineDash([4,5]);
+  gx.beginPath(); gx.moveTo(0,h/2); gx.lineTo(w,h/2); gx.stroke(); gx.setLineDash([]);
+  if(errHist.length<2) return;
+  const amp=Math.abs(prevError);
+  const clr=amp<0.4?'#4ade80':amp<1.0?'#fbbf24':'#f87171';
+  gx.strokeStyle=clr; gx.lineWidth=2; gx.shadowBlur=6; gx.shadowColor=clr;
+  gx.beginPath();
+  for(let i=0;i<errHist.length;i++){
+    const x=w*i/(ERR_MAX-1);
+    const y=h/2 - errHist[i]*(h*0.4)/2;  // error range ±2
+    i===0?gx.moveTo(x,y):gx.lineTo(x,y);
+  }
+  gx.stroke(); gx.shadowBlur=0;
+}
+
+/* ════ END GAME ════ */
+function endGame(hold, failedOut){
+  gameOver=true;
+  clearInterval(timerInterval);
+  let stars, score;
+  if(failedOut){
+    // ran out of attempts without a clean success
+    stars = bestHold>=50?1:0;
+    score = bestHold>=50?0.15:0.05;
+  } else {
+    if(hold>=90){stars=3;score=0.5;}
+    else if(hold>=75){stars=2;score=0.35;}
+    else{stars=2;score=0.3;}
+  }
+  document.getElementById('hudScore').textContent=stars;
+  setTimeout(()=>showResult(!failedOut||stars>0, stars, score, hold),700);
+}
+
+function showResult(win, stars, score, hold){
+  document.getElementById('resIcon').textContent=win?(stars===3?'🏆':'🏅'):'😔';
+  const rt=document.getElementById('resTitle');
+  rt.textContent=win?(stars===3?'Мінсіз баптау!':'Жарайсың!'):'Жүрістер бітті';
+  rt.className='result-title '+(win?'win':'lose');
+  document.getElementById('resSub').textContent=win
+    ? `Робот трассаны ${hold}% дәлдікпен аяқтады! ${stars===3?'Kp/Kd/Жылдамдықтың тамаша тепе-теңдігі.':'Жақсы! Kd-ні арттырып, дәлдікті 90%+ жеткізіп көр.'}`
+    : `${MAX_RUNS} жүрісте таза өту болмады. Үздік ұстау: ${bestHold}%.`;
+  document.getElementById('learnBox').innerHTML=
+    `<b>📘 Нені үйрендің:</b><br>`+
+    `• <b style="color:#38bdf8">Kp</b> — сызыққа бұрылу күші. Аз болса бұрылыста шығады, көп болса зигзаг.<br>`+
+    `• <b style="color:#fb923c">Kd</b> — зигзагты басатын демпфер (қатенің өзгеру жылдамдығына әсер етеді).<br>`+
+    `• <b style="color:#34d399">Жылдамдық</b> — жылдам робот бұрылысқа үлгермейді. <b>Жылдам ≠ дәл!</b><br>`+
+    `Нақты жарыс роботтары (line-follower) дәл осылай 5 датчикпен жұмыс істейді.`;
+  const sr=document.getElementById('resStars'); sr.innerHTML='';
+  for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='star-icon';s.textContent='⭐';sr.appendChild(s);if(i<=stars)setTimeout(()=>s.classList.add('lit'),i*200);}
+  const row=document.getElementById('rBtnRow'); row.innerHTML='';
+  if(!win || stars<3){
+    const retry=document.createElement('button'); retry.className='rbtn rbtn-ghost';
+    retry.textContent='↻ Қайта бастау'; retry.onclick=resetGame; row.appendChild(retry);
+  }
+  if(win||stars>0){
+    const next=document.createElement('button'); next.className='rbtn rbtn-cyan';
+    next.textContent='Соңғы миссия →'; next.onclick=goNext; row.appendChild(next);
+  }
+  document.getElementById('resultOverlay').classList.add('show');
+  if(win||stars>0) submitResult(score,stars);
+}
+
+let submitted=false;
+function submitResult(score,stars){
+  if(submitted) return; submitted=true;
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Сызық робот',score,stars,completed:stars>0})
+  }).catch(()=>{});
+}
+
+function resetGame(){
+  document.getElementById('resultOverlay').classList.remove('show');
+  running=false; gameOver=false; runCount=0; bestHold=0; submitted=false;
+  if(rafId) cancelAnimationFrame(rafId);
+  timerSec=180; document.getElementById('hudTimer').classList.remove('warn');
+  document.getElementById('hudTimer').textContent='03:00';
+  document.getElementById('hudScore').textContent='0';
+  ['r0','r1','r2','r3','r4'].forEach(id=>{const d=document.getElementById(id);if(d)d.className='rdot';});
+  document.getElementById('stHold').textContent='--';
+  document.getElementById('stBest').textContent='--';
+  document.getElementById('stProg').textContent='0%';
+  document.getElementById('stRuns').textContent=MAX_RUNS;
+  document.getElementById('runBtn').disabled=false;
+  document.getElementById('stopBtn').disabled=true;
+  errHist.length=0; lastReadings=[0,0,0,0,0];
+  robot.x=pathPoints[0].x; robot.y=pathPoints[0].y; robot.h=0;
+  updateSensorUI(lastReadings);
+  drawTrack(); drawRobot(); drawGraph();
+  setStatus('Параметрлерді бапта да «Іске қос» бас','');
+  startTimer();
+}
+
+function goNext(){window.location.href='{{ url_for("quest3_m6") }}';}
+
+/* ════ TIMER ════ */
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timerSec--;
+    const m=Math.floor(timerSec/60),s=timerSec%60;
+    const el=document.getElementById('hudTimer');
+    el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    if(timerSec<=30) el.classList.add('warn');
+    if(timerSec<=0){clearInterval(timerInterval);if(!gameOver){if(running)stopRun();gameOver=true;endGame(bestHold,true);}}
+  },1000);
+}
+
+/* ════ STATUS ════ */
+function setStatus(msg,type){const el=document.getElementById('statusBox');el.textContent=msg;el.className='status-box'+(type?' '+type:'');}
+
+/* ════ AUDIO ════ */
+let audioCtx;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playClick(ok){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=ok?700:280;g.gain.setValueAtTime(.18,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.3);o.start();o.stop(a.currentTime+.3);}catch(e){}}
+
+/* ── Pulse loop for finish marker when idle ── */
+(function idleLoop(){
+  if(!running){ drawTrack(); drawRobot(); }
+  requestAnimationFrame(idleLoop);
+})();
+
+/* ── Init ── */
+robot.x=pathPoints[0].x; robot.y=pathPoints[0].y;
+robot.h=Math.atan2(pathPoints[3].y-robot.y, pathPoints[3].x-robot.x);
+sizeGraph();
+drawTrack(); drawRobot(); drawGraph();
+startTimer();
+</script>
+</body>
+</html>

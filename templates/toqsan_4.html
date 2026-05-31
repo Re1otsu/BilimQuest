@@ -1,144 +1,807 @@
+```html
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AI Quest</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BilimQuest Map - Білім Квест: Компьютер және қауіпсіздік</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        /* Modern reset and font styles */
+        :root {
+            --bg-dark: #120e29;
+            --bg-panel: #1e183d;
+            --primary-neon: #00eaff;
+            --secondary-neon: #ff00ea;
+            --success-neon: #00ff00;
+            --warning-neon: #ffa500;
+            --text-main: #e0e0e0;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
 
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/toqsan_4.css') }}">
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Browser UI Mock --- */
+        .browser-mock {
+            background-color: #2e2a4f;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .browser-mock-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .browser-mock-actions .circle {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #aaa;
+        }
+
+        .browser-mock-tab-bar {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .browser-mock-tab {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+        }
+
+        .browser-mock-address-bar {
+            background-color: #000;
+            color: #888;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .browser-mock-address-bar .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .browser-mock-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .browser-mock-right .material-symbols-outlined {
+            color: #aaa;
+            font-size: 20px;
+        }
+
+        .browser-mock-right .profile-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        /* --- Main Page Layout --- */
+        main {
+            flex-grow: 1;
+            padding: 24px;
+            position: relative;
+            background-image: radial-gradient(circle at 50% 50%, rgba(30, 24, 61, 0.4) 0%, rgba(18, 14, 41, 0.8) 100%);
+        }
+
+        /* Title Area */
+        .title-area {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .title-area h1 {
+            font-size: 32px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--primary-neon), 0 0 20px var(--primary-neon);
+        }
+
+        .quest-route {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-left: 20px;
+            font-size: 16px;
+            color: var(--text-main);
+            gap: 12px;
+        }
+
+        .quest-route .blue-arrow {
+            width: 100px;
+            height: 4px;
+            background-color: var(--primary-neon);
+            position: relative;
+        }
+
+        .quest-route .blue-arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            border-left: 12px solid var(--primary-neon);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        /* AI Assistant Block */
+        .ai-assistant {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .ai-assistant-visual {
+            width: 200px;
+            height: 200px;
+            background-color: var(--bg-panel);
+            border: 2px solid var(--primary-neon);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 234, 255, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .ai-assistant-visual svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ai-assistant-visual .lock-icon {
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            color: #fff;
+            font-size: 32px;
+            background-color: #ff3333;
+            border-radius: 50%;
+            padding: 6px;
+            border: 2px solid #fff;
+        }
+
+        .ai-assistant-label-block {
+            background-color: #000;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--primary-neon);
+            text-align: center;
+            width: 100%;
+        }
+
+        .ai-assistant-label-block .label {
+            color: var(--primary-neon);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .ai-assistant-label-block .subtitle {
+            color: var(--text-main);
+            font-size: 12px;
+        }
+
+        /* --- Mission Grid --- */
+        .mission-map {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 32px;
+            height: calc(100vh - 120px - 80px); /* Adjusting for titles and browser mock */
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Neon path lines */
+        .mission-map::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 10%;
+            right: 10%;
+            bottom: 10%;
+            border: 2px solid var(--secondary-neon);
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(255, 0, 234, 0.3);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Mission blocks */
+        .mission-block {
+            background-color: var(--bg-panel);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+            z-index: 2;
+        }
+
+        .mission-block.cleared {
+            border-color: var(--success-neon);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .mission-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .mission-number {
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 20px;
+            color: var(--primary-neon);
+            border: 2px solid var(--primary-neon);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(0, 234, 255, 0.4);
+        }
+
+        .mission-header h3 {
+            font-size: 16px;
+            color: #fff;
+            margin-top: 4px;
+        }
+
+        .mission-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Specific Mission Styles */
+
+        /* 1. Кибер-эргономика */
+        .mission-1 {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .mission-1-visual {
+            width: 100%;
+            height: 120px;
+            background-color: #000;
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .mission-1-visual .left-pane {
+            width: 100px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        .mission-1-visual .left-pane input[type="range"] {
+            width: 100%;
+            height: 4px;
+            accent-color: var(--success-neon);
+        }
+
+        .mission-1-visual .right-pane {
+            flex-grow: 1;
+            height: 100%;
+            background-color: #222;
+            border: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Person visual stub */
+        .mission-1-visual .person-stub {
+            width: 60px;
+            height: 80px;
+            border: 2px solid var(--success-neon);
+            background-color: rgba(0, 255, 0, 0.1);
+        }
+
+        /* 2. Сандық қойма */
+        .mission-2 {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .mission-2-visual {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+        }
+
+        .mission-2-visual .material-symbols-outlined {
+            font-size: 32px;
+            color: #fff;
+        }
+
+        .mission-2-label {
+            background-color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--secondary-neon);
+            text-align: center;
+            font-size: 12px;
+            color: var(--secondary-neon);
+        }
+
+        /* 3. Интернет шифры */
+        .mission-3 {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .mission-3-visual {
+            width: 100%;
+            height: 100px;
+            background-color: #000;
+            border-radius: 8px;
+            border: 1px solid var(--secondary-neon);
+            position: relative;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Maze placeholder */
+        .mission-3-visual .maze-placeholder {
+            width: 100px;
+            height: 100%;
+            background-image: repeating-linear-gradient(45deg, #111 0px, #111 2px, #000 2px, #000 10px);
+            opacity: 0.5;
+        }
+
+        .mission-3-visual .icon-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 12px;
+        }
+
+        .mission-3-visual .warning-label {
+            background-color: rgba(255, 165, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--warning-neon);
+            color: var(--warning-neon);
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 4. Деректер форты */
+        .mission-4 {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
+        .mission-4-visual {
+            width: 100%;
+            height: 120px;
+            background-color: #000;
+            border-radius: 8px;
+            border: 1px solid var(--success-neon);
+            position: relative;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Fortress gate stub */
+        .mission-4-visual .gate-stub {
+            width: 100%;
+            height: 60px;
+            background-color: #111;
+            border: 2px solid var(--success-neon);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success-neon);
+        }
+
+        .mission-4-visual .status-icons {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .mission-4-visual .status-icons .icon-block {
+            text-align: center;
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        .mission-4-visual .status-icons .icon-block.active .material-symbols-outlined {
+            color: var(--success-neon);
+        }
+
+        .mission-4-visual .status-icons .icon-block.warning .material-symbols-outlined {
+            color: var(--warning-neon);
+        }
+
+        /* 5. Бұлттық Matrix */
+        .mission-5 {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .mission-5-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80px;
+            position: relative;
+        }
+
+        /* Users around cloud stub */
+        .mission-5-visual .cloud-stub {
+            width: 80px;
+            height: 80px;
+            background-color: var(--bg-panel);
+            border: 2px solid var(--primary-neon);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-neon);
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .mission-5-visual .user-stub {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--primary-neon);
+            border-radius: 50%;
+            background-color: #111;
+            color: var(--primary-neon);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .mission-5-visual .user-1 { top: -10px; left: -10px; }
+        .mission-5-visual .user-2 { top: -10px; right: -10px; }
+        .mission-5-visual .user-3 { bottom: -10px; left: -10px; }
+        .mission-5-visual .user-4 { bottom: -10px; right: -10px; }
+
+        /* Chapter Complete and Background Details */
+        .chapter-complete-block {
+            grid-column: 3;
+            grid-row: 3;
+            background-color: var(--bg-panel);
+            border: 2px solid var(--primary-neon);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 0 20px rgba(0, 234, 255, 0.4);
+            align-self: flex-end;
+            margin-right: -20px;
+        }
+
+        .chapter-complete-block .status-label {
+            color: #fff;
+            background-color: #000;
+            padding: 6px 16px;
+            border-radius: 4px;
+            border: 1px solid var(--primary-neon);
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chapter-complete-block .badge-icon {
+            color: var(--primary-neon);
+            font-size: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--primary-neon);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            box-shadow: 0 0 15px rgba(0, 234, 255, 0.4);
+        }
+
+        .chapter-complete-block .badge-title {
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .chapter-complete-block .restart-button {
+            color: #fff;
+            background-color: #ff3333;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.4);
+        }
+
+        /* Background crystal/binary details */
+        .background-details {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.2;
+        }
+
+        .background-details .binary-code {
+            position: absolute;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--primary-neon);
+        }
+
+        .background-details .crystal {
+            position: absolute;
+            color: var(--secondary-neon);
+            font-size: 24px;
+        }
+
+    </style>
 </head>
 <body>
 
-  <header class="p-topbar">
-    <div class="p-brand">
-      <div class="p-logo">BilimQuest</div>
+    <div class="browser-mock">
+        <div class="browser-mock-actions">
+            <div class="circle" style="background-color: #ff5f56;"></div>
+            <div class="circle" style="background-color: #ffbd2e;"></div>
+            <div class="circle" style="background-color: #27c93f;"></div>
+        </div>
+        <div class="browser-mock-tab-bar">
+            <div class="browser-mock-tab">
+                <span class="material-symbols-outlined">map</span>
+                BilimQuest Map
+            </div>
+        </div>
+        <div class="browser-mock-address-bar">
+            <span class="material-symbols-outlined">lock</span>
+            bilimquest.map/quest1
+        </div>
+        <div class="browser-mock-right">
+            <span class="material-symbols-outlined">star</span>
+            <span class="material-symbols-outlined">more_vert</span>
+            <div class="profile-icon">A</div>
+        </div>
     </div>
-    <div class="p-actions">
-      <div class="p-score">⭐ {{ "%.2f"|format(student.score) }}</div>
-    </div>
-  </header>
 
-  <main class="p-stage">
+    <main>
+        
+        <div class="title-area">
+            <h1>Білім Квест: Компьютер және қауіпсіздік</h1>
+            <div class="quest-route">
+                Квест жолы <div class="blue-arrow"></div>
+            </div>
+        </div>
 
-    <div class="quest-title">
+        <div class="ai-assistant">
+            <div class="ai-assistant-visual">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(0, 234, 255, 0.2)" stroke-width="2"/>
+                    <text x="50" y="50" text-anchor="middle" font-size="20" fill="var(--primary-neon)" font-weight="bold">AI</text>
+                </svg>
+                <span class="material-symbols-outlined lock-icon">lock</span>
+            </div>
+            <div class="ai-assistant-label-block">
+                <div class="label">ЖИ-Көмекші</div>
+                <div class="subtitle">Кибер-кеңістіктегі Төтенше жағдай!</div>
+            </div>
+        </div>
 
-    </div>
+        <div class="mission-map cleared">
 
-    <svg class="p-paths" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true">
-      <path id="path-01" d="M220,100 C200,100 300,180 450,120" />
-      <path id="path-12" d="M450,130 C600,150 700,80 750,100" />
-      <path id="path-23" d="M720,120 C550,150 400,300 420,310" />
-      <path id="path-34" d="M400,320 C330,380 300,400 200,470" />
-    </svg>
+            <div class="mission-block mission-1 cleared">
+                <div class="mission-header">
+                    <div class="mission-number">1</div>
+                    <h3>Кибер-эргономика: Денсаулық қалқаны</h3>
+                </div>
+                <div class="mission-content">
+                    <div class="mission-1-visual">
+                        <div class="left-pane">
+                            <div>
+                                <label for="range1">Көз арақашықтығы</label>
+                                <input type="range" id="range1" min="0" max="100" value="80">
+                            </div>
+                            <div>
+                                <label for="range2">Арқа бұрышы</label>
+                                <input type="range" id="range2" min="0" max="100" value="45">
+                            </div>
+                        </div>
+                        <div class="right-pane">
+                            <div class="person-stub">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <div class="q-fireflies" data-path="#path-01" data-count="6" data-speed="0.15"></div>
-    <div class="q-fireflies" data-path="#path-12" data-count="6" data-speed="0.15"></div>
-    <div class="q-fireflies" data-path="#path-23" data-count="6" data-speed="0.15"></div>
-    <div class="q-fireflies" data-path="#path-34" data-count="6" data-speed="0.15"></div>
+            <div class="mission-block mission-2 cleared">
+                <div class="mission-header">
+                    <div class="mission-number">2</div>
+                    <h3>Сандық қойма: Тасымалдаушылар эволюциясы</h3>
+                </div>
+                <div class="mission-content">
+                    <div class="mission-2-visual">
+                        <span class="material-symbols-outlined">save</span>
+                        <span class="material-symbols-outlined">cd_rom</span>
+                        <span class="material-symbols-outlined">usb</span>
+                    </div>
+                    <div class="mission-2-label">
+                        Бұлттық қойма
+                    </div>
+                </div>
+            </div>
 
-    <a class="p-hero" href="/student" aria-label="Артқа">
-      <img src="{{ url_for('static', filename='img/gollogram_boy.png') }}" alt="Hero">
-      <div class="p-hero-title">Басты бет</div>
-    </a>
+            <div class="mission-block mission-3 cleared">
+                <div class="mission-header">
+                    <div class="mission-number">3</div>
+                    <h3>Интернет шифры: Фишинг тұзағы</h3>
+                </div>
+                <div class="mission-content">
+                    <div class="mission-3-visual">
+                        <div class="maze-placeholder"></div>
+                        <div class="icon-block">
+                            <span class="material-symbols-outlined" style="font-size: 32px; color: #fff;">mail</span>
+                            <span class="material-symbols-outlined" style="font-size: 32px; color: var(--success-neon);">verified_user</span>
+                        </div>
+                        <div class="warning-label">
+                            <span class="material-symbols-outlined">warning</span> Жалған сілтеме!
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- n1: matching -->
-    <a class="p-node" id="n1" href="/module1" aria-label="Сәйкестік">
-      <div class="p-platform">
-        <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_1.png') }}" alt="">
-      </div>
-      <div class="p-label">
-        <div class="p-label-title">Сәйкестік ойыны</div>
-      </div>
-    </a>
+            <div class="mission-block mission-4 cleared">
+                <div class="mission-header">
+                    <div class="mission-number">4</div>
+                    <h3>Деректер форты: Парольдер генераторы</h3>
+                </div>
+                <div class="mission-content">
+                    <div class="mission-4-visual">
+                        <div class="gate-stub">
+                            </div>
+                        <div class="status-icons">
+                            <div class="icon-block active">
+                                <span class="material-symbols-outlined">verified_user</span>
+                                Antivirus
+                            </div>
+                            <div class="icon-block warning">
+                                <span class="material-symbols-outlined">block</span>
+                                Firewall
+                            </div>
+                            <div class="icon-block active">
+                                <span class="material-symbols-outlined">key</span>
+                                Password Strength
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- n2: maze -->
-    <a class="p-node" id="n2" href="/module2" aria-label="Лабиринт">
-      <div class="p-platform">
-        <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_2.1.png') }}" alt="">
-      </div>
-      <div class="p-label">
-        <div class="p-label-title">Лабиринт</div>
-      </div>
-    </a>
+            <div class="mission-block mission-5 cleared">
+                <div class="mission-header">
+                    <div class="mission-number">5</div>
+                    <h3>Бұлттық Matrix: Бірлескен басқару</h3>
+                </div>
+                <div class="mission-content">
+                    <div class="mission-5-visual">
+                        <div class="cloud-stub">
+                            Cloud
+                        </div>
+                        <div class="user-stub user-1"><span class="material-symbols-outlined">person</span></div>
+                        <div class="user-stub user-2"><span class="material-symbols-outlined">person</span></div>
+                        <div class="user-stub user-3"><span class="material-symbols-outlined">person</span></div>
+                        <div class="user-stub user-4"><span class="material-symbols-outlined">person</span></div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- n3: cipher_game -->
-    <a class="p-node" id="n3" href="/module3" aria-label="Шифр ойыны">
-      <div class="p-platform">
-        <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_3.1.png') }}" alt="">
-      </div>
-      <div class="p-label">
-        <div class="p-label-title">Шифр ойыны</div>
-      </div>
-    </a>
+            <div class="chapter-complete-block">
+                <div class="status-label">Chapter Complete</div>
+                <div class="badge-icon">
+                    <span class="material-symbols-outlined">workspace_premium</span>
+                </div>
+                <div class="badge-title">Кибер-Қорғаушы</div>
+                <button class="restart-button">Қайта іске қосу</button>
+            </div>
 
-    <!-- n4: push_blocks_all -->
-    <a class="p-node p-finish" id="n4" href="/module4" aria-label="Блок тасымалдау">
-      <div class="p-platform">
-        <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_final_1.png') }}" alt="">
-      </div>
-      <div class="p-label">
-        <div class="p-label-title">Блок тасымалдау</div>
-      </div>
-    </a>
+        </div>
 
-  </main>
+        <div class="background-details">
+            <span class="binary-code" style="top: 10%; left: 10%;">01101</span>
+            <span class="binary-code" style="top: 20%; right: 20%;">10001</span>
+            <span class="binary-code" style="bottom: 30%; left: 15%;">11010</span>
+            <span class="binary-code" style="bottom: 10%; right: 10%;">01011</span>
+            <span class="material-symbols-outlined crystal" style="top: 30%; left: 5%;">change_history</span>
+            <span class="material-symbols-outlined crystal" style="top: 60%; right: 5%;">change_history</span>
+            <span class="material-symbols-outlined crystal" style="bottom: 20%; left: 40%;">change_history</span>
+        </div>
 
-  <script>
-(() => {
-  function initFireflies(layer) {
-    const pathSel = layer.dataset.path;
-    const count   = parseInt(layer.dataset.count || "8", 10);
-    const speed   = parseFloat(layer.dataset.speed || "0.15");
-
-    const path = document.querySelector(pathSel);
-    if (!path) return;
-
-    const svg   = path.ownerSVGElement;
-    const total = path.getTotalLength();
-
-    const flies = [];
-    for (let i = 0; i < count; i++) {
-      const el = document.createElement("div");
-      el.className = "q-firefly";
-      layer.appendChild(el);
-      flies.push({
-        el,
-        t: (i / count) + Math.random() * 0.08,
-        w: 0.6 + Math.random() * 0.8
-      });
-    }
-
-    function svgPointToLayerXY(pt) {
-      const svgRect   = svg.getBoundingClientRect();
-      const layerRect = layer.getBoundingClientRect();
-      return {
-        x: (pt.x / 1000) * svgRect.width  + (svgRect.left - layerRect.left),
-        y: (pt.y / 600)  * svgRect.height + (svgRect.top  - layerRect.top)
-      };
-    }
-
-    let last = performance.now();
-    function tick(now) {
-      const dt = (now - last) / 1000;
-      last = now;
-      for (const f of flies) {
-        f.t += dt * speed * f.w;
-        if (f.t > 1) f.t -= 1;
-        const p        = path.getPointAtLength(total * f.t);
-        const { x, y } = svgPointToLayerXY(p);
-        f.el.style.left = x + "px";
-        f.el.style.top  = y + "px";
-      }
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  }
-
-  document.querySelectorAll(".q-fireflies").forEach(initFireflies);
-})();
-  </script>
+    </main>
 
 </body>
 </html>
+
+```

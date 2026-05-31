@@ -18,11 +18,12 @@
 <div id="feedback"></div>
 
       <!-- Модальное окно окончания -->
-      <div id="game-over" class="hidden">
+      <div id="game-over" style="display:none">
         <h2>Ойын аяқталды!</h2>
         <p id="final-score">Ұпай: 0</p>
         <div id="star-container"></div>
       </div>
+  <script src="{{ url_for('static', filename='js/game_result_overlay.js') }}"></script>
   <script src="{{ url_for('static', filename='js/game6.js') }}"></script>
 </body>
 </html>

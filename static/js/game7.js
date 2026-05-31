@@ -126,7 +126,6 @@ function endGame() {
   }
 
   finalScoreEl.textContent = `Ұпай: ${finalScore.toFixed(2)}`;
-  gameOver.classList.remove('hidden');
 
   // Отправка на сервер
   fetch("/game_result", {
@@ -138,7 +137,8 @@ function endGame() {
       stars: stars,
       completed: true
     })
-  }).then(r=>r.json()).then(d=>console.log("Жіберілді:", d));
+  }).then(r=>r.json()).then(d=>showGameResult(d))
+    .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }
 
 // Клики по объектам

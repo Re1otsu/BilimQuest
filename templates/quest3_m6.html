@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Миссия 6 — Робот-Сумо</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;color:#e2e8f0;overflow:hidden;background:#060d2e;user-select:none}
+body{background-image:radial-gradient(ellipse 120% 60% at 50% 0%,rgba(120,30,30,.28) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 12% 50%,rgba(99,102,241,.1) 0%,transparent 50%),radial-gradient(ellipse 60% 40% at 88% 50%,rgba(220,38,38,.1) 0%,transparent 50%);background-color:#0a0815}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,120,80,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,120,80,.03) 1px,transparent 1px);background-size:40px 40px}
+
+/* HUD */
+.hud{position:relative;z-index:10;display:flex;align-items:center;height:52px;background:linear-gradient(180deg,rgba(20,8,12,.98),rgba(10,5,12,.96));border-bottom:2px solid rgba(220,80,80,.32);box-shadow:0 2px 20px rgba(220,60,60,.15);padding:0 10px;gap:4px}
+.hud-seg{display:flex;align-items:center;gap:6px;padding:0 12px;height:100%;border-right:1px solid rgba(220,80,80,.16);font-weight:800;font-size:13px;white-space:nowrap}
+.hud-seg:last-child{border-right:none;margin-left:auto}
+.hud-icon{font-size:17px}.hud-label{color:rgba(180,160,164,.65);font-size:10.5px;font-weight:700}
+.hud-val{color:#fff;font-size:13px;font-weight:900}
+.hud-val.red{color:#fb7185;text-shadow:0 0 8px rgba(244,63,94,.5)}
+.hud-val.gold{color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.5)}
+.hud-timer.warn{color:#ef4444;animation:blink .5s infinite}
+.hud-back{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;transition:background .2s;white-space:nowrap;flex-shrink:0}
+.hud-back.mod{background:rgba(99,102,241,.12);border:1px solid rgba(129,140,248,.4);color:#a5b4fc}
+.hud-back.mod:hover{background:rgba(99,102,241,.24)}
+.hud-back.prev{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fbbf24}
+.hud-back.prev:hover{background:rgba(245,158,11,.22)}
+
+/* Mission strip */
+.mission-strip{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:6px 16px;gap:12px;background:linear-gradient(90deg,rgba(99,102,241,.4),rgba(40,20,40,.35),rgba(220,38,38,.4));border-bottom:1px solid rgba(220,80,80,.18)}
+.mission-text{text-align:center;flex:1}
+.m-title{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;color:#fff;letter-spacing:.3px;text-shadow:0 0 10px rgba(255,100,80,.4)}
+.m-sub{font-size:11px;color:rgba(200,180,184,.75);margin-top:1px}
+.tip-badge{flex-shrink:0;padding:5px 11px;background:rgba(251,191,36,.08);border:1.5px solid rgba(251,191,36,.32);border-radius:10px;font-size:10.5px;font-weight:700;color:#fde68a;text-align:center;line-height:1.4}
+
+/* Stage */
+.stage{position:relative;z-index:1;display:flex;gap:10px;padding:10px 12px;height:calc(100vh - 52px - 48px);overflow:hidden}
+.panel{display:flex;flex-direction:column;gap:7px;min-width:0}
+.panel.left{flex:1.15}
+.panel.right{flex:1}
+.panel-header{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(120,40,140,.5),rgba(80,30,120,.55));border:1.5px solid rgba(200,100,220,.32);font-family:'Exo 2',sans-serif;font-weight:900;font-size:14px;color:#fff;letter-spacing:1.2px;text-shadow:0 0 12px rgba(220,120,255,.45)}
+.panel-body{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;border:1.5px solid rgba(200,100,220,.2);border-radius:14px;padding:10px;background:linear-gradient(160deg,rgba(20,12,40,.78),rgba(10,6,22,.88));overflow:hidden}
+
+/* ── VS HEALTH BAR (fighting-game style) ── */
+.vs-bar{flex-shrink:0;display:flex;align-items:stretch;gap:8px;height:52px}
+.vs-side{flex:1;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:5px 8px;border-radius:11px;position:relative;overflow:hidden}
+.vs-side.you{background:linear-gradient(100deg,rgba(99,102,241,.28),rgba(99,102,241,.06));border:1.5px solid rgba(129,140,248,.5)}
+.vs-side.foe{background:linear-gradient(260deg,rgba(220,38,38,.28),rgba(220,38,38,.06));border:1.5px solid rgba(248,113,113,.5)}
+.vs-side .nm{display:flex;align-items:center;gap:5px;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;letter-spacing:.5px}
+.vs-side.foe .nm{justify-content:flex-end}
+.vs-side.you .nm{color:#a5b4fc}.vs-side.foe .nm{color:#fca5a5}
+.hp-track{height:13px;border-radius:7px;background:rgba(0,0,0,.45);overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.1)}
+.hp-fill{position:absolute;top:0;height:100%;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.hp-fill.you{left:0;background:linear-gradient(90deg,#4f46e5,#818cf8);box-shadow:0 0 10px rgba(129,140,248,.5)}
+.hp-fill.foe{right:0;background:linear-gradient(270deg,#dc2626,#f87171);box-shadow:0 0 10px rgba(248,113,113,.5)}
+.hp-fill.lowhp{background:linear-gradient(90deg,#b45309,#f59e0b)!important}
+.hp-ghost{position:absolute;top:0;height:100%;background:rgba(255,255,255,.35);transition:width .8s ease .15s}
+.hp-ghost.you{left:0}.hp-ghost.foe{right:0}
+.hp-num{position:absolute;top:50%;transform:translateY(-50%);font-family:'Exo 2',sans-serif;font-size:9px;font-weight:900;color:#fff;text-shadow:0 1px 2px #000;z-index:2}
+.hp-num.you{right:5px}.hp-num.foe{left:5px}
+.vs-mid{flex-shrink:0;width:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.vs-word{font-family:'Exo 2',sans-serif;font-size:18px;font-weight:900;color:#fbbf24;text-shadow:0 0 12px rgba(251,191,36,.6);line-height:1}
+.round-pips{display:flex;gap:4px}
+.pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);transition:.3s}
+.pip.win{background:#22c55e;border-color:#16a34a;box-shadow:0 0 7px rgba(34,197,94,.6)}
+.pip.lose{background:#ef4444;border-color:#dc2626}
+
+/* Arena */
+.arena-center{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+.arena-shake{transition:none}
+#arenaCanvas{border-radius:14px;display:block;max-height:100%;box-shadow:0 0 36px rgba(220,80,60,.18),inset 0 0 40px rgba(0,0,0,.6)}
+.arena-shake.shaking{animation:arenaShake .4s ease}
+@keyframes arenaShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,3px)}}
+
+/* Energy */
+.energy-wrap{flex-shrink:0}
+.energy-label{display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:#fbbf24;margin-bottom:3px;letter-spacing:.3px}
+.energy-track{height:11px;border-radius:6px;background:rgba(0,0,0,.4);overflow:hidden;border:1px solid rgba(251,191,36,.25);position:relative}
+.energy-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#d97706,#fbbf24,#fde68a);transition:width .35s;box-shadow:0 0 10px rgba(251,191,36,.5)}
+.energy-pips{position:absolute;inset:0;display:flex}
+.energy-pips i{flex:1;border-right:1px solid rgba(0,0,0,.3)}
+
+/* Strategy cards */
+.strat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex-shrink:0}
+.scard{position:relative;padding:8px 9px;border-radius:12px;cursor:pointer;border:1.5px solid var(--c,#6366f1);background:linear-gradient(150deg,rgba(30,20,55,.9),rgba(16,10,32,.95));transition:transform .14s,box-shadow .2s,border-color .2s;overflow:hidden}
+.scard:hover:not(.disabled){transform:translateY(-2px);box-shadow:0 5px 18px rgba(var(--cr),.3)}
+.scard.selected{box-shadow:0 0 0 2px var(--c),0 0 18px rgba(var(--cr),.5)}
+.scard.disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.5)}
+.scard-head{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.scard-ico{font-size:19px;line-height:1}
+.scard-name{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:900;color:#fff}
+.scard-desc{font-size:9px;color:rgba(180,180,200,.7);font-weight:700;line-height:1.3;min-height:22px}
+.scard-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tag{font-size:8.5px;font-weight:800;padding:2px 5px;border-radius:5px;letter-spacing:.2px}
+.tag.dmg{background:rgba(239,68,68,.18);color:#fca5a5}
+.tag.push{background:rgba(34,197,94,.16);color:#86efac}
+.tag.nrg{background:rgba(251,191,36,.16);color:#fde68a}
+.tag.def{background:rgba(56,189,248,.16);color:#7dd3fc}
+
+/* Battle log */
+.battle-log{flex:1;min-height:42px;overflow-y:auto;display:flex;flex-direction:column-reverse;gap:3px;padding:7px 9px;border-radius:11px;background:rgba(0,0,0,.4);border:1px solid rgba(200,100,220,.14)}
+.battle-log::-webkit-scrollbar{width:3px}.battle-log::-webkit-scrollbar-thumb{background:rgba(200,100,220,.25);border-radius:2px}
+.log-entry{font-size:10.5px;font-weight:700;color:rgba(220,215,230,.8);line-height:1.35}
+.log-entry.good{color:#86efac}.log-entry.bad{color:#fca5a5}.log-entry.warn{color:#fde68a}
+
+/* Status + actions */
+.status-box{flex-shrink:0;padding:7px 12px;border-radius:10px;font-size:11.5px;font-weight:700;text-align:center;min-height:34px;display:flex;align-items:center;justify-content:center;background:rgba(200,100,220,.07);border:1px solid rgba(200,100,220,.2);color:#e2e8f0;line-height:1.35;transition:.3s}
+.status-box.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:#4ade80}
+.status-box.err{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.35);color:#f87171}
+.status-box.warn{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.38);color:#fde68a}
+.action-row{flex-shrink:0;display:flex;gap:6px}
+.abtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px 12px;border:none;border-radius:50px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;transition:transform .15s;flex:1}
+.abtn:hover{transform:translateY(-1px)}.abtn:disabled{opacity:.4;pointer-events:none}
+.abtn-fight{background:linear-gradient(135deg,#dc2626,#f59e0b);color:#fff;box-shadow:0 3px 16px rgba(239,68,68,.35);flex:2}
+.abtn-hint{background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.35);color:#fde68a}
+.abtn-give{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#94a3b8}
+
+/* Result overlay */
+.result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s}
+.result-overlay.show{opacity:1;pointer-events:all}
+.result-card{background:linear-gradient(155deg,rgba(30,16,50,.99),rgba(12,6,22,.99));border:2px solid rgba(220,120,255,.38);border-radius:24px;padding:30px 40px;text-align:center;max-width:430px;width:92%;box-shadow:0 0 60px rgba(220,80,180,.18);transform:scale(.8);transition:transform .32s}
+.result-overlay.show .result-card{transform:scale(1)}
+.result-icon{font-size:58px;margin-bottom:8px;display:block}
+.result-title{font-family:'Exo 2',sans-serif;font-size:25px;font-weight:900;margin-bottom:6px}
+.result-title.win{color:#fbbf24;text-shadow:0 0 18px rgba(251,191,36,.5)}
+.result-title.lose{color:#f87171}
+.result-sub{font-size:12.5px;color:rgba(200,190,210,.9);line-height:1.6;margin-bottom:12px}
+.stars-row{display:flex;justify-content:center;gap:10px;margin:6px 0 14px}
+.star-icon{font-size:30px;filter:grayscale(1);transition:filter .3s,transform .3s}
+.star-icon.lit{filter:none;animation:starPop .4s ease}
+@keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+.rbtn-row{display:flex;gap:7px;justify-content:center}
+.rbtn{padding:10px 20px;border:none;border-radius:50px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;transition:transform .18s}
+.rbtn:hover{transform:translateY(-2px)}
+.rbtn-gold{background:linear-gradient(135deg,#d97706,#fbbf24);color:#3a2606;box-shadow:0 4px 16px rgba(251,191,36,.35)}
+.rbtn-ghost{background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid rgba(255,255,255,.18)}
+
+@keyframes blink{50%{opacity:.35}}
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div class="hud">
+  <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
+  <a href="{{ url_for('quest3_m5') }}" class="hud-back prev">← М5</a>
+  <div class="hud-seg"><span class="hud-icon">🥊</span><span class="hud-label">Mission</span><span class="hud-val red">6 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
+  <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">03:00</span></div>
+</div>
+
+<!-- Mission strip -->
+<div class="mission-strip">
+  <div class="tip-badge" style="visibility:hidden;width:150px"></div>
+  <div class="mission-text">
+    <div class="m-title">6-миссия: Робот-сумо жекпе-жегі 🏆 ФИНАЛ</div>
+    <div class="m-sub">Стратегияны таңда → жауды шеңберден итеріп шығар! 3 раундтың 2-уін жең.</div>
+  </div>
+  <div class="tip-badge">Энергияңды бақыла — шабуыл қымбат!</div>
+</div>
+
+<!-- Stage -->
+<div class="stage">
+
+  <!-- LEFT: Arena -->
+  <div class="panel left">
+    <div class="panel-header">🏟️ ДОҺЁ АРЕНАСЫ</div>
+    <div class="panel-body">
+
+      <!-- VS health bar -->
+      <div class="vs-bar">
+        <div class="vs-side you">
+          <div class="nm">🤖 СІЗ</div>
+          <div class="hp-track">
+            <div class="hp-ghost you" id="myHpGhost" style="width:100%"></div>
+            <div class="hp-fill you" id="myHpFill" style="width:100%"></div>
+            <span class="hp-num you" id="myHpNum">100</span>
+          </div>
+        </div>
+        <div class="vs-mid">
+          <div class="vs-word">VS</div>
+          <div class="round-pips"><div class="pip" id="p1"></div><div class="pip" id="p2"></div><div class="pip" id="p3"></div></div>
+        </div>
+        <div class="vs-side foe">
+          <div class="nm">ЖАУ 🔴</div>
+          <div class="hp-track">
+            <div class="hp-ghost foe" id="enHpGhost" style="width:100%"></div>
+            <div class="hp-fill foe" id="enHpFill" style="width:100%"></div>
+            <span class="hp-num foe" id="enHpNum">100</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arena canvas -->
+      <div class="arena-center">
+        <div class="arena-shake" id="arenaShake">
+          <canvas id="arenaCanvas" width="380" height="320"></canvas>
+        </div>
+      </div>
+
+      <!-- Energy -->
+      <div class="energy-wrap">
+        <div class="energy-label"><span>⚡ ЭНЕРГИЯ</span><span id="energyNum">100 / 100</span></div>
+        <div class="energy-track">
+          <div class="energy-fill" id="energyFill" style="width:100%"></div>
+          <div class="energy-pips"><i></i><i></i><i></i><i></i><i style="border:none"></i></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Tactics -->
+  <div class="panel right">
+    <div class="panel-header">⚔️ ТАКТИКА</div>
+    <div class="panel-body">
+
+      <div class="strat-grid" id="stratGrid">
+        <div class="scard" id="sc_charge" style="--c:#ef4444;--cr:239,68,68" onclick="selectStrat('charge')">
+          <div class="scard-head"><span class="scard-ico">⚡</span><span class="scard-name">Шабуыл</span></div>
+          <div class="scard-desc">Күшті соққы — көп зиян мен итеру</div>
+          <div class="scard-tags"><span class="tag dmg">25 зиян</span><span class="tag push">итеру++</span><span class="tag nrg">−35⚡</span></div>
+        </div>
+        <div class="scard" id="sc_push" style="--c:#22c55e;--cr:34,197,94" onclick="selectStrat('push')">
+          <div class="scard-head"><span class="scard-ico">🤜</span><span class="scard-name">Итеру</span></div>
+          <div class="scard-desc">Жауды шеңбер шетіне қарай ысыру</div>
+          <div class="scard-tags"><span class="tag push">итеру+++</span><span class="tag nrg">−20⚡</span></div>
+        </div>
+        <div class="scard" id="sc_dodge" style="--c:#38bdf8;--cr:56,189,248" onclick="selectStrat('dodge')">
+          <div class="scard-head"><span class="scard-ico">💨</span><span class="scard-name">Жалтару</span></div>
+          <div class="scard-desc">Соққының 60%-нан қашу</div>
+          <div class="scard-tags"><span class="tag def">қорғаныс</span><span class="tag nrg">−10⚡</span></div>
+        </div>
+        <div class="scard" id="sc_charge_up" style="--c:#fbbf24;--cr:251,191,36" onclick="selectStrat('charge_up')">
+          <div class="scard-head"><span class="scard-ico">🔋</span><span class="scard-name">Зарядтау</span></div>
+          <div class="scard-desc">Энергия жина (бірақ ашықсың)</div>
+          <div class="scard-tags"><span class="tag nrg">+40⚡</span><span class="tag dmg">осал</span></div>
+        </div>
+      </div>
+
+      <div class="battle-log" id="battleLog">
+        <div class="log-entry">⚔️ Жекпе-жек басталуға дайын...</div>
+      </div>
+
+      <div class="status-box" id="statusBox">Стратегия таңда да «Жүру!» бас</div>
+
+      <div class="action-row">
+        <button class="abtn abtn-fight" id="fightBtn" onclick="doRound()">⚔️ ЖҮРУ!</button>
+        <button class="abtn abtn-hint" onclick="showHint()">💡</button>
+        <button class="abtn abtn-give" onclick="surrender()">🏳</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Result overlay -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-icon" id="resIcon">🏆</span>
+    <div class="result-title" id="resTitle">ЧЕМПИОН!</div>
+    <div class="stars-row" id="resStars"></div>
+    <p class="result-sub" id="resSub"></p>
+    <div class="rbtn-row" id="rBtnRow"></div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   MISSION 6 — ROBO-SUMO (тактикалық пошаговая)
+   Жауды доҺё (шеңбер) шетінен итеріп шығар. Best-of-3.
+   Стратегия + энергия менеджменті.
+════════════════════════════════════════════════════════════ */
+
+const cv = document.getElementById('arenaCanvas');
+const ctx = cv.getContext('2d');
+const CW = 380, CH = 320;
+const CX = CW/2, CY = CH/2 + 6;
+const R  = 138;                 // dohyo radius
+const EDGE = 0.82;              // |pos|>EDGE → out of ring
+const POS_X = R - 26;           // px per pos unit
+
+/* ── Strategies (1D push model: +x = toward foe's edge / right) ── */
+const STRAT = {
+  charge:    {name:'Шабуыл',  energy:35,  dmg:25, pushFoe:0.20, recoil:-0.04},
+  push:      {name:'Итеру',   energy:20,  dmg:8,  pushFoe:0.28, recoil:0},
+  dodge:     {name:'Жалтару', energy:10,  dmg:0,  pushFoe:0,    recoil:-0.05, dodge:0.4},
+  charge_up: {name:'Зарядтау',energy:-40, dmg:0,  pushFoe:0,    recoil:0,     vulnerable:1.25},
+};
+const FOE_AI = ['push','charge','push','dodge','charge','charge_up','push'];
+
+/* ── State ── */
+let myHp=100, foeHp=100, myEnergy=100;
+let myX=-0.28, foeX=0.28;       // position on ring axis (-1 my edge … +1 foe edge)
+let selected=null;
+let round=0, roundsWon=0, roundsLost=0;
+const MAX_ROUNDS=3;
+let gameOver=false, busy=false;
+let timerSec=180, timerInterval;
+let score=0, stars=0;
+let shake=0;
+const particles=[];
+
+/* ════ DRAW ARENA ════ */
+function drawArena(){
+  // shake offset
+  const ox=(Math.random()*2-1)*shake, oy=(Math.random()*2-1)*shake;
+  ctx.setTransform(1,0,0,1,ox,oy);
+  ctx.clearRect(-10,-10,CW+20,CH+20);
+
+  // backdrop
+  ctx.fillStyle='#0c0a18'; ctx.fillRect(0,0,CW,CH);
+
+  // floor glow
+  const fg=ctx.createRadialGradient(CX,CY,20,CX,CY,R+30);
+  fg.addColorStop(0,'rgba(60,40,30,.5)'); fg.addColorStop(.7,'rgba(30,18,16,.3)'); fg.addColorStop(1,'rgba(10,6,12,0)');
+  ctx.fillStyle=fg; ctx.fillRect(0,0,CW,CH);
+
+  // dohyo base (sand-tech)
+  const dg=ctx.createRadialGradient(CX,CY-20,30,CX,CY,R);
+  dg.addColorStop(0,'#2a2438'); dg.addColorStop(.75,'#1c1830'); dg.addColorStop(1,'#141022');
+  ctx.fillStyle=dg;
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.fill();
+
+  // radial spokes
+  ctx.strokeStyle='rgba(255,255,255,.045)'; ctx.lineWidth=1;
+  for(let i=0;i<24;i++){const a=i/24*Math.PI*2;ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(a)*R,CY+Math.sin(a)*R);ctx.stroke();}
+
+  // concentric rings
+  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1.5;
+  for(const rr of [0.4,0.7]){ctx.beginPath();ctx.arc(CX,CY,R*rr,0,Math.PI*2);ctx.stroke();}
+
+  // center start ticks
+  ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(CX-26,CY+R*0.55); ctx.lineTo(CX-12,CY+R*0.55); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(CX+12,CY+R*0.55); ctx.lineTo(CX+26,CY+R*0.55); ctx.stroke();
+
+  // danger band near edge — intensity rises as a robot approaches that side
+  const myDanger  = Math.max(0,(Math.abs(myX)-0.45)/(EDGE-0.45));
+  const foeDanger = Math.max(0,(Math.abs(foeX)-0.45)/(EDGE-0.45));
+  drawDangerArc(Math.PI*0.5, Math.PI*1.5, myDanger);   // left half (my edge)
+  drawDangerArc(-Math.PI*0.5, Math.PI*0.5, foeDanger); // right half (foe edge)
+
+  // outer boundary ring (the line you must not cross)
+  ctx.strokeStyle='rgba(251,191,36,.85)'; ctx.lineWidth=4;
+  ctx.shadowColor='rgba(251,191,36,.5)'; ctx.shadowBlur=10;
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.stroke();
+  ctx.shadowBlur=0;
+
+  // robots (sorted so the more-forward one overlaps naturally)
+  drawSumo(CX+myX*POS_X,  CY, +1, 'me',  myHp);
+  drawSumo(CX+foeX*POS_X, CY, -1, 'foe', foeHp);
+
+  // particles on top
+  drawParticles();
+
+  ctx.setTransform(1,0,0,1,0,0);
+}
+
+function drawDangerArc(a0,a1,intensity){
+  if(intensity<=0.02) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(CX,CY,R,a0,a1);
+  ctx.lineWidth=14;
+  ctx.strokeStyle=`rgba(239,68,68,${0.12+intensity*0.5})`;
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* ── Sumo robot (top-down wedge pusher) ── */
+function drawSumo(x,y,face,who,hp){
+  const me = who==='me';
+  const body = me ? '#4f46e5' : '#dc2626';
+  const bodyLt = me ? '#818cf8' : '#f87171';
+  const glow = me ? 'rgba(99,102,241,.55)' : 'rgba(239,68,68,.55)';
+  const W=42, Hh=34;
+
+  // shadow
+  ctx.fillStyle='rgba(0,0,0,.4)';
+  ctx.beginPath(); ctx.ellipse(x, y+Hh*0.5+3, W*0.5, 7, 0, 0, Math.PI*2); ctx.fill();
+
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.scale(face,1);   // face=+1 → looks right (toward foe), -1 → left
+
+  // treads (top & bottom dark bars)
+  ctx.fillStyle='#15131c';
+  roundRect(-W*0.4,-Hh*0.62,W*0.85,7,3); ctx.fill();
+  roundRect(-W*0.4, Hh*0.62-7,W*0.85,7,3); ctx.fill();
+  // tread studs
+  ctx.fillStyle='rgba(255,255,255,.12)';
+  for(let i=0;i<5;i++){ctx.fillRect(-W*0.36+i*W*0.18,-Hh*0.6,2,4);ctx.fillRect(-W*0.36+i*W*0.18,Hh*0.6-4,2,4);}
+
+  // glow under body
+  ctx.shadowColor=glow; ctx.shadowBlur=16;
+
+  // main chassis
+  const bg=ctx.createLinearGradient(-W*0.4,0,W*0.4,0);
+  bg.addColorStop(0,body); bg.addColorStop(1,bodyLt);
+  ctx.fillStyle=bg;
+  roundRect(-W*0.42,-Hh*0.5,W*0.7,Hh, 6); ctx.fill();
+  ctx.shadowBlur=0;
+
+  // front plow (wedge that scoops opponent) — points in +x (forward)
+  ctx.fillStyle=bodyLt;
+  ctx.beginPath();
+  ctx.moveTo(W*0.28,-Hh*0.5);
+  ctx.lineTo(W*0.52,-Hh*0.18);
+  ctx.lineTo(W*0.52, Hh*0.18);
+  ctx.lineTo(W*0.28, Hh*0.5);
+  ctx.closePath(); ctx.fill();
+  // plow highlight
+  ctx.fillStyle='rgba(255,255,255,.3)';
+  ctx.beginPath(); ctx.moveTo(W*0.42,-Hh*0.32); ctx.lineTo(W*0.52,-Hh*0.1); ctx.lineTo(W*0.52,Hh*0.1); ctx.lineTo(W*0.42,Hh*0.32); ctx.closePath(); ctx.fill();
+
+  // LED eye strip (faces forward)
+  const eyeHp = hp>50 ? '#7dd3fc' : hp>25 ? '#fbbf24' : '#ef4444';
+  ctx.fillStyle = me ? eyeHp : eyeHp;
+  ctx.shadowColor=eyeHp; ctx.shadowBlur=8;
+  roundRect(W*0.06,-Hh*0.22,W*0.12,Hh*0.44,3); ctx.fill();
+  ctx.shadowBlur=0;
+  // eye dots
+  ctx.fillStyle='rgba(0,0,0,.5)';
+  ctx.fillRect(W*0.09,-Hh*0.1,2,Hh*0.2);
+
+  // top detail line
+  ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(-W*0.3,0); ctx.lineTo(W*0.05,0); ctx.stroke();
+
+  ctx.restore();
+
+  // low-HP smoke
+  if(hp<=30 && hp>0 && Math.random()<0.25){
+    particles.push({x:x+(Math.random()-.5)*16,y:y-12,vx:(Math.random()-.5)*0.4,vy:-0.8-Math.random()*0.5,life:1,color:'rgba(120,120,130,',size:3+Math.random()*3,grav:-0.01,smoke:1});
+  }
+}
+
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+/* ── Particles ── */
+function spawnSparks(x,y,n,color){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, sp=1.5+Math.random()*3.5;
+    particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color,size:2+Math.random()*3,grav:0.06});
+  }
+}
+function drawParticles(){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx; p.y+=p.vy; p.vy+=p.grav; p.life-=p.smoke?0.02:0.04;
+    if(p.life<=0){particles.splice(i,1);continue;}
+    if(p.smoke){ ctx.fillStyle=p.color+(p.life*0.4)+')'; ctx.beginPath(); ctx.arc(p.x,p.y,p.size*(2-p.life),0,Math.PI*2); ctx.fill(); }
+    else { ctx.fillStyle=p.color.replace('ALPHA',p.life.toFixed(2)); ctx.beginPath(); ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2); ctx.fill(); }
+  }
+}
+
+/* ── Idle render loop ── */
+function idle(){ if(shake>0.1) shake*=0.85; else shake=0; drawArena(); requestAnimationFrame(idle); }
+
+/* ════ STRATEGY SELECT ════ */
+function selectStrat(s){
+  if(gameOver||busy) return;
+  const st=STRAT[s];
+  if(st.energy>0 && myEnergy<st.energy){ setStatus('⚡ Энергия жеткіліксіз! 🔋 Зарядта.','err'); return; }
+  selected=s;
+  document.querySelectorAll('.scard').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('sc_'+s).classList.add('selected');
+  setStatus(`${st.name} таңдалды — «ЖҮРУ!» бас`,'');
+}
+
+/* ════ ROUND RESOLVE ════ */
+async function doRound(){
+  if(gameOver||busy) return;
+  if(!selected){ setStatus('Алдымен стратегия таңда!','warn'); return; }
+  busy=true;
+  document.getElementById('fightBtn').disabled=true;
+  document.querySelectorAll('.scard').forEach(c=>c.classList.add('disabled'));
+
+  const my=STRAT[selected];
+  const foeKey=FOE_AI[round%FOE_AI.length];
+  const foe=STRAT[foeKey];
+
+  // energy
+  myEnergy = my.energy>0 ? Math.max(0,myEnergy-my.energy) : Math.min(100,myEnergy-my.energy);
+  updateEnergy();
+
+  // damage
+  let dmgToMe = foe.dmg;
+  let dmgToFoe= my.dmg * (foeKey==='dodge'?0.4:1);
+  if(selected==='dodge') dmgToMe*=my.dodge;
+  if(selected==='charge_up') dmgToMe*=my.vulnerable;
+  dmgToMe=Math.round(dmgToMe); dmgToFoe=Math.round(dmgToFoe);
+
+  // push (1D)
+  let pushFoe = my.pushFoe * (foeKey==='dodge'?0.4:1);   // I push foe toward +
+  let pushMe  = foe.pushFoe * (selected==='dodge'?my.dodge:1); // foe pushes me toward -
+  const fromX_me=myX, fromX_foe=foeX;
+  let nMyX  = myX  - pushMe  + my.recoil;
+  let nFoeX = foeX + pushFoe - foe.recoil;
+  // keep them from passing through each other
+  if(nFoeX - nMyX < 0.32){ const mid=(nFoeX+nMyX)/2; nMyX=mid-0.16; nFoeX=mid+0.16; }
+  nMyX=Math.max(-1.05,Math.min(0.5,nMyX));
+  nFoeX=Math.max(-0.5,Math.min(1.05,nFoeX));
+
+  myHp=Math.max(0,myHp-dmgToMe);
+  foeHp=Math.max(0,foeHp-dmgToFoe);
+
+  await animateClash(selected, foeKey, fromX_me, fromX_foe, nMyX, nFoeX, dmgToMe, dmgToFoe);
+
+  myX=nMyX; foeX=nFoeX;
+  updateHp();
+
+  // outcome
+  const foeOut = foeX>=EDGE || foeHp<=0;
+  const myOut  = myX<=-EDGE || myHp<=0;
+  let result=null;
+  if(foeOut && !myOut){ result='win'; }
+  else if(myOut && !foeOut){ result='lose'; }
+  else if(myOut && foeOut){ result = foeHp<=myHp?'win':'lose'; }
+
+  // log
+  if(result==='win') addLog(`✅ ${my.name}: жауды шеңберден шығардың!`,'good');
+  else if(result==='lose') addLog(`❌ ${foe.name}: жау сені итеріп шығарды!`,'bad');
+  else addLog(`⚔️ ${my.name} ↔ ${foe.name}: −${dmgToMe} саған, −${dmgToFoe} жауға`,'');
+
+  document.getElementById('fightBtn').disabled=false;
+  document.querySelectorAll('.scard').forEach(c=>c.classList.remove('disabled','selected'));
+  selected=null;
+  refreshCardsAvailability();
+  busy=false;
+
+  if(result){ await sleep(550); finishRound(result); }
+  else if(myHp<28){ setStatus(`⚠️ HP аз (${myHp})! 🔋 Зарядта не 💨 жалтар!`,'warn'); }
+  else if(myEnergy<25){ setStatus(`⚡ Энергия аз (${myEnergy})! 🔋 Зарядта.`,'warn'); }
+  else setStatus('Раунд жалғасуда — стратегия таңда','');
+}
+
+/* ════ CLASH ANIMATION ════ */
+async function animateClash(myKey,foeKey,fmX,ffX,toMyX,toFoeX,dmgMe,dmgFoe){
+  const lungeMe  = myKey==='charge'||myKey==='push';
+  const lungeFoe = foeKey==='charge'||foeKey==='push';
+  // phase A: lunge inward
+  const A=8;
+  for(let f=1;f<=A;f++){
+    const t=f/A;
+    myX  = fmX + (lungeMe ?  0.10*t : -0.01*t);
+    foeX = ffX + (lungeFoe? -0.10*t :  0.01*t);
+    await frameWait();
+  }
+  // impact
+  const ix=CX+((myX+foeX)/2)*POS_X, iy=CY;
+  shake = (dmgMe>15||dmgFoe>15) ? 7 : 3.5;
+  spawnSparks(ix,iy, (dmgMe>15||dmgFoe>15)?20:11, 'rgba(251,191,36,ALPHA)');
+  if(dmgFoe>0) spawnSparks(CX+foeX*POS_X,iy,8,'rgba(129,140,248,ALPHA)');
+  if(dmgMe>0)  spawnSparks(CX+myX*POS_X, iy,8,'rgba(248,113,113,ALPHA)');
+  document.getElementById('arenaShake').classList.add('shaking');
+  setTimeout(()=>document.getElementById('arenaShake').classList.remove('shaking'),400);
+  playImpact(Math.max(dmgMe,dmgFoe));
+  await sleep(90);
+  // phase B: settle to new positions
+  const B=14, sMy=myX, sFoe=foeX;
+  for(let f=1;f<=B;f++){
+    const t=f/B, e=1-Math.pow(1-t,3);
+    myX=sMy+(toMyX-sMy)*e;
+    foeX=sFoe+(toFoeX-sFoe)*e;
+    await frameWait();
+  }
+  myX=toMyX; foeX=toFoeX;
+}
+function frameWait(){return new Promise(r=>requestAnimationFrame(()=>r()));}
+
+/* ════ ROUND / BATTLE ════ */
+function finishRound(result){
+  round++;
+  const pip=document.getElementById('p'+round);
+  if(result==='win'){ roundsWon++; if(pip)pip.className='pip win'; addLog(`🏅 РАУНД ${round}: ЖЕҢІС!`,'good'); }
+  else { roundsLost++; if(pip)pip.className='pip lose'; addLog(`💀 РАУНД ${round}: жеңіліс`,'bad'); }
+
+  if(roundsWon>=2 || roundsLost>=2 || round>=MAX_ROUNDS){ endBattle(); return; }
+  setTimeout(()=>{ resetRound(); setStatus(`РАУНД ${round+1} басталды! Алға!`,'ok'); }, 850);
+}
+
+function resetRound(){
+  myHp=100; foeHp=100;
+  myX=-0.28; foeX=0.28;
+  selected=null;
+  updateHp(); refreshCardsAvailability();
+  document.querySelectorAll('.scard').forEach(c=>c.classList.remove('selected'));
+}
+
+function endBattle(){
+  gameOver=true;
+  clearInterval(timerInterval);
+  const win=roundsWon>=2;
+  if(win){ stars = roundsLost===0?3:2; score = roundsLost===0?0.5:0.35; }
+  else { stars = roundsWon===1?1:0; score = roundsWon===1?0.12:0.05; }
+  document.getElementById('hudScore').textContent=stars;
+  setTimeout(()=>showResult(win),650);
+}
+
+/* ════ RESULT ════ */
+function showResult(win){
+  document.getElementById('resIcon').textContent=win?(stars===3?'🏆':'🥈'):'💀';
+  const rt=document.getElementById('resTitle');
+  rt.textContent=win?(stars===3?'ЧЕМПИОН!':'ЖЕҢІС!'):'ЖЕҢІЛДІҢ';
+  rt.className='result-title '+(win?'win':'lose');
+  document.getElementById('resSub').textContent=win
+    ? `${roundsWon}:${roundsLost} есебімен жеңдің! ${stars===3?'Бірде-бір раунд жоғалтпай — тамаша тактика!':'Жақсы! Энергияны тиімдірек басқарсаң — 3 жұлдыз.'}`
+    : `${roundsWon}:${roundsLost} — жеңіле бердің. Шабуыл/итеру/зарядтау тепе-теңдігін тап!`;
+  const sr=document.getElementById('resStars'); sr.innerHTML='';
+  for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='star-icon';s.textContent='⭐';sr.appendChild(s);if(i<=stars)setTimeout(()=>s.classList.add('lit'),i*200);}
+  const row=document.getElementById('rBtnRow'); row.innerHTML='';
+  if(!win){
+    const retry=document.createElement('button'); retry.className='rbtn rbtn-ghost'; retry.textContent='↻ Қайта';
+    retry.onclick=retryBattle; row.appendChild(retry);
+  }
+  const fin=document.createElement('button'); fin.className='rbtn rbtn-gold';
+  fin.textContent=win?'🎓 Квестті аяқтау':'Модульге оралу'; fin.onclick=goFinish; row.appendChild(fin);
+  document.getElementById('resultOverlay').classList.add('show');
+  submitResult(); playVictory(win);
+}
+
+let submitted=false;
+function submitResult(){
+  if(submitted) return; submitted=true;
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Сумо',score,stars,completed:stars>0})}).catch(()=>{});
+}
+
+function retryBattle(){
+  document.getElementById('resultOverlay').classList.remove('show');
+  gameOver=false; busy=false; submitted=false;
+  round=0; roundsWon=0; roundsLost=0; myEnergy=100;
+  ['p1','p2','p3'].forEach(id=>{const p=document.getElementById(id);if(p)p.className='pip';});
+  document.getElementById('hudScore').textContent='0';
+  document.getElementById('battleLog').innerHTML='<div class="log-entry">⚔️ Қайта бастадың!</div>';
+  timerSec=180; document.getElementById('hudTimer').classList.remove('warn');
+  document.getElementById('hudTimer').textContent='03:00';
+  document.getElementById('fightBtn').disabled=false;
+  resetRound(); updateEnergy();
+  setStatus('Стратегия таңда да «Жүру!» бас','');
+  startTimer();
+}
+
+function goFinish(){ window.location.href='{{ url_for("toqsan_3") }}'; }
+
+function surrender(){
+  if(gameOver) return;
+  roundsLost=2; stars=0; score=0.05; endBattle();
+}
+
+function showHint(){
+  if(gameOver) return;
+  const tips=[
+    '💡 Энергия аз болса — алдымен 🔋 Зарядта!',
+    '💡 Жау HP-сы аз болса — ⚡ Шабуыл шешеді!',
+    '💡 🤜 Итеру ең күшті ысыру — жауды шетке тез апарады.',
+    '💡 Жау шабуылдайды деп ойласаң — 💨 Жалтар (зиян −60%).',
+    '💡 🔋 Зарядтағанда осалсың — қауіпсіз кезде ғана зарядта.',
+  ];
+  addLog(tips[Math.floor(Math.random()*tips.length)],'warn');
+}
+
+/* ════ HP / ENERGY UI ════ */
+function updateHp(){
+  const my=document.getElementById('myHpFill'), fo=document.getElementById('enHpFill');
+  my.style.width=myHp+'%'; fo.style.width=foeHp+'%';
+  document.getElementById('myHpGhost').style.width=myHp+'%';
+  document.getElementById('enHpGhost').style.width=foeHp+'%';
+  document.getElementById('myHpNum').textContent=myHp;
+  document.getElementById('enHpNum').textContent=foeHp;
+  my.classList.toggle('lowhp',myHp<=30);
+  fo.classList.toggle('lowhp',foeHp<=30);
+}
+function updateEnergy(){
+  document.getElementById('energyFill').style.width=myEnergy+'%';
+  document.getElementById('energyNum').textContent=`${myEnergy} / 100`;
+  refreshCardsAvailability();
+}
+function refreshCardsAvailability(){
+  if(busy) return; // during a round all cards are disabled by doRound()
+  for(const key in STRAT){
+    const st=STRAT[key], card=document.getElementById('sc_'+key);
+    if(!card) continue;
+    const tooCostly = st.energy>0 && myEnergy<st.energy;
+    card.classList.toggle('disabled', tooCostly);
+  }
+}
+
+function addLog(msg,type){
+  const log=document.getElementById('battleLog');
+  const el=document.createElement('div'); el.className='log-entry'+(type?' '+type:''); el.textContent=msg;
+  log.insertBefore(el,log.firstChild);
+}
+
+/* ════ TIMER ════ */
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timerSec--;
+    const m=Math.floor(timerSec/60),s=timerSec%60;
+    const el=document.getElementById('hudTimer');
+    el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    if(timerSec<=30) el.classList.add('warn');
+    if(timerSec<=0){clearInterval(timerInterval);if(!gameOver){gameOver=true;roundsLost=Math.max(roundsLost,2);stars=roundsWon>=1?1:0;score=roundsWon>=1?0.1:0.05;showResult(roundsWon>=2);}}
+  },1000);
+}
+
+/* ════ HELPERS ════ */
+function setStatus(msg,type){const el=document.getElementById('statusBox');el.textContent=msg;el.className='status-box'+(type?' '+type:'');}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+/* ════ AUDIO ════ */
+let audioCtx;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playImpact(dmg){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sawtooth';o.frequency.setValueAtTime(dmg>15?260:150,a.currentTime);o.frequency.exponentialRampToValueAtTime(60,a.currentTime+0.18);g.gain.setValueAtTime(.28,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+0.22);o.start();o.stop(a.currentTime+0.22);}catch(e){}}
+function playVictory(win){try{const a=getAudio();const seq=win?[440,550,660,880]:[440,330,220];seq.forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=f;const t=a.currentTime+i*0.12;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.25,t+0.04);g.gain.linearRampToValueAtTime(0,t+0.36);o.start(t);o.stop(t+0.36);});}catch(e){}}
+
+/* ── Init ── */
+updateHp(); updateEnergy();
+startTimer();
+idle();
+</script>
+</body>
+</html>

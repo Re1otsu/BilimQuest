@@ -85,7 +85,6 @@ function checkGameEnd() {
 
 function showGameOver() {
   finalScore.textContent = `Ұпай: ${score.toFixed(2)}`;
-  gameOverModal.classList.remove("hidden");
 
   let stars = (score === maxScore) ? 1 : 0;
   const starElement = document.getElementById("star");
@@ -100,9 +99,8 @@ function showGameOver() {
       stars: stars,
       completed: true
     })
-  }).then(res => res.json()).then(data => {
-    document.getElementById('result-box').style.display = 'block';
-  });
+  }).then(res => res.json()).then(data => showGameResult(data))
+    .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }
 
 const gameInterval = setInterval(() => {

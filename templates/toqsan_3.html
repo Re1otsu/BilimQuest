@@ -55,62 +55,69 @@
     </a>
 
 
-    <!-- n1 -->
-    <a class="p-node" id="n1" href="/puzzle/logic" aria-label="Растрлық суреттерді құру және редакциялау">
+    <!-- n1: Робот орны -->
+    <a class="p-node{% if completed['Робот орны'] %} p-done{% endif %}" id="n1" href="{{ url_for('quest3_m1') }}" aria-label="Робот орны">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_1.png') }}" alt="">
+        {% if completed['Робот орны'] %}<div class="p-done-badge">✓</div>{% endif %}
       </div>
       <div class="p-label">
-        <div class="p-label-title">Робот түрлері және оларды қолдану</div>
+        <div class="p-label-title">Робот түрлері және орналасуы</div>
       </div>
     </a>
 
-    <!-- n2 -->
-    <a class="p-node" id="n2" href="/puzzle/devices" aria-label="Растрлық суреттерді өңдеу">
+    <!-- n2: Робот тарихы -->
+    <a class="p-node{% if completed['Робот тарихы'] %} p-done{% endif %}" id="n2" href="{{ url_for('quest3_m2') }}" aria-label="Робот тарихы">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_2.1.png') }}" alt="">
+        {% if completed['Робот тарихы'] %}<div class="p-done-badge">✓</div>{% endif %}
       </div>
       <div class="p-label">
-        <div class="p-label-title">Робототехника тарихы және оның перспиктивалары</div>
+        <div class="p-label-title">Робототехника тарихы</div>
       </div>
     </a>
 
-    <!-- n3 -->
-    <a class="p-node" id="n3" href="/puzzle/graphics" aria-label="Векторлық суреттерді құру">
+    <!-- n3: Гироскоп -->
+    <a class="p-node{% if completed['Гироскоп'] %} p-done{% endif %}" id="n3" href="{{ url_for('quest3_m3') }}" aria-label="Гироскоп">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_3.1.png') }}" alt="">
+        {% if completed['Гироскоп'] %}<div class="p-done-badge">✓</div>{% endif %}
       </div>
       <div class="p-label">
-        <div class="p-label-title">Гидроскопиялық датчик</div>
+        <div class="p-label-title">Гироскоптық датчик</div>
       </div>
     </a>
 
-    <!-- n4 -->
-    <a class="p-node" id="n4" href="/puzzle/ai" aria-label="Қисық бетімен жұмыс">
+    <!-- n4: Лабиринт ойыны -->
+    <a class="p-node{% if completed['Лабиринт ойыны'] %} p-done{% endif %}" id="n4" href="{{ url_for('quest3_m4') }}" aria-label="Лабиринт ойыны">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_4.1.png') }}" alt="">
+        {% if completed['Лабиринт ойыны'] %}<div class="p-done-badge">✓</div>{% endif %}
       </div>
       <div class="p-label">
-        <div class="p-label-title">Бұрылыстар</div>
+        <div class="p-label-title">Бұрылыстар — лабиринт</div>
       </div>
     </a>
 
-    <!-- n5 -->
-    <a class="p-node p-finish" id="n5" href="/puzzle/final" aria-label="Растрлық және векторлық суреттерді салыстыру">
+    <!-- n5: Сызық робот -->
+    <a class="p-node{% if completed['Сызық робот'] %} p-done{% endif %}" id="n5" href="{{ url_for('quest3_m5') }}" aria-label="Сызық робот">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_5.1.png') }}" alt="">
+        {% if completed['Сызық робот'] %}<div class="p-done-badge">✓</div>{% endif %}
       </div>
       <div class="p-label">
-        <div class="p-label-title">Роботтың сызық бойымен қозғалысы</div>
+        <div class="p-label-title">Сызық бойымен қозғалыс</div>
       </div>
     </a>
 
-    <a class="p-node p-finish" id="n6" href="/puzzle/final" aria-label="Растрлық және векторлық суреттерді салыстыру">
+    <!-- n6: Сумо -->
+    <a class="p-node p-finish{% if completed['Сумо'] %} p-done{% endif %}" id="n6" href="{{ url_for('quest3_m6') }}" aria-label="Робо-сумо">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_final_1.png') }}" alt="">
+        {% if completed['Сумо'] %}<div class="p-done-badge">✓</div>{% endif %}
       </div>
       <div class="p-label">
-        <div class="p-label-title">Робо-сумо</div>
+        <div class="p-label-title">Робо-сумо жекпе-жегі</div>
       </div>
     </a>
 

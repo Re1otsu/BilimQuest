@@ -333,11 +333,7 @@ async function sendProgress() {
     starContainer.appendChild(star);
   }
 
-  // показать блок
-  const gameOver = document.getElementById("game-over");
-  if (gameOver) gameOver.classList.remove("hidden");
-
-  // отправка на сервер
+  // отправка на сервер + показ оверлея
   await fetch("/game_result", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -347,7 +343,8 @@ async function sendProgress() {
       stars: stars,
       completed: true
     })
-  });
+  }).then(r => r.json()).then(d => showGameResult(d))
+    .catch(() => showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }
 // ========== Горячие клавиши ==========
 document.addEventListener("keydown", (e) => {

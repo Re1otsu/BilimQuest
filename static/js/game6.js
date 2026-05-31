@@ -107,7 +107,6 @@ function endGame() {
     }
 
     document.getElementById('final-score').textContent = `Ұпай: ${finalScore.toFixed(2)}`;
-    document.getElementById('game-over').classList.remove('hidden');
 
     fetch("/game_result", {
         method:"POST",
@@ -118,6 +117,7 @@ function endGame() {
           stars: stars,
           completed: true
         })
-    }).then(r=>r.json()).then(d=>console.log("Жіберілді:", d));
+    }).then(r=>r.json()).then(d=>showGameResult(d))
+      .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }
 showWord();

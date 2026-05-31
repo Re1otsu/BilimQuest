@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Миссия 1 — Сұрыптау конвейері</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;color:#e8eefc;overflow:hidden;background:#060d2e;user-select:none}
+
+/* ══ BACKGROUND ══ */
+body{background:
+  radial-gradient(ellipse 130% 65% at 50% -8%,rgba(0,110,210,.38) 0%,transparent 60%),
+  radial-gradient(ellipse 70% 50% at 8% 60%,rgba(99,102,241,.13) 0%,transparent 55%),
+  radial-gradient(ellipse 70% 50% at 92% 55%,rgba(0,180,255,.12) 0%,transparent 55%),
+  #050c1e}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:radial-gradient(ellipse 100% 100% at 50% 40%,#000 40%,transparent 90%)}
+.orb{position:fixed;border-radius:50%;filter:blur(60px);opacity:.45;z-index:0;pointer-events:none;animation:drift 18s ease-in-out infinite}
+.orb.o1{width:320px;height:320px;background:rgba(0,150,255,.3);top:-80px;left:-60px}
+.orb.o2{width:280px;height:280px;background:rgba(120,80,255,.26);bottom:-90px;right:-50px;animation-delay:-6s}
+@keyframes drift{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(36px,26px) scale(1.08)}}
+
+/* ══ HUD ══ */
+.hud{position:relative;z-index:20;display:flex;align-items:center;height:52px;
+  background:linear-gradient(180deg,rgba(6,16,48,.98),rgba(3,9,32,.96));
+  border-bottom:1px solid rgba(0,180,255,.3);box-shadow:0 4px 22px rgba(0,140,255,.18);padding:0 12px}
+.hud-seg{display:flex;align-items:center;gap:6px;padding:0 13px;height:100%;
+  border-right:1px solid rgba(0,180,255,.14);font-weight:800;font-size:13px;white-space:nowrap}
+.hud-seg:last-child{border-right:none;margin-left:auto}
+.hud-icon{font-size:17px}.hud-label{color:rgba(148,170,210,.7);font-size:10.5px;font-weight:700}
+.hud-val{color:#fff;font-size:13px;font-weight:900}
+.hud-val.cyan{color:#34d6ff;text-shadow:0 0 9px rgba(0,229,255,.6)}
+.hud-val.gold{color:#ffd24a;text-shadow:0 0 9px rgba(251,191,36,.6)}
+.hud-timer.warn{color:#ff5d5d;animation:blink .5s infinite}
+.hud-back{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:22px;font-weight:800;font-size:12.5px;text-decoration:none;transition:.2s;white-space:nowrap;flex-shrink:0;margin-right:6px}
+.hud-back.mod{background:rgba(0,180,255,.12);border:1px solid rgba(0,229,255,.4);color:#7dd3fc}
+.hud-back.mod:hover{background:rgba(0,229,255,.24)}
+@keyframes blink{50%{opacity:.4}}
+
+/* ══ STAGE ══ */
+.stage{position:relative;z-index:1;height:calc(100vh - 52px);display:flex;flex-direction:column;
+  padding:9px 16px 12px;gap:9px;overflow:hidden}
+
+/* alarm strip / KRONOS */
+.top-row{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.kronos{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.kr-avatar{width:54px;height:54px;border-radius:14px;position:relative;flex-shrink:0;
+  background:radial-gradient(circle at 40% 30%,#2a4a8a,#0a1840);border:2px solid rgba(0,200,255,.6);
+  box-shadow:0 0 20px rgba(0,180,255,.4);display:flex;align-items:center;justify-content:center;font-size:28px;
+  animation:floaty 3.5s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.kr-eye{position:absolute;top:22px;width:7px;height:7px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 7px #ff4d4d}
+.kr-eye.l{left:15px}.kr-eye.r{right:15px}
+.kr-bubble{flex:1;position:relative;background:linear-gradient(160deg,rgba(10,30,70,.95),rgba(6,16,46,.95));
+  border:1.5px solid rgba(0,200,255,.4);border-radius:13px;padding:9px 14px;font-size:12px;font-weight:800;
+  color:#bfe9ff;line-height:1.35;box-shadow:0 4px 16px rgba(0,0,0,.4);transition:.3s}
+.kr-bubble.alarm{border-color:rgba(239,68,68,.7);color:#fecaca;background:linear-gradient(160deg,rgba(60,12,18,.95),rgba(30,8,12,.95));animation:alarmP 1.1s ease-in-out infinite}
+.kr-bubble.warn{border-color:rgba(251,191,36,.6);color:#fde68a}
+.kr-bubble.good{border-color:rgba(34,197,94,.6);color:#bbf7d0}
+@keyframes alarmP{50%{box-shadow:0 0 24px rgba(239,68,68,.4)}}
+.kr-name{position:absolute;bottom:-15px;left:0;width:54px;text-align:center;font-family:'Exo 2',sans-serif;font-size:8.5px;font-weight:900;color:#7dd3fc;letter-spacing:.5px}
+
+/* ══ CONVEYOR ══ */
+.conveyor{flex-shrink:0;position:relative;border-radius:18px;overflow:hidden;padding:14px 16px;
+  background:linear-gradient(180deg,rgba(8,20,56,.85),rgba(4,10,34,.9));
+  border:1.5px solid rgba(0,180,255,.3);box-shadow:0 8px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);
+  display:flex;align-items:center;gap:16px;min-height:0}
+.conveyor::before{content:'';position:absolute;left:0;right:0;bottom:0;height:14px;
+  background:repeating-linear-gradient(90deg,rgba(0,200,255,.25) 0 18px,rgba(0,40,90,.25) 18px 36px);
+  animation:belt 1.2s linear infinite;opacity:.7}
+@keyframes belt{to{background-position:36px 0}}
+.cv-label{position:absolute;top:7px;left:14px;font-family:'Exo 2',sans-serif;font-size:10px;font-weight:900;
+  color:rgba(0,200,255,.7);letter-spacing:1.5px;text-transform:uppercase}
+.cv-label .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 8px #ff4d4d;margin-right:5px;animation:blink .8s infinite;vertical-align:middle}
+
+/* active robot */
+.active-slot{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;min-height:118px}
+.active-robot{display:flex;align-items:stretch;gap:0;width:100%;max-width:560px;border-radius:15px;overflow:hidden;cursor:grab;
+  border:2px solid rgba(0,229,255,.7);box-shadow:0 0 26px rgba(0,229,255,.35);
+  background:rgba(4,12,38,.7);animation:slideIn .45s cubic-bezier(.34,1.56,.64,1)}
+.active-robot:active{cursor:grabbing}
+.active-robot.dragging{opacity:.35}
+.active-robot.shock{animation:shock .5s ease}
+.active-robot.launch{animation:launch .5s ease forwards}
+@keyframes slideIn{0%{transform:translateX(60px);opacity:0}100%{transform:translateX(0);opacity:1}}
+@keyframes shock{0%,100%{transform:translateX(0)}10%{transform:translate(-6px,2px) rotate(-1deg)}30%{transform:translate(7px,-2px) rotate(1deg)}50%{transform:translate(-7px,1px)}70%{transform:translate(6px,-1px)}90%{transform:translate(-3px,0)}}
+@keyframes launch{to{transform:translateY(-40px) scale(.4);opacity:0}}
+.ar-art{width:120px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:54px;position:relative;overflow:hidden}
+.ar-art .ar-scan{position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#00e5ff,transparent);animation:scan 1.8s linear infinite;box-shadow:0 0 10px #00e5ff}
+@keyframes scan{0%{top:-4px}100%{top:100%}}
+.ar-info{flex:1;min-width:0;padding:10px 14px;display:flex;flex-direction:column;justify-content:center;gap:5px;background:rgba(2,8,24,.6)}
+.ar-name{font-family:'Exo 2',sans-serif;font-size:16px;font-weight:900;color:#fff;display:flex;align-items:center;gap:7px}
+.ar-tag{font-size:9px;font-weight:900;padding:2px 7px;border-radius:5px;background:rgba(0,200,255,.15);color:#7dd3fc;letter-spacing:.5px}
+.ar-passport{font-size:12px;font-weight:700;color:#dbe6f7;line-height:1.4;
+  background:rgba(0,150,255,.07);border-left:3px solid rgba(0,200,255,.6);border-radius:0 8px 8px 0;padding:6px 10px}
+.ar-passport .pp-ico{color:#7dd3fc;font-weight:900;margin-right:4px}
+.ar-hint{font-size:10.5px;font-weight:800;color:#fbbf24}
+
+/* queue */
+.queue{display:flex;gap:7px;flex-shrink:0;align-items:center}
+.q-item{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:24px;
+  border:1.5px solid rgba(0,180,255,.3);background:rgba(6,16,46,.7);position:relative;opacity:.55;transition:.3s}
+.q-item .q-num{position:absolute;bottom:-1px;right:2px;font-size:8px;font-weight:900;color:rgba(0,200,255,.6)}
+.q-empty{font-size:11px;font-weight:800;color:rgba(120,160,210,.5);padding:0 8px}
+
+/* ══ GATES ══ */
+.gates-label{flex-shrink:0;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:#a5b4fc;letter-spacing:1px;margin-top:2px}
+.gates{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.gate{position:relative;border-radius:16px;overflow:hidden;cursor:pointer;
+  border:2px solid var(--gc,#38bdf8);box-shadow:0 6px 18px rgba(0,0,0,.5);
+  display:flex;flex-direction:column;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .25s,border-color .25s;
+  opacity:0;transform:translateY(16px);animation:cardIn .5s ease forwards}
+@keyframes cardIn{to{opacity:1;transform:translateY(0)}}
+.gate:hover{transform:translateY(-5px);box-shadow:0 0 26px rgba(var(--gcr),.45),0 12px 26px rgba(0,0,0,.55)}
+.gate.over{transform:translateY(-6px) scale(1.03);box-shadow:0 0 32px rgba(var(--gcr),.7);border-width:3px}
+.gate.correct{animation:gateOpen .7s ease}
+.gate.wrong{animation:gateWrong .5s ease}
+@keyframes gateOpen{0%{box-shadow:0 0 0 rgba(34,197,94,0)}40%{box-shadow:0 0 40px rgba(34,197,94,.8);border-color:#22c55e}100%{box-shadow:0 6px 18px rgba(0,0,0,.5)}}
+@keyframes gateWrong{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.gate-art{flex:1;display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;overflow:hidden;
+  background:var(--gbg)}
+.gate-art .ga-fx{position:absolute;inset:0;pointer-events:none;opacity:0}
+.gate.activated .ga-fx{animation:gaFx 1.4s ease}
+@keyframes gaFx{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+.gate-door{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,20,50,.4),rgba(0,10,30,.65));
+  border-bottom:3px solid var(--gc);transition:transform .5s ease;transform:translateY(0)}
+.gate.correct .gate-door,.gate.activated .gate-door{transform:translateY(-101%)}
+.gate-body{flex-shrink:0;background:rgba(2,8,26,.88);padding:7px 6px;text-align:center;border-top:1px solid rgba(255,255,255,.1)}
+.gate-name{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;gap:5px}
+.gate-sub{font-size:8.5px;font-weight:700;color:rgba(160,185,220,.7);margin-top:1px}
+.gate-count{position:absolute;top:6px;right:8px;z-index:3;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;
+  color:#fff;background:rgba(0,8,28,.7);border:1px solid var(--gc);border-radius:20px;padding:1px 8px}
+
+/* floating feedback toast */
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:260;pointer-events:none;
+  max-width:340px;padding:12px 18px;border-radius:14px;font-size:13px;font-weight:800;line-height:1.4;text-align:center;
+  opacity:0;transition:opacity .25s,transform .25s}
+.toast.show{opacity:1}
+.toast.good{background:linear-gradient(160deg,rgba(20,80,40,.97),rgba(10,50,26,.97));border:1.5px solid #22c55e;color:#bbf7d0;box-shadow:0 0 40px rgba(34,197,94,.4)}
+.toast.bad{background:linear-gradient(160deg,rgba(80,20,24,.97),rgba(50,10,14,.97));border:1.5px solid #ef4444;color:#fecaca;box-shadow:0 0 40px rgba(239,68,68,.4)}
+.toast .t-pts{display:block;font-family:'Exo 2',sans-serif;font-size:16px;color:#fff;margin-top:4px}
+
+/* ══ RESULT ══ */
+.result-overlay{position:fixed;inset:0;background:rgba(2,6,20,.86);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .35s}
+.result-overlay.show{opacity:1;pointer-events:all}
+.result-card{position:relative;background:linear-gradient(160deg,rgba(10,24,72,.99),rgba(4,10,32,.99));
+  border:1.5px solid rgba(0,229,255,.5);border-radius:26px;padding:34px 44px;text-align:center;max-width:440px;width:92%;
+  box-shadow:0 0 70px rgba(0,200,255,.28);transform:scale(.82) translateY(20px);transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
+.result-overlay.show .result-card{transform:scale(1) translateY(0)}
+.result-icon{font-size:62px;margin-bottom:8px;display:block;animation:trophyB .7s ease}
+@keyframes trophyB{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1)}}
+.result-title{font-family:'Exo 2',sans-serif;font-size:25px;font-weight:900;margin-bottom:8px}
+.result-title.win{color:#5ef08a;text-shadow:0 0 20px rgba(74,222,128,.5)}
+.result-title.lose{color:#ff8a8a}
+.result-sub{font-size:13.5px;color:rgba(175,195,225,.92);line-height:1.6;margin-bottom:14px}
+.stars-row{display:flex;justify-content:center;gap:12px;margin:6px 0 18px}
+.star-icon{font-size:34px;filter:grayscale(1) opacity(.4);transition:.3s}
+.star-icon.lit{filter:none;animation:starPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes starPop{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 30px;border:none;border-radius:50px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;transition:transform .18s}
+.btn:hover{transform:translateY(-2px)}
+.btn-cyan{background:linear-gradient(135deg,#06b6d4,#6366f1);color:#fff;box-shadow:0 6px 22px rgba(0,180,255,.4)}
+
+/* confetti / particles */
+.particle{position:fixed;pointer-events:none;z-index:500;border-radius:50%;animation:pFly 1s ease-out forwards}
+@keyframes pFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.confetti{position:fixed;top:-12px;z-index:480;pointer-events:none;animation:cFall linear forwards}
+@keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+
+@media(max-height:640px){.hud{height:46px}.ar-art{width:90px;font-size:42px}.gate-art{font-size:36px}.active-slot{min-height:96px}}
+</style>
+</head>
+<body>
+
+<div class="orb o1"></div><div class="orb o2"></div>
+
+<!-- ghost -->
+<div id="ghost" style="position:fixed;z-index:9999;display:none;pointer-events:none;width:70px;height:70px;border-radius:13px;border:2.5px solid rgba(0,229,255,.95);box-shadow:0 0 28px rgba(0,229,255,.7);transform:translate(-50%,-50%) rotate(-4deg);background:#0a1640;align-items:center;justify-content:center;font-size:36px"></div>
+
+<!-- HUD -->
+<div class="hud">
+  <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
+  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Mission</span><span class="hud-val cyan">1 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
+  <div class="hud-seg"><span class="hud-icon">🔧</span><span class="hud-label">Сұрыпталды</span><span class="hud-val cyan" id="hudProg">0 / 5</span></div>
+  <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">01:30</span></div>
+</div>
+
+<!-- STAGE -->
+<div class="stage">
+
+  <!-- KRONOS alarm -->
+  <div class="top-row">
+    <div class="kronos">
+      <div class="kr-avatar">🤖<span class="kr-eye l"></span><span class="kr-eye r"></span><span class="kr-name">KRONOS-1</span></div>
+    </div>
+    <div class="kr-bubble alarm" id="krBubble">🚨 ДАБЫЛ! Жүйелік қате — конвейердегі роботтардың бағдарламасы араласып кетті! Әр роботты паспортын оқып, дұрыс секторға жібер. 90 секунд — әйтпесе микросхемалары күйеді!</div>
+  </div>
+
+  <!-- CONVEYOR -->
+  <div class="conveyor">
+    <div class="cv-label"><span class="pulse"></span>Сұрыптау конвейері</div>
+    <div class="active-slot" id="activeSlot"></div>
+    <div class="queue" id="queue"></div>
+  </div>
+
+  <!-- GATES -->
+  <div class="gates-label">🚪 Басқару шлюздері — роботты сүйреп әкел немесе шлюзді бас</div>
+  <div class="gates" id="gates">
+    <div class="gate" data-sector="factory" style="--gc:#fb923c;--gcr:251,146,60;--gbg:linear-gradient(170deg,#5c3210,#2a1808)" onclick="routeActive('factory')">
+      <div class="gate-count" id="gc_factory">2</div>
+      <div class="gate-art"><span>🏭</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 30%,rgba(251,191,36,.5),transparent 60%)">💨</div></div>
+      <div class="gate-body"><div class="gate-name">🏭 Зауыт</div><div class="gate-sub">Өндірістік сектор</div></div>
+    </div>
+    <div class="gate" data-sector="hospital" style="--gc:#34d399;--gcr:52,211,153;--gbg:linear-gradient(170deg,#0a4a44,#04201e)" onclick="routeActive('hospital')">
+      <div class="gate-count" id="gc_hospital">1</div>
+      <div class="gate-art"><span>🏥</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 40%,rgba(52,211,153,.4),transparent 60%)">➕</div></div>
+      <div class="gate-body"><div class="gate-name">🏥 Аурухана</div><div class="gate-sub">Медициналық сектор</div></div>
+    </div>
+    <div class="gate" data-sector="school" style="--gc:#38bdf8;--gcr:56,189,248;--gbg:linear-gradient(170deg,#0a3a6a,#04162e)" onclick="routeActive('school')">
+      <div class="gate-count" id="gc_school">1</div>
+      <div class="gate-art"><span>🏫</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 40%,rgba(56,189,248,.4),transparent 60%)">📚</div></div>
+      <div class="gate-body"><div class="gate-name">🏫 Мектеп</div><div class="gate-sub">Эксперименталды аймақ</div></div>
+    </div>
+    <div class="gate" data-sector="home" style="--gc:#a78bfa;--gcr:167,139,250;--gbg:linear-gradient(170deg,#3a2a6a,#16102e)" onclick="routeActive('home')">
+      <div class="gate-count" id="gc_home">1</div>
+      <div class="gate-art"><span>🏠</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 50%,rgba(251,191,36,.45),transparent 60%)">💡</div></div>
+      <div class="gate-body"><div class="gate-name">🏠 Үй</div><div class="gate-sub">Смарт-үй сектор</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- toast -->
+<div class="toast" id="toast"></div>
+
+<!-- RESULT -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-icon" id="resIcon">🏆</span>
+    <div class="result-title" id="resTitle">Жүйе қалпына келтірілді!</div>
+    <div class="stars-row" id="resStars"></div>
+    <p class="result-sub" id="resSub"></p>
+    <button class="btn btn-cyan" onclick="goNext()">Келесі миссия →</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   MISSION 1 — СҰРЫПТАУ КОНВЕЙЕРІ
+   Роботтар конвейермен келеді. Паспортын оқып (Блум: Түсіну),
+   дұрыс секторға бағытта. Қате → токқа түсіп, кезекке қайтады.
+════════════════════════════════════════════════════════════ */
+
+const SECTORS = {
+  factory:  {name:'Зауыт', icon:'🏭', fx:'💨'},
+  hospital: {name:'Аурухана', icon:'🏥', fx:'➕'},
+  school:   {name:'Мектеп', icon:'🏫', fx:'📚'},
+  home:     {name:'Үй', icon:'🏠', fx:'💡'},
+};
+
+const ROBOTS = [
+  { id:'kuka', name:'KUKA-Arm X', art:'🦾', grad:'linear-gradient(160deg,#7c3a00,#3a1c04)', sector:'factory',
+    passport:'Жоғары температурада металл дәнекерлеу және ауыр бөлшектерді тасымалдау функциясы.',
+    onWin:'Зауыт конвейері іске қосылды! Дәнекерлеу басталды.',
+    why:'ауыр өнеркәсіп пен дәнекерлеуге арналған' },
+  { id:'cargo', name:'Cargo-Lifter 5T', art:'🏗️', grad:'linear-gradient(160deg,#6a4a10,#2e2008)', sector:'factory',
+    passport:'Қоймада ауыр жүктерді көтеру және тиеу-түсіру жұмыстарын автоматтандыру.',
+    onWin:'Қойма крандары қосылды! Жүктер тиелуде.',
+    why:'ауыр жүк көтеретін өнеркәсіптік кран' },
+  { id:'davinci', name:'DaVinci Nano', art:'🔬', grad:'linear-gradient(160deg,#0a5c52,#042824)', sector:'hospital',
+    passport:'Микро-хирургиялық оталар жасау және лазерлік сканерлеу жүйесі.',
+    onWin:'Операция бөлмесі дайын! Жүйелер тұрақты.',
+    why:'нәзік хирургиялық операцияларға арналған' },
+  { id:'lego', name:'Lego-Bot Prime', art:'🧩', grad:'linear-gradient(160deg,#0a4a7c,#04203a)', sector:'school',
+    passport:'Алгоритмдеу мен блок-программалауды үйретуге арналған модульдік оқу жинағы.',
+    onWin:'Сынып іске қосылды! Оқушылар бағдарламалауды үйренуде.',
+    why:'балаларды оқытуға арналған құрал' },
+  { id:'vacuum', name:'Robo-Vacuum v12', art:'🧹', grad:'linear-gradient(160deg,#4a2a6a,#1a1030)', sector:'home',
+    passport:'Бөлмені құрғақ және ылғалды тазалау, лазерлік карта құру функциясы.',
+    onWin:'Үйдің шамдары жанды! Тазалау басталды.',
+    why:'тұрмыста үй тазалауға арналған' },
+];
+const TOTAL = ROBOTS.length;
+
+/* ─── State ─── */
+let queue = [];           // robot ids, front = active
+let placed = 0, mistakes = 0, points = 0;
+let gameOver = false, busy = false;
+let timerSec = 90, timerInterval;
+let dragActive = false;
+const ghost = document.getElementById('ghost');
+
+/* ─── Init queue (shuffle) ─── */
+function initQueue(){
+  queue = ROBOTS.map(r=>r.id);
+  for(let i=queue.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[queue[i],queue[j]]=[queue[j],queue[i]];}
+}
+const robot = id => ROBOTS.find(r=>r.id===id);
+
+/* ─── Render conveyor ─── */
+function render(){
+  const slot=document.getElementById('activeSlot');
+  const q=document.getElementById('queue');
+  slot.innerHTML=''; q.innerHTML='';
+  if(queue.length===0) return;
+
+  // active
+  const r=robot(queue[0]);
+  const ar=document.createElement('div');
+  ar.className='active-robot'; ar.id='activeRobot'; ar.draggable=true;
+  ar.innerHTML=`
+    <div class="ar-art" style="background:${r.grad}"><div class="ar-scan"></div>${r.art}</div>
+    <div class="ar-info">
+      <div class="ar-name">${r.name}<span class="ar-tag">ID:${r.id.toUpperCase()}</span></div>
+      <div class="ar-passport"><span class="pp-ico">📋 Паспорт:</span>${r.passport}</div>
+      <div class="ar-hint">⬇ Бұл робот қай секторда жұмыс істейді?</div>
+    </div>`;
+  slot.appendChild(ar);
+  attachActiveDrag(ar);
+
+  // queue (upcoming)
+  if(queue.length>1){
+    for(let i=1;i<queue.length;i++){
+      const rr=robot(queue[i]);
+      const qi=document.createElement('div'); qi.className='q-item';
+      qi.innerHTML=`${rr.art}<span class="q-num">${i}</span>`;
+      q.appendChild(qi);
+    }
+  } else {
+    const e=document.createElement('div'); e.className='q-empty'; e.textContent='соңғы робот!';
+    q.appendChild(e);
+  }
+}
+
+/* ─── Drag active robot ─── */
+function attachActiveDrag(ar){
+  ar.addEventListener('dragstart', e=>{
+    if(busy||gameOver){e.preventDefault();return;}
+    dragActive=true; ar.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',queue[0]);
+    ghost.textContent=robot(queue[0]).art; ghost.style.display='flex';
+    const cv=document.createElement('canvas');cv.width=cv.height=1;e.dataTransfer.setDragImage(cv,0,0);
+  });
+  ar.addEventListener('dragend', ()=>{ar.classList.remove('dragging');ghost.style.display='none';dragActive=false;
+    document.querySelectorAll('.gate').forEach(g=>g.classList.remove('over'));});
+  // touch
+  ar.addEventListener('touchstart', e=>{
+    if(busy||gameOver)return;
+    dragActive=true; ar.classList.add('dragging');
+    ghost.textContent=robot(queue[0]).art;
+    const t=e.touches[0];ghost.style.left=t.clientX+'px';ghost.style.top=t.clientY+'px';ghost.style.display='flex';
+  },{passive:true});
+  ar.addEventListener('touchmove', e=>{
+    if(!dragActive)return; e.preventDefault(); const t=e.touches[0];
+    ghost.style.left=t.clientX+'px';ghost.style.top=t.clientY+'px';
+    const el=document.elementFromPoint(t.clientX,t.clientY); const g=el?el.closest('.gate'):null;
+    document.querySelectorAll('.gate').forEach(x=>x.classList.toggle('over',x===g));
+  },{passive:false});
+  ar.addEventListener('touchend', e=>{
+    if(!dragActive)return; const t=e.changedTouches[0];ghost.style.display='none';ar.classList.remove('dragging');dragActive=false;
+    document.querySelectorAll('.gate').forEach(x=>x.classList.remove('over'));
+    const el=document.elementFromPoint(t.clientX,t.clientY);const g=el?el.closest('.gate'):null;
+    if(g) routeActive(g.dataset.sector);
+  });
+}
+document.addEventListener('dragover', e=>{if(dragActive){ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';}});
+document.querySelectorAll('.gate').forEach(g=>{
+  g.addEventListener('dragover', e=>{e.preventDefault();g.classList.add('over');});
+  g.addEventListener('dragleave', ()=>g.classList.remove('over'));
+  g.addEventListener('drop', e=>{e.preventDefault();g.classList.remove('over');routeActive(g.dataset.sector);});
+});
+
+/* ─── Routing logic ─── */
+function routeActive(sectorId){
+  if(busy || gameOver || queue.length===0) return;
+  const r=robot(queue[0]);
+  const gate=document.querySelector(`.gate[data-sector="${sectorId}"]`);
+
+  if(r.sector===sectorId){
+    /* ✅ CORRECT */
+    busy=true;
+    points+=5; placed++;
+    const ar=document.getElementById('activeRobot');
+    if(ar) ar.classList.add('launch');
+    gate.classList.add('correct','activated');
+    setTimeout(()=>gate.classList.remove('correct','activated'),1400);
+    playSound(true);
+    spawnParticles(gate);
+    decGateCount(sectorId);
+    showToast(true, `✅ Тамаша! ${r.name} өз орнында.`, r.onWin, '+5 ұпай');
+    setKronos(`✅ ${r.name} орналастырылды! ${r.onWin}`,'good');
+    updateHud();
+    queue.shift();
+    setTimeout(()=>{
+      busy=false;
+      if(placed>=TOTAL){ winGame(); }
+      else render();
+    },520);
+  } else {
+    /* ✖ WRONG */
+    if(busy) return;
+    mistakes++;
+    const ar=document.getElementById('activeRobot');
+    if(ar){ ar.classList.add('shock'); setTimeout(()=>ar.classList.remove('shock'),520); }
+    gate.classList.add('wrong');
+    setTimeout(()=>gate.classList.remove('wrong'),520);
+    playSound(false);
+    const sName=SECTORS[sectorId].name;
+    showToast(false, '⛔ ҚАТЕ ОРТА!', `«${r.name}» — ${r.why}. Оның орны ${sName} емес!`, '');
+    setKronos(`⛔ Тоқта! «${r.name}» — ${r.why}. Паспортын қайта оқы!`,'warn');
+    // requeue at the end if more than 1
+    if(queue.length>1){
+      busy=true;
+      setTimeout(()=>{ queue.push(queue.shift()); busy=false; render(); },560);
+    }
+  }
+}
+
+function decGateCount(sectorId){
+  const el=document.getElementById('gc_'+sectorId);
+  if(!el) return;
+  const n=Math.max(0,(parseInt(el.textContent)||0)-1);
+  el.textContent=n;
+  if(n===0){ el.style.opacity='.4'; el.textContent='✓'; }
+}
+
+function updateHud(){
+  document.getElementById('hudScore').textContent=points;
+  document.getElementById('hudProg').textContent=placed+' / '+TOTAL;
+}
+
+/* ─── Win ─── */
+function winGame(){
+  gameOver=true; clearInterval(timerInterval);
+  setKronos('🎉 Жүйе толық қалпына келтірілді! Сен — нағыз бас инженерсің!','good');
+  const stars=mistakes===0?3:mistakes<=2?2:1;
+  const score=mistakes===0?0.3:mistakes<=2?0.15:0.05;
+  setTimeout(()=>showResult(true,stars,score),700);
+}
+
+function showResult(win,stars,score){
+  document.getElementById('resIcon').textContent=win?'🏆':'⏱️';
+  const rt=document.getElementById('resTitle');
+  rt.textContent=win?'Жүйе қалпына келтірілді!':'Уақыт бітті';
+  rt.className='result-title '+(win?'win':'lose');
+  document.getElementById('resSub').textContent=win
+    ? (mistakes===0?`Барлық ${TOTAL} роботты қатесіз сұрыпталдың! Зертхана қайта жұмыс істеп тұр. 🎯`:`Барлық роботтар өз секторында! Қателер: ${mistakes}. Жалпы ұпай: ${points}.`)
+    : `${placed} / ${TOTAL} робот сұрыпталды. Микросхемалар қызып кетті!`;
+  const sr=document.getElementById('resStars');sr.innerHTML='';
+  for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='star-icon';s.textContent='⭐';sr.appendChild(s);if(i<=stars)setTimeout(()=>s.classList.add('lit'),i*220);}
+  document.getElementById('resultOverlay').classList.add('show');
+  if(win) spawnConfetti();
+  if(win||stars>0) submitResult(score,stars,win);
+}
+
+let submitted=false;
+function submitResult(score,stars,completed){
+  if(submitted)return; submitted=true;
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Робот орны',score,stars,completed})}).catch(()=>{});
+}
+function goNext(){ window.location.href='/quest3/m2'; }
+
+/* ─── KRONOS ─── */
+let krTimer;
+function setKronos(msg,cls){
+  const b=document.getElementById('krBubble');
+  b.textContent=msg; b.className='kr-bubble'+(cls?' '+cls:'');
+  clearTimeout(krTimer);
+  if(cls==='warn'||cls==='good') krTimer=setTimeout(()=>{ if(!gameOver) b.className='kr-bubble'; },3800);
+}
+
+/* ─── Toast ─── */
+let toastTimer;
+function showToast(good, title, body, pts){
+  const t=document.getElementById('toast');
+  t.className='toast '+(good?'good':'bad');
+  t.style.transform='translate(-50%,-50%)';
+  t.innerHTML=`${title}<br><span style="font-size:11.5px;font-weight:700;opacity:.92">${body}</span>${pts?`<span class="t-pts">${pts}</span>`:''}`;
+  void t.offsetWidth; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'), good?1400:2200);
+}
+
+/* ─── Timer ─── */
+function startTimer(){
+  timerInterval=setInterval(()=>{
+    timerSec--;
+    const m=Math.floor(timerSec/60),s=timerSec%60;
+    const el=document.getElementById('hudTimer');
+    el.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if(timerSec<=20) el.classList.add('warn');
+    if(timerSec<=0){clearInterval(timerInterval);if(!gameOver){gameOver=true;
+      const stars=placed>=TOTAL?2:placed>=3?1:0;
+      const score=placed>=TOTAL?0.3:placed>=3?0.1:0.03;
+      showResult(placed>=TOTAL,stars,score);
+    }}
+  },1000);
+}
+
+/* ─── FX ─── */
+function spawnParticles(el){
+  const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const colors=['#22c55e','#00e5ff','#fbbf24','#a78bfa'];
+  for(let i=0;i<16;i++){const p=document.createElement('div');p.className='particle';
+    const a=Math.random()*Math.PI*2,d=45+Math.random()*70,sz=5+Math.random()*5;
+    p.style.cssText=`left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;background:${colors[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1000);}
+}
+function spawnConfetti(){
+  const colors=['#00e5ff','#fbbf24','#4ade80','#a78bfa','#f87171','#fff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';
+    const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+    c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${colors[i%colors.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.6}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.8)*1000);}
+}
+
+/* ─── Audio ─── */
+let audioCtx;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playSound(ok){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);
+  if(ok){o.type='sine';o.frequency.setValueAtTime(523,a.currentTime);o.frequency.linearRampToValueAtTime(1046,a.currentTime+.18);g.gain.setValueAtTime(.22,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.35);o.start();o.stop(a.currentTime+.35);}
+  else{o.type='sawtooth';o.frequency.setValueAtTime(220,a.currentTime);o.frequency.exponentialRampToValueAtTime(70,a.currentTime+.2);g.gain.setValueAtTime(.18,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.25);o.start();o.stop(a.currentTime+.25);}
+}catch(e){}}
+
+/* ─── Init ─── */
+initQueue();
+render();
+updateHud();
+startTimer();
+</script>
+</body>
+</html>

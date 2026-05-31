@@ -14,7 +14,7 @@ from sqlalchemy import func
 app = Flask(__name__)
 
 load_dotenv()
-app.secret_key = os.getenv("SECRET_KEY")
+app.secret_key = os.getenv("SECRET_KEY") or "dev-fallback-key-change-in-prod"
 
 def format_name_initials(full_name):
     if not full_name:
@@ -335,15 +335,14 @@ def login_teacher():
             return "Қате: Есім, почта немесе құпиясөз дұрыс емес."
     return render_template("login_tchr.html")
 
-@app.route("/student_dashboard/<int:student_id>")
-def student_dashboard(student_id):
+def _render_dashboard(student_id):
+    """Shared logic for rendering a student's progress dashboard."""
     student = Student.query.get(student_id)
     if not student:
         return "Студент не найден", 404
 
     games = GameProgress.query.filter_by(student_id=student_id, completed=True).all()
 
-    # Таксономия Bloom по главам — теперь список для игр с несколькими главами
     GAME_TO_CHAPTER = {
         "Қағып ал": ["Білу"],
         "Көпір": ["Білу"],
@@ -367,17 +366,14 @@ def student_dashboard(student_id):
         "Синтез": 4,
     }
 
-    # Подсчет прогресса по главам
     chapters = {chapter: {"score_sum": 0, "max_score": max_score}
                 for chapter, max_score in CHAPTER_MAX_SCORE.items()}
 
     for g in games:
-        chapters_list = GAME_TO_CHAPTER.get(g.game_name, [])
-        for chapter in chapters_list:
+        for chapter in GAME_TO_CHAPTER.get(g.game_name, []):
             if chapter in chapters:
-                chapters[chapter]["score_sum"] += g.score  # добавляем очки игры к каждой главе
+                chapters[chapter]["score_sum"] += g.score
 
-    # Процент прогресса
     chapters_progress = {
         chapter: {
             "score": data["score_sum"],
@@ -387,13 +383,13 @@ def student_dashboard(student_id):
         for chapter, data in chapters.items()
     }
 
-    # Добавляем список глав к каждой игре для отображения
     for g in games:
         chapters_list = GAME_TO_CHAPTER.get(g.game_name, [])
         g.chapter = ", ".join(chapters_list) if chapters_list else "—"
 
     stars_sum = sum(g.stars for g in games)
     total_score = sum(g.score for g in games)
+
     CHAPTER_DISPLAY_NAMES = {
         "Білу": "Біздің айналамыздағы ақпарат",
         "Түсіну": "Ақпарат беру",
@@ -402,19 +398,32 @@ def student_dashboard(student_id):
         "Синтез": "Екілік ақпаратты ұсыну. Практикум",
     }
     chapters_progress_display = {
-        CHAPTER_DISPLAY_NAMES.get(chapter, chapter): data
-        for chapter, data in chapters_progress.items()
+        CHAPTER_DISPLAY_NAMES.get(ch, ch): data
+        for ch, data in chapters_progress.items()
     }
 
     return render_template(
         "dashboard.html",
         student=student,
         games=games,
-        chapters_progress=chapters_progress,  # радар үшін
-        chapters_progress_display=chapters_progress_display,  # bar үшін
+        chapters_progress=chapters_progress,
+        chapters_progress_display=chapters_progress_display,
         stars_sum=stars_sum,
         total_score=total_score
     )
+
+
+@app.route("/student_dashboard/<int:student_id>")
+@login_required("teacher")
+def student_dashboard(student_id):
+    return _render_dashboard(student_id)
+
+
+@app.route("/my_profile")
+@login_required("student")
+def my_profile():
+    """Student views their own progress dashboard."""
+    return _render_dashboard(session["user_id"])
 
 @app.route("/game_result", methods=["POST"])
 def game_result():
@@ -442,11 +451,20 @@ def game_result():
         "Робот": 1.2,
         "Сиқырлы шарлар": 1.4,
         "Блоктар":1.4,
+        "Пазл": 2,
+        "Робот орны": 0.3,
+        "Робот тарихы": 0.5,
+        "Гироскоп": 0.3,
+        "Лабиринт ойыны": 0.5,
+        "Сызық робот": 0.5,
+        "Сумо": 0.5,
     }
 
     max_score = MAX_SCORE.get(game_name)
-    score = min(score, max_score)  # ограничение максимальным
-    stars = 1 if score == max_score else 0  # звезда, если набрали максимум
+    if max_score is None:
+        return {"error": "Unknown game"}, 400
+    score = min(score, max_score)
+    stars = 1 if score == max_score else 0
 
     attempts = GameProgress.query.filter_by(student_id=student_id, game_name=game_name).count()
     access = GameAccess.query.filter_by(student_id=student_id, game_name=game_name).first()
@@ -482,11 +500,21 @@ def game_result():
         db.session.add(progress)
 
     student = Student.query.get(student_id)
-    if attempts == 0 or allow_score_add:
+    if student and (attempts == 0 or allow_score_add):
         student.score += score
 
     db.session.commit()
-    return {"status": "ok", "score": score, "stars": stars}
+
+    total_stars = db.session.query(func.coalesce(func.sum(GameProgress.stars), 0))\
+        .filter_by(student_id=student_id).scalar()
+
+    return {
+        "status": "ok",
+        "score": score,
+        "stars": stars,
+        "total_score": round(float(student.score), 2) if student else 0,
+        "total_stars": int(total_stars)
+    }
 
 
 @app.route("/create_announcement", methods=["POST"])
@@ -891,10 +919,12 @@ def toqsan_3():
     ).fetchall()
 
     default_modules = [
-        'matching',
-        'maze',
-        'cipher_game',
-        'push_blocks_all'
+        'Робот орны',
+        'Робот тарихы',
+        'Гироскоп',
+        'Лабиринт ойыны',
+        'Сызық робот',
+        'Сумо',
     ]
 
     completed = {m: False for m in default_modules}
@@ -913,35 +943,35 @@ def toqsan_3():
 @login_required("student")
 def toqsan_4():
     student_id = session.get("user_id")
-
     student = Student.query.get_or_404(student_id)
 
-    progress = db.session.execute(
-        text("""
-            SELECT game_name, completed
-            FROM game_progress
-            WHERE student_id = :sid
-        """),
-        {"sid": student_id}
-    ).fetchall()
-
-    default_modules = [
-        'matching',
-        'maze',
-        'cipher_game',
-        'push_blocks_all'
+    # Map display name → (route, game_name_in_db, icon)
+    GAMES = [
+        {"key": "Сәйкестік", "title": "Деректерді сұрыптау", "route": "/module1", "icon": "quest_1.png", "xp": 60},
+        {"key": "Лабиринт",  "title": "Алгоритм лабиринті",  "route": "/module2", "icon": "quest_2.png", "xp": 60},
+        {"key": "cipher_game","title": "Шифр коды",           "route": "/module3", "icon": "quest_3.1.png","xp": 60},
+        {"key": "Блоктар",   "title": "Блок моделі",          "route": "/module4", "icon": "quest_4.png", "xp": 60},
     ]
 
-    completed = {m: False for m in default_modules}
+    progress_rows = GameProgress.query.filter_by(student_id=student_id, completed=True).all()
+    prog_map = {}
+    for p in progress_rows:
+        if p.game_name not in prog_map or p.stars > prog_map[p.game_name]["stars"]:
+            prog_map[p.game_name] = {"stars": p.stars, "score": p.score, "completed": p.completed}
 
-    for game_name, is_completed in progress:
-        if game_name in completed:
-            completed[game_name] = bool(is_completed)
+    for g in GAMES:
+        info = prog_map.get(g["key"], {})
+        g["completed"] = bool(info.get("completed", False))
+        g["stars"]     = int(info.get("stars", 0))
+        g["score"]     = float(info.get("score", 0))
+
+    total_stars = sum(g["stars"] for g in GAMES)
 
     return render_template(
         "toqsan_4.html",
         student=student,
-        completed=completed
+        games=GAMES,
+        total_stars=total_stars
     )
 
 @app.route("/game1")
@@ -1180,6 +1210,29 @@ def game9():
 
     return render_template("game9.html")
 
+@app.route("/game10")
+@login_required("student")
+def game10():
+    student_id = session.get("user_id")
+
+    progress = GameProgress.query.filter_by(
+        student_id=student_id, game_name="Пазл"
+    ).order_by(GameProgress.attempt.desc()).first()
+
+    if progress:
+        if progress.attempt < 2:
+            return render_template("game10.html")
+
+        access = GameAccess.query.filter_by(student_id=student_id, game_name="Пазл").first()
+        if not (access and access.is_unlocked):
+            return render_template(
+                "module1_result.html",
+                score=progress.score,
+                attempt=progress.attempt
+            )
+
+    return render_template("game10.html")
+
 @app.route("/module1")
 @login_required("student")
 def module1():
@@ -1256,6 +1309,7 @@ def module3():
     return render_template('module3.html')
 
 @app.route('/module4')
+@login_required("student")
 def module4():
     student_id = session.get("user_id")
 
@@ -1323,8 +1377,6 @@ def logout():
     session.clear()
     return redirect("/")
 
-from functools import wraps
-
 def update_score(student_id, points=10):
     student = Student.query.get(student_id)
     if student:
@@ -1380,6 +1432,37 @@ def teacher_progress():
 
     return render_template("teacher_progress.html", progress_data=progress_data)
 
+
+# ── Quest 3: Robotics missions ──────────────────────────────
+@app.route("/quest3/m1")
+@login_required("student")
+def quest3_m1():
+    return render_template("quest3_m1.html")
+
+@app.route("/quest3/m2")
+@login_required("student")
+def quest3_m2():
+    return render_template("quest3_m2.html")
+
+@app.route("/quest3/m3")
+@login_required("student")
+def quest3_m3():
+    return render_template("quest3_m3.html")
+
+@app.route("/quest3/m4")
+@login_required("student")
+def quest3_m4():
+    return render_template("quest3_m4.html")
+
+@app.route("/quest3/m5")
+@login_required("student")
+def quest3_m5():
+    return render_template("quest3_m5.html")
+
+@app.route("/quest3/m6")
+@login_required("student")
+def quest3_m6():
+    return render_template("quest3_m6.html")
 
 
 if __name__ == "__main__":

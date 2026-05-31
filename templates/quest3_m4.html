@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Миссия 4 — Лабиринт бағдарламасы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;color:#e2e8f0;overflow:hidden;background:#060d2e;user-select:none}
+body{background-image:radial-gradient(ellipse 120% 60% at 50% 0%,rgba(0,80,160,.35) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 10% 50%,rgba(0,180,255,.08) 0%,transparent 50%),radial-gradient(ellipse 60% 40% at 90% 50%,rgba(0,100,200,.08) 0%,transparent 50%);background-color:#050c1e}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,229,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.04) 1px,transparent 1px);background-size:40px 40px}
+
+/* ── HUD ── */
+.hud{position:relative;z-index:10;display:flex;align-items:center;height:52px;background:linear-gradient(180deg,rgba(4,12,40,.98),rgba(2,8,30,.96));border-bottom:2px solid rgba(0,180,255,.32);box-shadow:0 2px 20px rgba(0,180,255,.14);padding:0 10px;gap:4px}
+.hud-seg{display:flex;align-items:center;gap:6px;padding:0 12px;height:100%;border-right:1px solid rgba(0,180,255,.16);font-weight:800;font-size:13px;white-space:nowrap}
+.hud-seg:last-child{border-right:none;margin-left:auto}
+.hud-icon{font-size:17px}.hud-label{color:rgba(148,163,184,.65);font-size:10.5px;font-weight:700}
+.hud-val{color:#fff;font-size:13px;font-weight:900}
+.hud-val.cyan{color:#00e5ff;text-shadow:0 0 8px rgba(0,229,255,.5)}
+.hud-val.gold{color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.5)}
+.hud-timer.warn{color:#ef4444;animation:blink .5s infinite}
+.hud-back{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;transition:background .2s;white-space:nowrap;flex-shrink:0}
+.hud-back.mod{background:rgba(0,180,255,.1);border:1px solid rgba(0,229,255,.35);color:#7dd3fc}
+.hud-back.mod:hover{background:rgba(0,229,255,.2)}
+.hud-back.prev{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fbbf24}
+.hud-back.prev:hover{background:rgba(245,158,11,.22)}
+
+/* ── MISSION STRIP ── */
+.mission-strip{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:6px 16px;gap:12px;background:linear-gradient(90deg,rgba(0,50,120,.55),rgba(0,40,100,.42),rgba(0,50,120,.55));border-bottom:1px solid rgba(0,180,255,.18)}
+.mission-text{text-align:center;flex:1}
+.m-title{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;color:#e2e8f0;letter-spacing:.2px}
+.m-sub{font-size:11px;color:rgba(148,163,184,.72);margin-top:1px}
+.tip-badge{flex-shrink:0;padding:5px 11px;background:rgba(251,191,36,.08);border:1.5px solid rgba(251,191,36,.32);border-radius:10px;font-size:10.5px;font-weight:700;color:#fde68a;text-align:center;line-height:1.4}
+
+/* ── STAGE ── */
+.stage{position:relative;z-index:1;display:flex;gap:10px;padding:10px 12px;height:calc(100vh - 52px - 48px);overflow:hidden}
+.panel{display:flex;flex-direction:column;gap:7px;min-width:0}
+.panel.left{flex:1}
+.panel.right{flex:1.1}
+.panel-header{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(0,80,180,.48),rgba(0,50,140,.58));border:1.5px solid rgba(0,180,255,.32);font-family:'Exo 2',sans-serif;font-weight:900;font-size:14px;color:#fff;letter-spacing:1.2px;text-shadow:0 0 12px rgba(0,229,255,.45)}
+.panel-body{flex:1;display:flex;flex-direction:column;gap:7px;min-height:0;border:1.5px solid rgba(0,180,255,.2);border-radius:14px;padding:10px;background:linear-gradient(160deg,rgba(5,14,50,.75),rgba(3,8,30,.85));overflow:hidden}
+
+/* ── LEVEL TABS ── */
+.level-tabs{display:flex;gap:5px;flex-shrink:0}
+.lvl-btn{flex:1;padding:5px 4px;border-radius:9px;font-size:10.5px;font-weight:800;cursor:pointer;border:1.5px solid;transition:.2s;font-family:'Exo 2',sans-serif;letter-spacing:.3px;text-align:center}
+.lvl-btn.active{background:rgba(0,229,255,.15);border-color:rgba(0,229,255,.55);color:#a5f3fc;box-shadow:0 0 10px rgba(0,229,255,.18)}
+.lvl-btn.unlocked{background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.38);color:#a5b4fc;cursor:pointer}
+.lvl-btn.unlocked:hover{background:rgba(99,102,241,.22)}
+.lvl-btn.locked{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.1);color:rgba(148,163,184,.35);cursor:not-allowed}
+.lvl-btn.done1{background:rgba(148,163,184,.08);border-color:rgba(148,163,184,.3);color:#94a3b8}
+.lvl-btn.done2{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.38);color:#fde68a}
+.lvl-btn.done3{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.42);color:#86efac}
+
+/* ── MAZE ── */
+.maze-center{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;justify-content:center}
+#mazeCanvas{border-radius:10px;border:1.5px solid rgba(0,180,255,.25);box-shadow:0 0 28px rgba(0,229,255,.12);display:block}
+.maze-meta{display:flex;justify-content:space-between;align-items:center;width:294px;padding:0 2px}
+.meta-left{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:#00e5ff}
+.meta-right{font-size:10px;color:rgba(148,163,184,.6);font-weight:700}
+.attempt-row{display:flex;gap:8px;justify-content:center}
+.adot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);transition:.3s}
+.adot.pass{background:#22c55e;border-color:#16a34a;box-shadow:0 0 8px rgba(34,197,94,.6)}
+.adot.fail{background:#ef4444;border-color:#dc2626;box-shadow:0 0 6px rgba(239,68,68,.5)}
+.level-hint{width:294px;padding:5px 10px;background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.14);border-radius:8px;font-size:10px;font-weight:700;color:rgba(148,163,184,.65);text-align:center}
+.level-hint b{color:#a5f3fc}
+
+/* ── PROGRAM ── */
+.prog-area{flex:1;min-height:50px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;padding:4px 2px}
+.prog-area::-webkit-scrollbar{width:3px}.prog-area::-webkit-scrollbar-thumb{background:rgba(0,229,255,.2);border-radius:2px}
+.prog-empty{width:100%;text-align:center;font-size:11px;font-weight:700;color:rgba(148,163,184,.35);padding:14px 0;line-height:1.7;pointer-events:none}
+
+/* ── CHIPS ── */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 7px;background:rgba(99,102,241,.2);border:1.5px solid rgba(99,102,241,.5);border-radius:11px;transition:border-color .2s,background .2s,box-shadow .2s}
+.chip.active{background:rgba(34,197,94,.28)!important;border-color:rgba(34,197,94,.85)!important;box-shadow:0 0 14px rgba(34,197,94,.45)}
+.chip.error{background:rgba(239,68,68,.28)!important;border-color:rgba(239,68,68,.85)!important;animation:chipShake .38s ease}
+.chip-icon{font-size:18px;line-height:1;pointer-events:none}
+.chip-mult{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:900;padding:2px 6px;border-radius:6px;cursor:pointer;transition:background .12s,color .12s;border:none}
+.chip-mult.many{color:#fbbf24;background:rgba(251,191,36,.2)}
+.chip-mult.many:hover{background:rgba(251,191,36,.38)}
+.chip-mult.one{color:rgba(148,163,184,.4);background:rgba(255,255,255,.05)}
+.chip-mult.one:hover{color:#fbbf24;background:rgba(251,191,36,.2)}
+.chip-del{width:16px;height:16px;border-radius:50%;background:transparent;border:none;color:rgba(239,68,68,.4);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .12s}
+.chip-del:hover{color:#f87171}
+@keyframes chipShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* ── MULT PICKER ── */
+.mult-picker{position:fixed;z-index:500;background:linear-gradient(155deg,rgba(6,16,52,.98),rgba(3,9,30,.99));border:1.5px solid rgba(0,229,255,.38);border-radius:13px;padding:9px 10px;box-shadow:0 0 32px rgba(0,229,255,.2);width:286px}
+.mult-title{font-size:9.5px;font-weight:800;color:#7dd3fc;letter-spacing:.5px;text-align:center;margin-bottom:7px;text-transform:uppercase}
+.mult-row{display:flex;gap:4px;justify-content:center}
+.mult-btn{width:26px;height:26px;border-radius:7px;border:1px solid rgba(0,229,255,.22);background:rgba(0,229,255,.07);color:#e2e8f0;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;cursor:pointer;transition:background .12s,border-color .12s}
+.mult-btn:hover{background:rgba(0,229,255,.22);border-color:rgba(0,229,255,.55)}
+.mult-btn.sel{background:rgba(0,229,255,.3);border-color:#00e5ff;color:#00e5ff;box-shadow:0 0 8px rgba(0,229,255,.3)}
+
+/* ── D-PAD ── */
+.dpad-section{flex-shrink:0;display:flex;flex-direction:column;gap:5px;align-items:center}
+.dpad-title{font-size:9px;font-weight:800;color:rgba(148,163,184,.55);letter-spacing:.5px;text-transform:uppercase}
+.dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,52px);gap:3px}
+.dpad-btn{border-radius:12px;border:1.5px solid rgba(99,102,241,.5);background:rgba(99,102,241,.18);font-size:23px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .12s,transform .1s,box-shadow .12s}
+.dpad-btn:hover{background:rgba(99,102,241,.38);border-color:rgba(99,102,241,.85);box-shadow:0 0 14px rgba(99,102,241,.35)}
+.dpad-btn:active{transform:scale(.9)}
+.dpad-btn:disabled{opacity:.35;pointer-events:none}
+
+/* ── STATUS + ACTIONS ── */
+.status-box{flex-shrink:0;padding:7px 12px;border-radius:10px;font-size:12px;font-weight:700;text-align:center;min-height:36px;display:flex;align-items:center;justify-content:center;background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.2);color:#e2e8f0;line-height:1.4;transition:background .3s,border-color .3s,color .3s}
+.status-box.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:#4ade80}
+.status-box.err{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.35);color:#f87171}
+.action-row{flex-shrink:0;display:flex;gap:5px}
+.abtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 10px;border:none;border-radius:50px;font-weight:800;font-size:12px;cursor:pointer;font-family:inherit;transition:transform .15s;flex:1}
+.abtn:hover{transform:translateY(-1px)}.abtn:disabled{opacity:.38;pointer-events:none}
+.abtn-run{background:linear-gradient(135deg,#06b6d4,#6366f1);color:#fff;box-shadow:0 3px 14px rgba(0,229,255,.3)}
+.abtn-undo{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#cbd5e1}
+.abtn-clear{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.3);color:#fca5a5}
+
+/* ── RESULT OVERLAY ── */
+.result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.84);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s}
+.result-overlay.show{opacity:1;pointer-events:all}
+.result-card{background:linear-gradient(155deg,rgba(7,18,60,.99),rgba(3,8,28,.99));border:2px solid rgba(0,229,255,.38);border-radius:24px;padding:28px 38px;text-align:center;max-width:420px;width:92%;box-shadow:0 0 60px rgba(0,229,255,.16);transform:scale(.8);transition:transform .32s}
+.result-overlay.show .result-card{transform:scale(1)}
+.result-icon{font-size:52px;margin-bottom:8px;display:block}
+.result-title{font-family:'Exo 2',sans-serif;font-size:22px;font-weight:900;margin-bottom:6px}
+.result-title.win{color:#4ade80;text-shadow:0 0 16px rgba(74,222,128,.4)}
+.result-title.lose{color:#f87171}
+.result-sub{font-size:12px;color:rgba(148,163,184,.9);line-height:1.6;margin-bottom:12px}
+.stars-row{display:flex;justify-content:center;gap:10px;margin:4px 0 12px}
+.star-icon{font-size:28px;filter:grayscale(1);transition:filter .3s,transform .3s}
+.star-icon.lit{filter:none;animation:starPop .4s ease}
+@keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+.level-prog{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.lp-dot{width:36px;height:8px;border-radius:4px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);transition:.3s;position:relative;overflow:hidden}
+.lp-dot.done::after{content:'';position:absolute;inset:0;background:var(--clr,#4ade80);border-radius:4px}
+.rbtn-row{display:flex;gap:7px;justify-content:center}
+.rbtn{padding:9px 18px;border:none;border-radius:50px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit;transition:transform .18s}
+.rbtn:hover{transform:translateY(-2px)}
+.rbtn-cyan{background:linear-gradient(135deg,#06b6d4,#6366f1);color:#fff;box-shadow:0 4px 16px rgba(0,229,255,.3)}
+.rbtn-ghost{background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid rgba(255,255,255,.18)}
+.rbtn-gold{background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);color:#fde68a}
+
+/* ── PARTICLE ── */
+.particle{position:fixed;pointer-events:none;border-radius:50%;z-index:500;animation:particleFly .9s ease-out forwards}
+@keyframes particleFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+@keyframes blink{50%{opacity:.35}}
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div class="hud">
+  <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
+  <a href="{{ url_for('quest3_m3') }}" class="hud-back prev">← М3</a>
+  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Mission</span><span class="hud-val cyan">4 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
+  <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">04:00</span></div>
+</div>
+
+<!-- Mission strip -->
+<div class="mission-strip">
+  <div class="tip-badge" style="visibility:hidden;width:130px"></div>
+  <div class="mission-text">
+    <div class="m-title">4-миссия: Лабиринтті бағдарламалау — 3 деңгей</div>
+    <div class="m-sub">Командалар тізбегін жаз. ×N батырмасы — сол команданы N рет орындайды!</div>
+  </div>
+  <div class="tip-badge">≤оптимал chip = ⭐⭐⭐</div>
+</div>
+
+<!-- Stage -->
+<div class="stage">
+
+  <!-- LEFT: Maze -->
+  <div class="panel left">
+    <div class="panel-header">🗺️ ЛАБИРИНТ</div>
+    <div class="panel-body">
+
+      <!-- Level selector -->
+      <div class="level-tabs">
+        <button class="lvl-btn active"  id="lvlBtn0" onclick="switchLevel(0)">1. Жол</button>
+        <button class="lvl-btn locked"  id="lvlBtn1" onclick="switchLevel(1)">2. Зигзаг</button>
+        <button class="lvl-btn locked"  id="lvlBtn2" onclick="switchLevel(2)">3. Бұрандалы</button>
+      </div>
+
+      <!-- Canvas + meta -->
+      <div class="maze-center">
+        <canvas id="mazeCanvas" width="294" height="294"></canvas>
+        <div class="maze-meta">
+          <span class="meta-left" id="chipInfo">0 команда</span>
+          <span class="meta-right" id="starInfo">⭐⭐⭐ ≤ ? команда</span>
+        </div>
+        <div class="attempt-row">
+          <div class="adot" id="a1"></div>
+          <div class="adot" id="a2"></div>
+          <div class="adot" id="a3"></div>
+        </div>
+        <div class="level-hint" id="levelHint">💡 Нұсқаулық жоқ</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Programming -->
+  <div class="panel right">
+    <div class="panel-header">⌨️ БАҒДАРЛАМА</div>
+    <div class="panel-body">
+
+      <div class="prog-area" id="progArea">
+        <div class="prog-empty" id="progEmpty">
+          Төмендегі бағыт батырмаларын басып<br>командалар қосыңыз.<br>
+          <span style="color:#a5f3fc">×1 санын өзгерту үшін басыңыз!</span>
+        </div>
+      </div>
+
+      <div class="dpad-section">
+        <div class="dpad-title">Бағыт командалары</div>
+        <div class="dpad">
+          <div></div>
+          <button class="dpad-btn" id="dUP"    onclick="addChip('UP')"   >⬆️</button>
+          <div></div>
+          <button class="dpad-btn" id="dLEFT"  onclick="addChip('LEFT')" >⬅️</button>
+          <div style="display:flex;align-items:center;justify-content:center;color:rgba(99,102,241,.25);font-size:18px">✛</div>
+          <button class="dpad-btn" id="dRIGHT" onclick="addChip('RIGHT')">➡️</button>
+          <div></div>
+          <button class="dpad-btn" id="dDOWN"  onclick="addChip('DOWN')" >⬇️</button>
+          <div></div>
+        </div>
+      </div>
+
+      <div class="status-box" id="statusBox">Бастау үшін бағыт командаларын қосыңыз</div>
+
+      <div class="action-row">
+        <button class="abtn abtn-run"   id="runBtn"   onclick="runProgram()">▶ Іске қос</button>
+        <button class="abtn abtn-undo"  id="undoBtn"  onclick="undoLast()">↩</button>
+        <button class="abtn abtn-clear" id="clearBtn" onclick="clearProgram()">✕</button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Multiplier Picker -->
+<div class="mult-picker" id="multPicker" style="display:none" onclick="event.stopPropagation()">
+  <div class="mult-title">Қайталау санын таңда</div>
+  <div class="mult-row" id="multRow"></div>
+</div>
+
+<!-- Result Overlay -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <span class="result-icon" id="resIcon">🎉</span>
+    <div class="result-title" id="resTitle">Деңгей аяқталды!</div>
+    <div class="stars-row" id="resStars"></div>
+    <p class="result-sub" id="resSub"></p>
+    <div class="level-prog">
+      <div class="lp-dot" id="lp0" style="--clr:#4ade80"></div>
+      <div class="lp-dot" id="lp1" style="--clr:#fbbf24"></div>
+      <div class="lp-dot" id="lp2" style="--clr:#00e5ff"></div>
+    </div>
+    <div class="rbtn-row" id="rBtnRow"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   MISSION 4 — MAZE PROGRAMMING
+   3 деңгей • Тегіс анимация • ×N циклдер
+═══════════════════════════════════════════════════ */
+
+const CELL = 42, ROWS = 7, COLS = 7;
+
+/* ── 3 Levels ── */
+const LEVELS = [
+  {
+    title: '1. Жол',
+    maze: [
+      [0,0,0,0,0,0,0],
+      [0,2,1,1,1,0,0],   // →×3
+      [0,0,0,0,1,0,0],
+      [0,0,0,0,1,0,0],
+      [0,0,0,0,1,0,0],
+      [0,0,0,0,3,0,0],   // ↓×4 → GOAL
+      [0,0,0,0,0,0,0],
+    ],
+    start:{r:1,c:1}, goal:{r:5,c:4},
+    optimal:2, star2:5,
+    hint:'→×3, ↓×4  — тек 2 команда!',
+  },
+  {
+    title: '2. Зигзаг',
+    maze: [
+      [0,0,0,0,0,0,0],
+      [0,2,1,1,1,0,0],
+      [0,0,0,0,1,0,0],
+      [0,1,1,1,1,0,0],
+      [0,1,0,0,0,0,0],
+      [0,1,1,1,3,0,0],
+      [0,0,0,0,0,0,0],
+    ],
+    start:{r:1,c:1}, goal:{r:5,c:4},
+    optimal:5, star2:8,
+    hint:'→×3, ↓×2, ←×3, ↓×2, →×3',
+  },
+  {
+    title: '3. Бұрандалы',
+    maze: [
+      [0,0,0,0,0,0,0],
+      [0,2,1,1,1,0,0],
+      [0,0,0,0,1,0,0],
+      [0,1,1,1,1,0,0],
+      [0,1,0,0,0,0,0],
+      [0,1,1,1,0,0,0],
+      [0,0,0,3,0,0,0],
+    ],
+    start:{r:1,c:1}, goal:{r:6,c:3},
+    optimal:6, star2:9,
+    hint:'→×3, ↓×2, ←×3, ↓×2, →×2, ↓',
+  },
+];
+
+/* ── State ── */
+let currentLevel = 0;
+let levelStars   = [0,0,0];           // 0 = not completed, 1-3 = stars earned
+let unlocked     = [true,false,false]; // which levels are playable
+let program      = [];
+let robotPos, robotDir, shakeOff, robotFlash;
+let robotAnimX, robotAnimY;     // pixel coords for smooth animation
+let trailCells   = [];
+let running      = false;
+let attempts     = 0;
+let gameOver     = false;
+let timerSec     = 240, timerInterval;
+let pulseT       = 0;
+let pickerIdx    = -1;
+let totalScore   = 0, totalStars = 0;
+let levelsCompleted = 0;
+
+const DIR_ICON  = {UP:'⬆️',DOWN:'⬇️',LEFT:'⬅️',RIGHT:'➡️'};
+const DIR_DELTA = {UP:{dr:-1,dc:0},DOWN:{dr:1,dc:0},LEFT:{dr:0,dc:-1},RIGHT:{dr:0,dc:1}};
+
+/* ── Canvas ── */
+const cv  = document.getElementById('mazeCanvas');
+const ctx = cv.getContext('2d');
+
+/* ════ LOAD LEVEL ════ */
+function switchLevel(idx) {
+  if (running) return;
+  if (!unlocked[idx]) return; // locked
+  const lvl = LEVELS[idx];
+  currentLevel = idx;
+  attempts = 0;
+  gameOver = false;
+  program  = [];
+  trailCells = [];
+  robotPos   = {...lvl.start};
+  robotDir   = 'RIGHT';
+  robotFlash = null;
+  shakeOff   = 0;
+  robotAnimX = lvl.start.c*CELL + CELL/2;
+  robotAnimY = lvl.start.r*CELL + CELL/2;
+
+  // Reset attempt dots
+  [1,2,3].forEach(i => { const d=document.getElementById('a'+i); if(d)d.className='adot'; });
+
+  // Update hint and star info
+  document.getElementById('levelHint').innerHTML = '💡 <b>' + lvl.hint + '</b>';
+  document.getElementById('starInfo').textContent = '⭐⭐⭐ ≤ '+lvl.optimal+' команда';
+
+  renderProgram();
+  setStatus('Командалар қосыңыз','');
+  updateLevelButtons();
+  drawMaze();
+}
+
+function updateLevelButtons() {
+  LEVELS.forEach((_, i) => {
+    const btn = document.getElementById('lvlBtn'+i);
+    const stars = levelStars[i];
+    const locked = !unlocked[i];
+    const isActive = i === currentLevel;
+
+    let cls = 'lvl-btn ';
+    if (isActive) cls += 'active';
+    else if (locked) cls += 'locked';
+    else if (stars === 3) cls += 'done3';
+    else if (stars === 2) cls += 'done2';
+    else if (stars === 1) cls += 'done1';
+    else cls += 'unlocked';
+
+    btn.className = cls;
+    const starsStr = stars > 0 ? ' ' + '⭐'.repeat(stars) : (locked ? ' 🔒' : '');
+    btn.textContent = LEVELS[i].title + starsStr;
+    btn.disabled = locked;
+  });
+}
+
+/* ════ DRAW MAZE ════ */
+function drawMaze() {
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  const maze = LEVELS[currentLevel].maze;
+
+  for (let r=0; r<ROWS; r++) {
+    for (let c=0; c<COLS; c++) {
+      const x=c*CELL, y=r*CELL, v=maze[r][c];
+      if (v===0) {
+        ctx.fillStyle='#070e1d'; ctx.fillRect(x,y,CELL,CELL);
+        ctx.strokeStyle='rgba(0,229,255,.04)'; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,CELL-1,CELL-1);
+      } else {
+        ctx.fillStyle='#0c1e3c'; ctx.fillRect(x,y,CELL,CELL);
+        ctx.strokeStyle='rgba(0,229,255,.08)'; ctx.lineWidth=1; ctx.strokeRect(x+.5,y+.5,CELL-1,CELL-1);
+      }
+      if (v===2) {
+        ctx.fillStyle='rgba(16,185,129,.2)'; ctx.fillRect(x+2,y+2,CELL-4,CELL-4);
+        ctx.strokeStyle='rgba(16,185,129,.55)'; ctx.lineWidth=1.5; ctx.strokeRect(x+2,y+2,CELL-4,CELL-4);
+        ctx.fillStyle='#10b981'; ctx.font='bold 14px "Exo 2",sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('S',x+CELL/2,y+CELL/2);
+      }
+      if (v===3) {
+        const p=0.16+Math.abs(Math.sin(pulseT*2.1))*0.28;
+        ctx.fillStyle=`rgba(245,158,11,${p})`; ctx.fillRect(x+2,y+2,CELL-4,CELL-4);
+        ctx.strokeStyle=`rgba(245,158,11,${p+0.4})`; ctx.lineWidth=1.5; ctx.strokeRect(x+2,y+2,CELL-4,CELL-4);
+        ctx.fillStyle='#f59e0b'; ctx.font='bold 14px "Exo 2",sans-serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('F',x+CELL/2,y+CELL/2);
+      }
+    }
+  }
+
+  // Trail line
+  if (trailCells.length > 1) {
+    ctx.strokeStyle='rgba(99,102,241,.35)'; ctx.lineWidth=3; ctx.lineJoin='round';
+    ctx.beginPath();
+    ctx.moveTo(trailCells[0].c*CELL+CELL/2, trailCells[0].r*CELL+CELL/2);
+    for (let i=1; i<trailCells.length; i++)
+      ctx.lineTo(trailCells[i].c*CELL+CELL/2, trailCells[i].r*CELL+CELL/2);
+    ctx.stroke();
+  }
+  // Trail dots
+  for (const {r,c} of trailCells) {
+    ctx.fillStyle='rgba(99,102,241,.55)';
+    ctx.beginPath(); ctx.arc(c*CELL+CELL/2,r*CELL+CELL/2,3,0,Math.PI*2); ctx.fill();
+  }
+
+  // Robot
+  drawRobot(robotAnimX+shakeOff, robotAnimY, robotDir, robotFlash);
+}
+
+function drawRobot(x, y, dir, flash) {
+  const ROT={UP:0,RIGHT:Math.PI/2,DOWN:Math.PI,LEFT:-Math.PI/2};
+  const s=12;
+  ctx.save(); ctx.translate(x,y); ctx.rotate(ROT[dir]||0);
+  const bClr=flash==='error'?'#ef4444':flash==='win'?'#22c55e':'#6366f1';
+  const hClr=flash==='error'?'#fca5a5':flash==='win'?'#86efac':'#a5b4fc';
+  ctx.shadowColor=flash==='error'?'rgba(239,68,68,.7)':flash==='win'?'rgba(34,197,94,.7)':'rgba(99,102,241,.7)';
+  ctx.shadowBlur=14;
+  ctx.fillStyle=bClr; ctx.beginPath(); ctx.ellipse(0,0,s*.7,s*.55,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=hClr; ctx.beginPath(); ctx.ellipse(0,-s*.82,s*.48,s*.42,0,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle=flash?'#fff':'#00e5ff';
+  ctx.beginPath(); ctx.arc(-s*.18,-s*.86,2,0,Math.PI*2); ctx.arc(s*.18,-s*.86,2,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle=flash==='error'?'#fca5a5':'#7dd3fc'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(0,-s*1.1); ctx.lineTo(0,-s*1.4); ctx.stroke();
+  ctx.fillStyle=ctx.strokeStyle; ctx.beginPath(); ctx.arc(0,-s*1.45,1.8,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+/* ── Pulse loop (only when idle) ── */
+(function animLoop(ts) {
+  pulseT = ts/1000;
+  if (!running) drawMaze();
+  requestAnimationFrame(animLoop);
+})();
+
+/* ════ SMOOTH MOVEMENT ════ */
+function animateMove(toR, toC) {
+  const tx=toC*CELL+CELL/2, ty=toR*CELL+CELL/2;
+  const fx=robotAnimX, fy=robotAnimY;
+  const T=200;
+  const t0=performance.now();
+  return new Promise(resolve => {
+    function frame(now) {
+      const p=Math.min((now-t0)/T,1);
+      const e=1-Math.pow(1-p,3); // ease-out cubic
+      robotAnimX=fx+(tx-fx)*e;
+      robotAnimY=fy+(ty-fy)*e;
+      drawMaze();
+      if (p<1) requestAnimationFrame(frame);
+      else { robotAnimX=tx; robotAnimY=ty; resolve(); }
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+/* ════ CHIP MANAGEMENT ════ */
+function addChip(dir) {
+  if (running || gameOver) return;
+  if (program.length >= 14) { setStatus('Максимум 14 команда!','err'); return; }
+  program.push({dir, count:1});
+  renderProgram(); closePicker();
+}
+function undoLast() {
+  if (running || gameOver) return;
+  program.pop(); renderProgram(); closePicker();
+}
+function clearProgram() {
+  if (running) return;
+  program=[]; trailCells=[];
+  robotPos={...LEVELS[currentLevel].start}; robotDir='RIGHT'; robotFlash=null; shakeOff=0;
+  robotAnimX=LEVELS[currentLevel].start.c*CELL+CELL/2;
+  robotAnimY=LEVELS[currentLevel].start.r*CELL+CELL/2;
+  renderProgram(); setStatus('Тазаланды',''); closePicker();
+}
+function removeChip(idx) {
+  if (running || gameOver) return;
+  program.splice(idx,1); renderProgram(); closePicker();
+}
+
+function renderProgram() {
+  const area=document.getElementById('progArea');
+  area.querySelectorAll('.chip').forEach(e=>e.remove());
+  document.getElementById('progEmpty').style.display=program.length===0?'block':'none';
+  program.forEach((cmd,i)=>{
+    const chip=document.createElement('div'); chip.className='chip'; chip.id='chip'+i;
+    const icon=document.createElement('span'); icon.className='chip-icon'; icon.textContent=DIR_ICON[cmd.dir];
+    const mult=document.createElement('button');
+    mult.className='chip-mult '+(cmd.count>1?'many':'one');
+    mult.textContent='×'+cmd.count;
+    mult.addEventListener('click',e=>{e.stopPropagation();openPicker(i,mult);});
+    const del=document.createElement('button'); del.className='chip-del'; del.textContent='✕';
+    del.addEventListener('click',e=>{e.stopPropagation();removeChip(i);});
+    chip.append(icon,mult,del); area.appendChild(chip);
+  });
+  const total=program.reduce((s,c)=>s+c.count,0);
+  document.getElementById('chipInfo').textContent=
+    program.length+' команда'+(total!==program.length?` (${total} қадам)`:'');
+  document.getElementById('runBtn').disabled=program.length===0;
+}
+
+/* ════ MULT PICKER ════ */
+function openPicker(idx,el) {
+  if (running||gameOver) return;
+  pickerIdx=idx;
+  const picker=document.getElementById('multPicker');
+  const row=document.getElementById('multRow');
+  const cur=program[idx].count;
+  row.innerHTML='';
+  for(let n=1;n<=9;n++){
+    const b=document.createElement('button');
+    b.className='mult-btn'+(n===cur?' sel':''); b.textContent='×'+n;
+    b.addEventListener('click',()=>applyMult(n)); row.appendChild(b);
+  }
+  picker.style.display='block';
+  const r=el.getBoundingClientRect(), pw=286,ph=62;
+  let l=r.left+r.width/2-pw/2, t=r.top-ph-10;
+  l=Math.max(6,Math.min(l,window.innerWidth-pw-6));
+  if(t<6) t=r.bottom+6;
+  picker.style.left=l+'px'; picker.style.top=t+'px';
+}
+function applyMult(n){
+  if(pickerIdx>=0&&pickerIdx<program.length){program[pickerIdx].count=n;renderProgram();}
+  closePicker();
+}
+function closePicker(){ document.getElementById('multPicker').style.display='none'; pickerIdx=-1; }
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#multPicker')&&!e.target.closest('.chip-mult')) closePicker();
+});
+
+/* ════ EXECUTION ════ */
+async function runProgram() {
+  if (running||gameOver||program.length===0) return;
+  running=true; closePicker();
+  setStatus('▶ Орындалуда...','');
+  setInputsDisabled(true);
+
+  const lvl=LEVELS[currentLevel];
+  robotPos={...lvl.start}; robotDir='RIGHT'; robotFlash=null; shakeOff=0;
+  robotAnimX=lvl.start.c*CELL+CELL/2; robotAnimY=lvl.start.r*CELL+CELL/2;
+  trailCells=[{...lvl.start}];
+  document.querySelectorAll('.chip').forEach(c=>{c.className='chip';c.style.opacity='1';});
+
+  let won=false;
+
+  outer:
+  for (let i=0; i<program.length; i++) {
+    const cmd=program[i];
+    setChipClass(i,'active');
+    for (let k=0; k<cmd.count; k++) {
+      const d=DIR_DELTA[cmd.dir];
+      const nr=robotPos.r+d.dr, nc=robotPos.c+d.dc;
+      const maze=lvl.maze;
+      if (nr<0||nr>=ROWS||nc<0||nc>=COLS||maze[nr][nc]===0) {
+        await doCollision(i); break outer;
+      }
+      robotDir=cmd.dir;
+      await animateMove(nr,nc);       // ← smooth movement
+      robotPos={r:nr,c:nc};
+      trailCells.push({...robotPos});
+      playStep();
+      if (robotPos.r===lvl.goal.r&&robotPos.c===lvl.goal.c){won=true;break outer;}
+    }
+    // dim finished chip
+    const el=document.getElementById('chip'+i);
+    if(el){el.className='chip';el.style.opacity='.4';}
+  }
+
+  running=false;
+  setInputsDisabled(false);
+  attempts++; markAttempt(attempts,won);
+
+  if (won) {
+    robotFlash='win'; playWin();
+    spawnParticles();
+    setStatus('✅ Деңгей аяқталды!','ok');
+    await sleep(500);
+    handleWin();
+  } else {
+    setStatus(`❌ Қате! Тырысу: ${attempts}/3`,'err');
+    if (attempts>=3) {
+      // Level failed after 3 tries — unlock next so player isn't stuck
+      if (currentLevel+1 < LEVELS.length) unlocked[currentLevel+1] = true;
+      updateLevelButtons();
+      showLevelResult(false, 0);
+    } else {
+      await sleep(400);
+      robotPos={...lvl.start}; robotDir='RIGHT'; robotFlash=null; shakeOff=0;
+      robotAnimX=lvl.start.c*CELL+CELL/2; robotAnimY=lvl.start.r*CELL+CELL/2;
+      trailCells=[];
+      document.querySelectorAll('.chip').forEach(c=>{c.className='chip';c.style.opacity='1';});
+      setStatus(`Тырысу ${attempts}/3 — программаны түзет`,'');
+    }
+  }
+}
+
+function handleWin() {
+  const lvl=LEVELS[currentLevel];
+  const chips=program.length;
+  let s;
+  if (chips<=lvl.optimal)  s=3;
+  else if (chips<=lvl.star2) s=2;
+  else s=1;
+  levelStars[currentLevel]=Math.max(levelStars[currentLevel],s);
+  // Unlock next level
+  if (currentLevel+1<LEVELS.length) unlocked[currentLevel+1]=true;
+
+  // HUD score = sum of stars earned across levels
+  document.getElementById('hudScore').textContent=levelStars.reduce((a,b)=>a+b,0);
+  updateLevelButtons();
+  showLevelResult(true,s);
+}
+
+async function doCollision(idx) {
+  setChipClass(idx,'error'); robotFlash='error'; playBuzz();
+  for(let s=0;s<7;s++){
+    shakeOff=Math.round((s%2===0?5:-5)*(1-s*.12));
+    drawMaze(); await sleep(55);
+  }
+  shakeOff=0; robotFlash=null; await sleep(250);
+}
+
+function setChipClass(idx,cls) {
+  const el=document.getElementById('chip'+idx);
+  if(el) el.className='chip'+(cls?' '+cls:'');
+}
+function markAttempt(n,pass) {
+  const d=document.getElementById('a'+n); if(d) d.className='adot '+(pass?'pass':'fail');
+}
+function setInputsDisabled(val) {
+  ['runBtn','undoBtn','clearBtn','dUP','dDOWN','dLEFT','dRIGHT'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.disabled=val;
+  });
+}
+
+/* ════ RESULT ════ */
+function showLevelResult(won, stars) {
+  const ov=document.getElementById('resultOverlay');
+  const chips=program.length;
+  const total=program.reduce((s,c)=>s+c.count,0);
+  const lvl=LEVELS[currentLevel];
+
+  document.getElementById('resIcon').textContent=won?'🏆':'😔';
+  const rt=document.getElementById('resTitle');
+  rt.textContent=won?`${lvl.title} аяқталды!`:'Тырысу сарқылды';
+  rt.className='result-title '+(won?'win':'lose');
+
+  document.getElementById('resSub').textContent=won
+    ? `${chips} командамен (${total} қадам) финишке жеттің! ${stars===3?'Керемет — ×N-ді тамаша пайдаландың!':stars===2?'Жақсы! ×N аз пайдаланылды.':'Жұмыс істеді!'}`
+    : `3 тырысуда ${lvl.title} жолды таппадың. Нұсқаулыққа қара!`;
+
+  // Stars row
+  const sr=document.getElementById('resStars'); sr.innerHTML='';
+  for(let i=1;i<=3;i++){
+    const s=document.createElement('span'); s.className='star-icon'; s.textContent='⭐'; sr.appendChild(s);
+    if(i<=stars) setTimeout(()=>s.classList.add('lit'),i*200);
+  }
+
+  // Level progress dots — filled only when that level is actually completed (stars>0)
+  [0,1,2].forEach(i=>{
+    const d=document.getElementById('lp'+i);
+    d.classList.toggle('done', levelStars[i]>0);
+  });
+
+  // Buttons
+  const row=document.getElementById('rBtnRow'); row.innerHTML='';
+  const isLast=(currentLevel===LEVELS.length-1);
+  const allWon=levelStars.every(s=>s>0);
+
+  // Retry — always offered (improve stars on win, or try again on fail)
+  const retry=document.createElement('button');
+  retry.className='rbtn rbtn-ghost';
+  retry.textContent='↻ Қайталау';
+  retry.onclick=()=>{ ov.classList.remove('show'); retryLevel(); };
+  row.appendChild(retry);
+
+  if (!isLast) {
+    // Next level button (already unlocked by handleWin on win, or fail branch after 3 tries)
+    const next=document.createElement('button');
+    next.className='rbtn '+(unlocked[currentLevel+1]?'rbtn-cyan':'rbtn-gold');
+    next.textContent=`${LEVELS[currentLevel+1].title} →`;
+    next.disabled=!unlocked[currentLevel+1];
+    next.onclick=()=>{ ov.classList.remove('show'); switchLevel(currentLevel+1); };
+    row.appendChild(next);
+  }
+
+  // "Next mission" only when ALL levels are genuinely completed, or finishing the last level
+  if (allWon || (isLast && won)) {
+    const fin=document.createElement('button');
+    fin.className='rbtn rbtn-cyan';
+    fin.textContent='Келесі миссия →';
+    fin.onclick=goNext;
+    row.appendChild(fin);
+  }
+
+  // Submit only at meaningful milestones to stay within backend attempt limit:
+  // first level completed (partial save) and all levels mastered (full score).
+  if (won) {
+    const completedCount = levelStars.filter(s=>s>0).length;
+    if (allWon || completedCount === 1) submitResult();
+  }
+  ov.classList.add('show');
+}
+
+function retryLevel() {
+  attempts=0; gameOver=false;
+  program=[]; trailCells=[];
+  const lvl=LEVELS[currentLevel];
+  robotPos={...lvl.start}; robotDir='RIGHT'; robotFlash=null; shakeOff=0;
+  robotAnimX=lvl.start.c*CELL+CELL/2; robotAnimY=lvl.start.r*CELL+CELL/2;
+  [1,2,3].forEach(i=>{const d=document.getElementById('a'+i);if(d)d.className='adot';});
+  renderProgram(); setStatus('Командалар қосыңыз','');
+}
+
+let submitCount = 0;
+function submitResult() {
+  // Backend limits attempts (≈2). Send at most twice: once on first completion,
+  // once when all levels are mastered — the second carries the best score.
+  if (submitCount >= 2) return;
+  const total = levelStars.reduce((a,b)=>a+b,0);   // 0..9
+  const avg   = total / LEVELS.length;              // 0..3
+  const stars = Math.round(avg);                    // 0..3 for the quest map
+  const score = Math.round((total / (LEVELS.length*3)) * 0.5 * 100) / 100; // 0..0.5
+  submitCount++;
+  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({game_name:'Лабиринт ойыны',score,stars,completed:stars>0})
+  }).catch(()=>{});
+}
+
+function goNext(){window.location.href='{{ url_for("quest3_m5") }}';}
+
+/* ════ PARTICLES ════ */
+function spawnParticles() {
+  const rect=cv.getBoundingClientRect();
+  const cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
+  const colors=['#4ade80','#22c55e','#00e5ff','#fbbf24'];
+  for(let i=0;i<16;i++){
+    const p=document.createElement('div'); p.className='particle';
+    const a=Math.random()*Math.PI*2, d=40+Math.random()*70;
+    p.style.cssText=`left:${cx}px;top:${cy}px;width:6px;height:6px;background:${colors[i%4]};--dx:${Math.cos(a)*d}px;--dy:${Math.sin(a)*d}px`;
+    document.body.appendChild(p); setTimeout(()=>p.remove(),920);
+  }
+}
+
+/* ════ TIMER ════ */
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timerSec--;
+    const m=Math.floor(timerSec/60), s=timerSec%60;
+    const el=document.getElementById('hudTimer');
+    el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    if(timerSec<=30) el.classList.add('warn');
+    if(timerSec<=0){clearInterval(timerInterval);if(!gameOver){gameOver=true;submitResult();showLevelResult(false,0);}}
+  },1000);
+}
+
+/* ════ STATUS ════ */
+function setStatus(msg,type){
+  const el=document.getElementById('statusBox'); el.textContent=msg;
+  el.className='status-box'+(type?' '+type:'');
+}
+
+/* ════ AUDIO ════ */
+let audioCtx;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function playStep(){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=700;g.gain.setValueAtTime(.06,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.08);o.start();o.stop(a.currentTime+.08);}catch(e){}}
+function playWin(){try{const a=getAudio();[440,554,659,880].forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=f;const t=a.currentTime+i*.1;g.gain.setValueAtTime(.16,t);g.gain.linearRampToValueAtTime(0,t+.35);o.start(t);o.stop(t+.35);});}catch(e){}}
+function playBuzz(){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sawtooth';o.frequency.value=180;g.gain.setValueAtTime(.16,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+.3);o.start();o.stop(a.currentTime+.3);}catch(e){}}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+/* ── Init ── */
+switchLevel(0);   // level 0 unlocked by default (see `unlocked` state above)
+startTimer();
+</script>
+</body>
+</html>

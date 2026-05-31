@@ -159,19 +159,6 @@ document.addEventListener("DOMContentLoaded", () => {
         modal.classList.add("hidden");
     });
 
-    submitTask.addEventListener("click", ()=>{
-        const userAnswer = answerInput.value.trim();
-        if(userAnswer.toLowerCase() === tasks[currentPiece].answer.toLowerCase()){
-            taskFeedback.textContent = "✅ Дұрыс!";
-            const pieceEl = document.getElementById(currentPiece);
-            pieceEl.classList.remove("locked");
-            pieceEl.classList.add("unlocked"); // картинка появится
-            modal.classList.add("hidden");
-            checkEnd();
-        } else {
-            taskFeedback.textContent = "❌ Қате!";
-        }
-    });
 
     function checkEnd(){
         if(score >= maxScore){
@@ -191,8 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
             star.src = "static/img/star.png";
             starContainer.appendChild(star);
         }
-        gameOver.classList.remove("hidden");
-
         fetch("/game_result",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
@@ -202,6 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 stars:stars,
                 completed:true
             })
-        }).then(r=>r.json()).then(d=>console.log("Жіберілді:",d));
+        }).then(r=>r.json()).then(d=>showGameResult(d))
+          .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
     }
 });

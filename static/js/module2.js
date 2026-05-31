@@ -48,8 +48,8 @@ function sendResultToServer() {
         })
     })
     .then(res => res.json())
-    .then(data => console.log("Результат отправлен:", data))
-    .catch(err => console.error("Ошибка отправки:", err));
+    .then(data => showGameResult(data))
+    .catch(() => showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 }
 
 // --- Таймер ---
@@ -103,19 +103,7 @@ function endGame(allKeysCollected, message = "") {
 
 // --- Финальное окно с звездой ---
 function showGameOver() {
-    finalScore.textContent = `Ұпай: ${score.toFixed(2)}`;
-    gameOverModal.classList.remove("hidden");
-
-    const starContainer = document.getElementById("star-container");
-    starContainer.innerHTML = "";
-
-    if (score === maxScore) {
-        const star = document.createElement("img");
-        star.src = "static/img/star.png";
-        star.style.width = "30vw";
-        star.style.height = "auto";
-        starContainer.appendChild(star);
-    }
+    // result sent via sendResultToServer → showGameResult overlay
 }
 
 // --- Обновление счёта ---

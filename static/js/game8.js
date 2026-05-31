@@ -127,13 +127,13 @@ function endGame(byTimer = false) {
   }
 
   finalScoreEl.textContent = `Ұпай: ${finalScore.toFixed(2)}`;
-  gameOver.classList.remove("hidden");
 
   fetch("/game_result",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({game_name:"Робот", score:finalScore, stars:stars, completed:true})
-  }).then(r=>r.json()).then(d=>console.log("Жіберілді:",d));
+  }).then(r=>r.json()).then(d=>showGameResult(d))
+    .catch(()=>showGameResult({score:0,stars:0,total_score:0,total_stars:0}));
 
   clearInterval(timerInterval); // таймер останавливаем
 }
