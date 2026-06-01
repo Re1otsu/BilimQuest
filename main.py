@@ -402,6 +402,28 @@ def _render_dashboard(student_id):
         for ch, data in chapters_progress.items()
     }
 
+    # ── Значки по главам (синхронно с игровыми жетонами) ──
+    CHAPTER_BADGE = {
+        "info":     ("Жұлдыз", "⭐"),
+        "graphics": ("Пазл",   "🧩"),
+        "robotics": ("Карта",  "🗺️"),
+        "security": ("Чип",    "🔩"),
+    }
+    all_progress = GameProgress.query.filter_by(student_id=student_id).all()
+    chapter_badges = []
+    badges_total = 0
+    for ck, info in GAME_CHAPTERS.items():
+        names = set(info["games"])
+        cnt = sum(int(p.stars or 0) for p in all_progress if p.game_name in names)
+        mx = len(info["games"]) * 3   # тир-максимум: 3 значка на игру
+        label, icon = CHAPTER_BADGE.get(ck, (ck, "⭐"))
+        chapter_badges.append({
+            "kind": ck, "label": label, "icon": icon,
+            "count": cnt, "max": mx,
+            "done": mx > 0 and cnt >= 0.8 * mx,   # глава пройдена ≥80%
+        })
+        badges_total += cnt
+
     return render_template(
         "dashboard.html",
         student=student,
@@ -409,7 +431,9 @@ def _render_dashboard(student_id):
         chapters_progress=chapters_progress,
         chapters_progress_display=chapters_progress_display,
         stars_sum=stars_sum,
-        total_score=total_score
+        total_score=total_score,
+        chapter_badges=chapter_badges,
+        badges_total=badges_total
     )
 
 
@@ -424,6 +448,94 @@ def student_dashboard(student_id):
 def my_profile():
     """Student views their own progress dashboard."""
     return _render_dashboard(session["user_id"])
+
+# Тарау (глава) → жетон түрі + сол тарауға жататын ойындар
+GAME_CHAPTERS = {
+    "info": {
+        "kind": "star", "back": "/1module",
+        "games": ["Сәйкестік", "Көпір", "Қағып ал", "Лабиринт", "Ғарыш хабаршысы",
+                  "Хабаршы", "Қамал", "Шифр", "Агент", "Робот",
+                  "Сиқырлы шарлар", "Блоктар", "Пазл"],
+    },
+    "graphics": {
+        "kind": "puzzle", "back": "/toqsan_2",
+        "games": ["Пиксель шебері", "Фотолаб", "Лазер жолы", "Вектор ядро", "Графика текетірес"],
+    },
+    "robotics": {
+        "kind": "map", "back": "/toqsan_3",
+        "games": ["Робот орны", "Робот тарихы", "Гироскоп", "Лабиринт ойыны", "Сызық робот", "Сумо"],
+    },
+    "security": {
+        "kind": "chip", "back": "/toqsan_4",
+        "games": ["Эргономика", "Цифрлық детектив", "Кибер-бекініс", "Файл әлемі", "Желілік жүгіруші"],
+    },
+}
+GAME_TO_CHAPTER = {g: ck for ck, info in GAME_CHAPTERS.items() for g in info["games"]}
+
+
+def _chapter_reward(student_id, game_name):
+    """Тарау жетоны: түрі + сол тарау бойынша жұлдыз қосындысы + карта адресі."""
+    ck = GAME_TO_CHAPTER.get(game_name, "info")
+    ch = GAME_CHAPTERS[ck]
+    total = db.session.query(func.coalesce(func.sum(GameProgress.stars), 0))\
+        .filter(GameProgress.student_id == student_id,
+                GameProgress.game_name.in_(ch["games"])).scalar()
+    return {"kind": ch["kind"], "total": int(total), "back": ch["back"]}
+
+
+def stars_map(student_id, game_names):
+    """{game_name: stars(0–3)} — карта көрсету үшін."""
+    rows = GameProgress.query.filter(
+        GameProgress.student_id == student_id,
+        GameProgress.game_name.in_(list(game_names))).all()
+    return {r.game_name: int(r.stars or 0) for r in rows}
+
+
+def game_tier(game_name, score, max_score, completed):
+    """Бұл ойында жиналған значок саны (0–3). graphics тарауында финиш ≥90%,
+    сондықтан жетеу зонасы тар: 98/95/прошёл. Қалғандарында: 90/70/прошёл."""
+    if not completed:
+        return 0
+    ratio = (score / max_score) if max_score and max_score > 0 else 0.0
+    ck = GAME_TO_CHAPTER.get(game_name, "info")
+    if ck == "graphics":
+        if ratio >= 0.98: return 3
+        if ratio >= 0.95: return 2
+        return 1
+    if ratio >= 0.90: return 3
+    if ratio >= 0.70: return 2
+    return 1
+
+
+def render_game_or_gate(game_name, template, back_url=None):
+    """Ойынды ашпас бұрын: егер бұрын ойналған болса — нәтиже терезесін (gate)
+    көрсетеміз. attempt<2 (немесе мұғалім ашқан) болса — «Қайта өту» батырмасы,
+    әйтпесе — «мүмкіндік бітті» хабары. ?play=1 параметрі гейтті аттап өтеді."""
+    student_id = session.get("user_id")
+    student = Student.query.get_or_404(student_id)
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name=game_name).first()
+    access = GameAccess.query.filter_by(student_id=student_id, game_name=game_name).first()
+    unlocked = bool(access and access.is_unlocked)
+    back = back_url or _chapter_reward(student_id, game_name)["back"]
+
+    if progress:
+        can_replay = (progress.attempt < 2) or unlocked
+        play = request.args.get("play")
+        if (not play) or (not can_replay):
+            return render_template(
+                "game_gate.html",
+                student=student,
+                game_name=game_name,
+                play_url=request.path + "?play=1",
+                score=round(float(progress.score), 2),
+                attempt=progress.attempt,
+                total_score=round(float(student.score), 2),
+                reward=_chapter_reward(student_id, game_name),
+                can_replay=can_replay,
+                back=back,
+            )
+    return render_template(template, student=student)
+
 
 @app.route("/game_result", methods=["POST"])
 def game_result():
@@ -463,62 +575,78 @@ def game_result():
         "Кибер-бекініс": 0.3,
         "Файл әлемі": 0.3,
         "Желілік жүгіруші": 0.3,
+        "Пиксель шебері": 0.5,
+        "Фотолаб": 0.5,
+        "Лазер жолы": 0.5,
+        "Вектор ядро": 0.5,
+        "Графика текетірес": 0.6,
     }
 
     max_score = MAX_SCORE.get(game_name)
     if max_score is None:
         return {"error": "Unknown game"}, 400
     score = min(score, max_score)
-    stars = 1 if score == max_score else 0
+    stars = game_tier(game_name, score, max_score, completed)   # 0–3 значок
 
-    attempts = GameProgress.query.filter_by(student_id=student_id, game_name=game_name).count()
+    # бір ойынға — бір жазба; attempt = өту саны
+    progress = GameProgress.query.filter_by(student_id=student_id, game_name=game_name).first()
+    attempts = progress.attempt if progress else 0
     access = GameAccess.query.filter_by(student_id=student_id, game_name=game_name).first()
+    unlocked = bool(access and access.is_unlocked)
 
-    if attempts >= 2 and not (access and access.is_unlocked):
+    if attempts >= 2 and not unlocked:
         return {"status": "denied", "message": "Мұғалім рұқсат бермейінше қайта өтуге болмайды."}, 403
 
-    allow_score_add = False
-    if access and access.is_unlocked:
-        allow_score_add = True
-        access.is_unlocked = False
+    if unlocked:
+        access.is_unlocked = False  # бір реттік рұқсат жұмсалды
 
-    # Сохраняем результат
-    progress = GameProgress.query.filter_by(student_id=student_id, game_name=game_name) \
-        .order_by(GameProgress.attempt.desc()).first()
+    # ЕҢ ҮЗДІК нәтиже есепке алынады
+    prev_best = float(progress.score) if progress else 0.0
+    prev_stars = int(progress.stars) if progress else 0
+    new_best = max(prev_best, score)
+    new_stars = max(prev_stars, stars)
+    added = round(new_best - prev_best, 2)   # балансқа тек жақсарған айырма қосылады
 
-    if progress and progress.attempt < 2:
-        # Если это вторая попытка — обновляем существующую запись
-        progress.score = score
-        progress.stars = stars
-        progress.completed = completed
-        progress.attempt = progress.attempt + 1
+    if progress:
+        progress.score = new_best
+        progress.stars = new_stars
+        progress.completed = progress.completed or completed
+        progress.attempt = attempts + 1
     else:
-        # Первая попытка или после обнуления — создаём новую запись
         progress = GameProgress(
-            student_id=student_id,
-            game_name=game_name,
-            score=score,
-            stars=stars,
-            completed=completed,
-            attempt=1 if not progress else progress.attempt + 1
+            student_id=student_id, game_name=game_name,
+            score=new_best, stars=new_stars, completed=completed, attempt=1
         )
         db.session.add(progress)
 
     student = Student.query.get(student_id)
-    if student and (attempts == 0 or allow_score_add):
-        student.score += score
+    if student and added > 0:
+        student.score += added
 
     db.session.commit()
 
     total_stars = db.session.query(func.coalesce(func.sum(GameProgress.stars), 0))\
         .filter_by(student_id=student_id).scalar()
 
+    # тарау жетоны: осы тараудағы ойындар бойынша жұлдыз қосындысы
+    chapter_key = GAME_TO_CHAPTER.get(game_name, "info")
+    chapter = GAME_CHAPTERS[chapter_key]
+    chapter_total = db.session.query(func.coalesce(func.sum(GameProgress.stars), 0))\
+        .filter(GameProgress.student_id == student_id,
+                GameProgress.game_name.in_(chapter["games"])).scalar()
+
     return {
         "status": "ok",
-        "score": score,
+        "score": round(score, 2),
         "stars": stars,
+        "added": round(added, 2),
         "total_score": round(float(student.score), 2) if student else 0,
-        "total_stars": int(total_stars)
+        "total_stars": int(total_stars),
+        "reward": {
+            "kind": chapter["kind"],
+            "total": int(chapter_total),
+            "back": chapter["back"],
+        },
     }
 
 
@@ -904,8 +1032,34 @@ def toqsan_2():
     return render_template(
         "toqsan_2.html",
         student=student,
+        stars=stars_map(student_id, GAME_CHAPTERS["graphics"]["games"]),
         completed=completed
     )
+
+@app.route("/toqsan2/g1")
+@login_required("student")
+def toqsan2_g1():
+    return render_game_or_gate("Пиксель шебері", "toqsan2_g1.html", "/toqsan_2")
+
+@app.route("/toqsan2/g2")
+@login_required("student")
+def toqsan2_g2():
+    return render_game_or_gate("Фотолаб", "toqsan2_g2.html", "/toqsan_2")
+
+@app.route("/toqsan2/g3")
+@login_required("student")
+def toqsan2_g3():
+    return render_game_or_gate("Лазер жолы", "toqsan2_g3.html", "/toqsan_2")
+
+@app.route("/toqsan2/g4")
+@login_required("student")
+def toqsan2_g4():
+    return render_game_or_gate("Вектор ядро", "toqsan2_g4.html", "/toqsan_2")
+
+@app.route("/toqsan2/g5")
+@login_required("student")
+def toqsan2_g5():
+    return render_game_or_gate("Графика текетірес", "toqsan2_g5.html", "/toqsan_2")
 
 @app.route("/toqsan_3")
 @login_required("student")
@@ -941,6 +1095,7 @@ def toqsan_3():
     return render_template(
         "toqsan_3.html",
         student=student,
+        stars=stars_map(student_id, GAME_CHAPTERS["robotics"]["games"]),
         completed=completed
     )
 
@@ -949,301 +1104,86 @@ def toqsan_3():
 def toqsan_4():
     student_id = session.get("user_id")
     student = Student.query.get_or_404(student_id)
-    return render_template("toqsan_4.html", student=student)
+    return render_template(
+        "toqsan_4.html", student=student,
+        stars=stars_map(student_id, GAME_CHAPTERS["security"]["games"])
+    )
 
 @app.route("/toqsan4/g1")
 @login_required("student")
 def toqsan4_g1():
-    student_id = session.get("user_id")
-    student = Student.query.get_or_404(student_id)
-    return render_template("toqsan4_g1.html", student=student)
+    return render_game_or_gate("Эргономика", "toqsan4_g1.html", "/toqsan_4")
 
 @app.route("/toqsan4/g2")
 @login_required("student")
 def toqsan4_g2():
-    student_id = session.get("user_id")
-    student = Student.query.get_or_404(student_id)
-    return render_template("toqsan4_g2.html", student=student)
+    return render_game_or_gate("Цифрлық детектив", "toqsan4_g2.html", "/toqsan_4")
 
 @app.route("/toqsan4/g3")
 @login_required("student")
 def toqsan4_g3():
-    student_id = session.get("user_id")
-    student = Student.query.get_or_404(student_id)
-    return render_template("toqsan4_g3.html", student=student)
+    return render_game_or_gate("Желілік жүгіруші", "toqsan4_g3.html", "/toqsan_4")
 
 @app.route("/toqsan4/g4")
 @login_required("student")
 def toqsan4_g4():
-    student_id = session.get("user_id")
-    student = Student.query.get_or_404(student_id)
-    return render_template("toqsan4_g4.html", student=student)
+    return render_game_or_gate("Кибер-бекініс", "toqsan4_g4.html", "/toqsan_4")
 
 @app.route("/toqsan4/g5")
 @login_required("student")
 def toqsan4_g5():
-    student_id = session.get("user_id")
-    student = Student.query.get_or_404(student_id)
-    return render_template("toqsan4_g5.html", student=student)
+    return render_game_or_gate("Файл әлемі", "toqsan4_g5.html", "/toqsan_4")
 
 @app.route("/game1")
 @login_required("student")
 def game1():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Қағып ал"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game1.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Қағып ал").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    # Егер әлі тапсырмаған болса
-    return render_template("game1.html")
+    return render_game_or_gate("Қағып ал", "game1.html", "/1module")
 
 @app.route("/game2")
 @login_required("student")
 def game2():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Көпір"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game2.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Көпір").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game2.html")
+    return render_game_or_gate("Көпір", "game2.html", "/1module")
 
 
 @app.route("/game3")
 @login_required("student")
 def game3():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Ғарыш хабаршысы"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game3.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Ғарыш хабаршысы").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game3.html")
+    return render_game_or_gate("Ғарыш хабаршысы", "game3.html", "/1module")
 
 @app.route("/game4")
 @login_required("student")
 def game4():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Хабаршы"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game4.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Хабаршы").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game4.html")
+    return render_game_or_gate("Хабаршы", "game4.html", "/1module")
 
 @app.route("/game5")
 @login_required("student")
 def game5():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Қамал"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game5.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Қамал").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game5.html")
+    return render_game_or_gate("Қамал", "game5.html", "/1module")
 
 @app.route("/game6")
 @login_required("student")
 def game6():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Шифр"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game6.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Шифр").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game6.html")
+    return render_game_or_gate("Шифр", "game6.html", "/1module")
 
 @app.route("/game7")
 @login_required("student")
 def game7():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Агент"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game7.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Агент").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game7.html")
+    return render_game_or_gate("Агент", "game7.html", "/1module")
 
 @app.route("/game8")
 @login_required("student")
 def game8():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Робот"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game8.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Робот").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game8.html")
+    return render_game_or_gate("Робот", "game8.html", "/1module")
 
 @app.route("/game9")
 @login_required("student")
 def game9():
-    student_id = session.get("user_id")
-
-    # Соңғы attempt-ті табамыз
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Сиқырлы шарлар"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        # Егер 2 реттен аз тапсырса — ойынды қайтадан ашамыз
-        if progress.attempt < 2:
-            return render_template("game9.html")
-
-        # Егер барлық 2 мүмкіндікті қолданса, тек нәтижесін көрсетеміз
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Сиқырлы шарлар").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game9.html")
+    return render_game_or_gate("Сиқырлы шарлар", "game9.html", "/1module")
 
 @app.route("/game10")
 @login_required("student")
 def game10():
-    student_id = session.get("user_id")
-
-    progress = GameProgress.query.filter_by(
-        student_id=student_id, game_name="Пазл"
-    ).order_by(GameProgress.attempt.desc()).first()
-
-    if progress:
-        if progress.attempt < 2:
-            return render_template("game10.html")
-
-        access = GameAccess.query.filter_by(student_id=student_id, game_name="Пазл").first()
-        if not (access and access.is_unlocked):
-            return render_template(
-                "module1_result.html",
-                score=progress.score,
-                attempt=progress.attempt
-            )
-
-    return render_template("game10.html")
+    return render_game_or_gate("Пазл", "game10.html", "/1module")
 
 @app.route("/module1")
 @login_required("student")
@@ -1449,32 +1389,32 @@ def teacher_progress():
 @app.route("/quest3/m1")
 @login_required("student")
 def quest3_m1():
-    return render_template("quest3_m1.html")
+    return render_game_or_gate("Робот орны", "quest3_m1.html", "/toqsan_3")
 
 @app.route("/quest3/m2")
 @login_required("student")
 def quest3_m2():
-    return render_template("quest3_m2.html")
+    return render_game_or_gate("Робот тарихы", "quest3_m2.html", "/toqsan_3")
 
 @app.route("/quest3/m3")
 @login_required("student")
 def quest3_m3():
-    return render_template("quest3_m3.html")
+    return render_game_or_gate("Гироскоп", "quest3_m3.html", "/toqsan_3")
 
 @app.route("/quest3/m4")
 @login_required("student")
 def quest3_m4():
-    return render_template("quest3_m4.html")
+    return render_game_or_gate("Лабиринт ойыны", "quest3_m4.html", "/toqsan_3")
 
 @app.route("/quest3/m5")
 @login_required("student")
 def quest3_m5():
-    return render_template("quest3_m5.html")
+    return render_game_or_gate("Сызық робот", "quest3_m5.html", "/toqsan_3")
 
 @app.route("/quest3/m6")
 @login_required("student")
 def quest3_m6():
-    return render_template("quest3_m6.html")
+    return render_game_or_gate("Сумо", "quest3_m6.html", "/toqsan_3")
 
 
 if __name__ == "__main__":

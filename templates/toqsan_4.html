@@ -258,6 +258,17 @@
   .node.shake{animation:shake .45s;}
   @keyframes shake{0%,100%{transform:translate(-50%,-50%);}20%{transform:translate(-53%,-50%);}40%{transform:translate(-47%,-50%);}60%{transform:translate(-52%,-50%);}80%{transform:translate(-48%,-50%);}}
 </style>
+<style>.qnav-home{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:50px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;text-decoration:none;font-weight:700;font-size:14px;white-space:nowrap;line-height:1;transition:background .2s}.qnav-home:hover{background:rgba(255,255,255,.26)}
+.hud-actions{display:flex;align-items:center;gap:12px}
+.chip-score{height:54px;padding:0 22px;border-radius:999px;display:flex;align-items:center;gap:10px;background:linear-gradient(45deg,#ffd34d,#ffb300);color:#1f2d3d;font-weight:900;font-size:25px;box-shadow:0 10px 22px rgba(0,0,0,.25)}
+.chip-score b{font-size:26px}
+.chip-ico{width:28px;height:28px;flex-shrink:0}
+.hero-link{cursor:pointer;display:block}
+.hero-link #hero{transition:transform .2s,filter .2s}
+.hero-link:hover #hero{transform:scale(1.05);filter:drop-shadow(0 22px 26px rgba(0,0,0,.6)) brightness(1.08)}
+.t4-badges{display:flex;gap:7px;justify-content:center;margin-top:6px}
+.t4-pip{font-size:32px;line-height:1;filter:grayscale(1);opacity:.3}
+.t4-pip.on{opacity:1;filter:drop-shadow(0 0 9px rgba(255,200,80,.85))}</style>
 </head>
 <body>
 <div id="viewport">
@@ -288,8 +299,11 @@
       </g>
     </svg>
 
-    <!-- hero -->
-    <img id="hero" src="{{ url_for('static', filename='img/toqsan4/hero.png') }}" alt="Кейіпкер">
+    <!-- hero → главная -->
+    <a href="/student" class="hero-link" title="Басты бетке оралу" aria-label="Басты бет">
+      <img id="hero" src="{{ url_for('static', filename='img/toqsan4/hero.png') }}" alt="Кейіпкер">
+      
+    </a>
 
     <!-- nodes injected by JS -->
     <div id="nodes"></div>
@@ -298,13 +312,11 @@
     <div class="hud">
       <div class="hud-left">
         <div class="brand">BilimQuest</div>
-        <a class="nav-link" href="/student"><span class="dot"></span>Басты бет</a>
       </div>
-      <div class="player">
-        <div class="ava"><img src="{{ url_for('static', filename='img/toqsan4/hero.png') }}" alt="avatar"></div>
-        <div class="pmeta">
-          <div class="score">Ұпай: <b id="scoreVal">{{ "%.2f"|format(student.score) }}</b></div>
-          <div class="chapter">Тарау: Компьютер және қауіпсіздік</div>
+      <div class="hud-actions">
+        <div class="chip-score" title="Кибер-ұпай">
+          <svg class="chip-ico" viewBox="0 0 24 24" fill="none" stroke="#1f2d3d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
+          <b id="scoreVal">{{ "%.2f"|format(student.score) }}</b>
         </div>
       </div>
     </div>
@@ -352,9 +364,13 @@ const BASE_SCORE = {{ "%.2f"|format(student.score) }};
 /* ====== check-mark svg reused (node corner badges only) ====== */
 const CHK = '<svg viewBox="0 0 24 24" fill="none" stroke="#0a3a18" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
 
+/* ====== значки по играм (с сервера) ====== */
+const STARS = {{ stars|default({})|tojson }};
+const ROUTE_GAME = {'/toqsan4/g1':'Эргономика','/toqsan4/g2':'Цифрлық детектив','/toqsan4/g3':'Желілік жүгіруші','/toqsan4/g4':'Кибер-бекініс','/toqsan4/g5':'Файл әлемі'};
+
 /* ====== quest data ====== */
 const NODES = [
-  { id:'ergo',     img:A+'node-safe.png',     x:700,  y:400, dur:5.2, delay:0, route:'/toqsan4/g1',
+  { id:'ergo',     img:A+'Слой 1.png',     x:700,  y:400, dur:5.2, delay:0, route:'/toqsan4/g1',
     short:'Компьютерде жұмыс<br>істеу қауіпсіздігі',
     title:'Компьютерде жұмыс істеу қауіпсіздігі',
     desc:'Кибер-эргономика: ЖИ-Көмекшіні «емде»! Дұрыс отыру, үзіліс және экран қашықтығы туралы біл, оның денсаулығын 100%-ға жеткіз.',
@@ -382,12 +398,17 @@ const NODES = [
 ];
 
 const KEY='bilimquest_t4_progress_v1';
-const POINTS=2.20; // in-quest points per completed block (shown on top of account score)
 let state = load();
 
 function load(){
-  try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.status&&s.status.length===NODES.length) return s; }catch(e){}
-  return { status:['active','locked','locked','locked','locked'] };
+  let s=null;
+  try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
+  if(!s || !s.status || s.status.length!==NODES.length){
+    s = { status: NODES.map(()=>'active') };
+  }
+  // all blocks are OPEN: keep finished ones marked 'done', everything else is 'active' (never locked)
+  s.status = s.status.map(st => st==='done' ? 'done' : 'active');
+  return s;
 }
 function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
 
@@ -409,7 +430,8 @@ NODES.forEach((n,i)=>{
       <div class="corner lock"><svg viewBox="0 0 24 24" fill="none" stroke="#cfe0ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
       <img src="${n.img}" alt="${n.title}">
     </div>
-    <div class="label"><span class="num">БЛОК ${i+1}</span><br>${n.short}</div>`;
+    <div class="label"><span class="num">БЛОК ${i+1}</span><br>${n.short}</div>
+    <div class="t4-badges">${(function(){var sc=STARS[ROUTE_GAME[n.route]]||0,p='';for(var j=0;j<3;j++){p+='<span class="t4-pip'+(j<sc?' on':'')+'">🔩</span>';}return p;})()}</div>`;
   b.addEventListener('click',()=>openNode(i));
   nodesEl.appendChild(b);
 });
@@ -425,8 +447,8 @@ function applyState(){
     const idx=+s.dataset.seg;
     if(state.status[idx]==='done') s.classList.add('lit'); else s.classList.remove('lit');
   });
-  const done=state.status.filter(s=>s==='done').length;
-  animateScore(BASE_SCORE + done*POINTS);
+  // score is synced with the real account balance (updated by /game_result), no local inflation
+  animateScore(BASE_SCORE);
 }
 let shownScore=null;
 function animateScore(target){
@@ -487,7 +509,7 @@ function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); cle
 function celebrate(i){
   const el=nodeEls[i]; const r=el.querySelector('.art');
   r.animate([{transform:'scale(1)'},{transform:'scale(1.18)'},{transform:'scale(1)'}],{duration:520,easing:'ease-out'});
-  showToast('Блок аяқталды! +'+POINTS.toFixed(2)+' ұпай');
+  showToast('Блок аяқталды!');
 }
 
 applyState();

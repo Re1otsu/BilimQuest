@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Comparison Duel — Растр vs Вектор</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7fbff;
+  background:#04140f;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(ellipse 110% 60% at 50% -5%,rgba(20,120,90,.45),transparent 60%),
+  radial-gradient(ellipse 90% 55% at 50% 110%,rgba(20,140,160,.28),transparent 60%),
+  #04140f;
+  padding:14px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:1040px;display:flex;flex-direction:column;gap:12px}
+
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr-title{display:flex;align-items:center;gap:11px;font-weight:900;font-size:16px;line-height:1.15}
+.hdr-shield{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 38% 30%,#22c4a0,#0c5b48);border:1.5px solid rgba(80,255,210,.5);
+  box-shadow:0 0 16px rgba(40,220,180,.45);font-size:22px}
+.hdr-right{display:flex;align-items:center;gap:9px}
+.hdr-star{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(14,60,50,.92),rgba(8,34,30,.96));border:1.5px solid rgba(255,210,74,.4);
+  font-weight:900;font-size:15px;color:#ffd24a;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.qnav-home{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:14px;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);color:#fff;text-decoration:none;
+  font-weight:800;font-size:14px;white-space:nowrap;line-height:1;transition:background .2s}
+.qnav-home:hover{background:rgba(255,255,255,.2)}
+
+.titlebar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:linear-gradient(90deg,rgba(40,100,80,.4),rgba(20,120,160,.4));border:1.5px solid rgba(80,255,210,.25);
+  border-radius:14px;padding:11px 16px}
+.titlebar .t{font-weight:900;font-size:15px;color:#dffff5}
+.titlebar .t small{display:block;font-weight:600;font-size:11.5px;color:#9fe6d6}
+.audit{display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:700;color:#bfeede}
+.audit .crys{padding:4px 10px;border-radius:9px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12)}
+
+/* layout */
+.field{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:780px){.field{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:12px}
+
+.platform{border-radius:18px;padding:14px;min-height:230px;transition:.18s;position:relative;overflow:hidden}
+.platform.raster{background:linear-gradient(180deg,rgba(14,60,42,.5),rgba(8,30,22,.7));border:2px dashed rgba(70,224,106,.5)}
+.platform.vector{background:linear-gradient(180deg,rgba(14,40,68,.5),rgba(8,22,42,.7));border:2px dashed rgba(70,150,255,.55)}
+.platform.hover{transform:scale(1.015);box-shadow:0 0 0 3px rgba(255,255,255,.25) inset}
+.platform.raster.hover{box-shadow:0 0 0 3px rgba(70,224,106,.6) inset}
+.platform.vector.hover{box-shadow:0 0 0 3px rgba(70,150,255,.7) inset}
+.plat-head{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;margin-bottom:4px}
+.platform.raster .plat-head{color:#7dffa0}.platform.vector .plat-head{color:#7db4ff}
+.plat-sub{font-size:11.5px;color:#9fe6d6;margin-bottom:12px}
+.plat-drop{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start;min-height:130px}
+
+/* conveyor */
+.conveyor{background:linear-gradient(180deg,rgba(10,40,34,.9),rgba(6,24,20,.95));border:1.5px solid rgba(40,170,140,.3);
+  border-radius:18px;padding:14px}
+.conv-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:#bfeede;margin-bottom:12px}
+.conv-head .dot{width:9px;height:9px;border-radius:50%;background:#37e3a0;box-shadow:0 0 9px #37e3a0}
+.conv-drop{display:flex;flex-wrap:wrap;gap:10px;min-height:120px}
+
+/* item card */
+.item{width:124px;border-radius:14px;padding:9px;cursor:grab;user-select:none;touch-action:none;position:relative;
+  background:linear-gradient(180deg,rgba(18,56,48,.95),rgba(10,32,28,.98));border:1.5px solid rgba(80,200,170,.3);
+  box-shadow:0 6px 16px rgba(0,0,0,.35);transition:border-color .15s,transform .1s}
+.item:active{cursor:grabbing}
+.item .pic{width:100%;height:88px;border-radius:9px;overflow:hidden;background:#04140f;display:flex;align-items:center;justify-content:center}
+.item .pic svg{width:100%;height:100%;display:block}
+.item .lab{font-size:11.5px;font-weight:700;color:#dcfff4;margin-top:7px;line-height:1.2;text-align:center}
+.item .zoom{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:8px;border:none;cursor:pointer;
+  background:rgba(0,0,0,.55);color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center}
+.item .zoom:hover{background:rgba(60,225,180,.7)}
+.item .badge{position:absolute;top:6px;left:6px;font-size:16px;display:none}
+.item.ok .badge{display:block}.item.bad .badge{display:block}
+.item.ok{border-color:#46e06a;box-shadow:0 0 0 2px rgba(70,224,106,.5)}
+.item.bad{border-color:#ff5a6a;box-shadow:0 0 0 2px rgba(255,90,106,.5)}
+.ghost{position:fixed;z-index:999;pointer-events:none;opacity:.92;transform:rotate(-3deg)}
+
+/* footer */
+.footer{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.indi{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;padding:9px 14px;border-radius:12px;
+  background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.12);min-width:150px;justify-content:center}
+.btn{padding:14px 26px;border:none;border-radius:14px;font-family:'Rubik';font-weight:900;font-size:16px;cursor:pointer;transition:.15s;color:#04140f}
+.btn-primary{background:linear-gradient(180deg,#3be3a8,#10a07a);box-shadow:0 6px 18px rgba(40,210,160,.4)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,.08);color:#dcfff4;border:1.5px solid rgba(255,255,255,.18);font-size:14px;padding:12px 18px;border-radius:12px}
+.btn-ghost:hover{background:rgba(255,255,255,.16)}
+
+/* Kronos */
+.kronos{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(12,48,70,.85),rgba(8,28,42,.92));border:1.5px solid rgba(60,180,230,.35)}
+.kronos .av{width:42px;height:42px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:23px;background:radial-gradient(circle at 40% 30%,#2f9fe0,#11406a);border:1.5px solid rgba(90,200,255,.5);
+  box-shadow:0 0 14px rgba(60,170,255,.4)}
+.kronos .bub{font-size:13.5px;line-height:1.4;color:#d6f0ff}
+.kronos .bub b{color:#5ad0ff}
+
+/* zoom modal */
+.zveil{position:fixed;inset:0;background:rgba(4,16,12,.85);backdrop-filter:blur(4px);display:none;
+  align-items:center;justify-content:center;z-index:110;padding:20px}
+.zveil.on{display:flex}
+.zbox{max-width:380px;width:100%;text-align:center;background:linear-gradient(180deg,rgba(12,46,40,.98),rgba(6,24,20,.99));
+  border:1.5px solid rgba(80,255,210,.4);border-radius:20px;padding:22px}
+.zbox .zpic{width:280px;height:280px;max-width:100%;margin:0 auto 14px;border-radius:12px;overflow:hidden;
+  background:#04140f;border:1.5px solid rgba(80,255,210,.25);display:flex;align-items:center;justify-content:center}
+.zbox .zpic svg{width:100%;height:100%}
+.zbox h3{font-size:17px;font-weight:900;margin-bottom:6px}
+.zbox p{font-size:13px;color:#bfeede;line-height:1.45}
+.zbox .close{margin-top:14px}
+
+/* win */
+.veil{position:fixed;inset:0;background:rgba(4,16,12,.82);backdrop-filter:blur(6px);display:none;
+  align-items:center;justify-content:center;z-index:120;padding:20px}
+.veil.on{display:flex}
+.win{max-width:420px;width:100%;text-align:center;background:linear-gradient(180deg,rgba(12,52,44,.97),rgba(6,26,22,.99));
+  border:1.5px solid rgba(80,255,210,.4);border-radius:22px;padding:30px 26px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.win .em{font-size:62px;margin-bottom:8px;animation:pop .5s cubic-bezier(.34,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.win h2{font-size:24px;font-weight:900;margin-bottom:8px;color:#7dffd0}
+.win p{font-size:14.5px;color:#bfeede;line-height:1.5;margin-bottom:8px}
+.win .big{font-size:40px;font-weight:900;color:#37e3a0;margin:10px 0}
+.confetti{position:fixed;top:-20px;z-index:130;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.4}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hdr">
+    <div class="hdr-title">
+      <div class="hdr-shield">🆚</div>
+      <div>Comparison Duel<br><span style="font-weight:600;font-size:12px;color:#8fc9b9">Растр vs Вектор · Қорытынды</span></div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-star">⭐ <span id="scoreTop">{{ "%.2f"|format(student.score) }}</span></div>
+      <a class="qnav-home" href="/toqsan_2">← Картаға</a>
+    </div>
+  </header>
+
+  <div class="titlebar">
+    <div class="t">ГРАФИКАЛЫҚ ТЕКЕТІРЕС: РАСТР vs ВЕКТОР
+      <small>Суреттерді сипатына қарай дұрыс платформаға сүйреп апар</small></div>
+    <div class="audit">
+      <span>📋 Салыстыру аудиті:</span>
+      <span class="crys" id="crys">Кристалл: 0/6</span>
+    </div>
+  </div>
+
+  <!-- platforms -->
+  <div class="field">
+    <div class="platform raster" data-zone="raster">
+      <div class="plat-head">🟢 ПЛАТФОРМА: РАСТРЛЫҚ</div>
+      <div class="plat-sub">Пиксельдерден тұрады · созғанда сапасы бұзылады</div>
+      <div class="plat-drop" data-drop="raster"></div>
+    </div>
+    <div class="platform vector" data-zone="vector">
+      <div class="plat-head">🔵 ПЛАТФОРМА: ВЕКТОРЛЫҚ</div>
+      <div class="plat-sub">Математикалық қисықтар · шексіз үлкейтсе де анық</div>
+      <div class="plat-drop" data-drop="vector"></div>
+    </div>
+  </div>
+
+  <!-- conveyor -->
+  <div class="conveyor">
+    <div class="conv-head"><span class="dot"></span> 📦 Талдауға арналған суреттер — 🔍 батырмасымен жақындатып көр</div>
+    <div class="conv-drop" id="conv"></div>
+  </div>
+
+  <!-- footer -->
+  <div class="footer">
+    <div class="indi" id="indi">⏳ <span id="indiTxt">Сұрыпталды: 0/6</span></div>
+    <button class="btn btn-primary" id="checkBtn">✓ Салыстыруды тексеру</button>
+    <button class="btn-ghost" id="resetBtn">↺ Қайта бастау</button>
+  </div>
+
+  <div class="kronos">
+    <div class="av">🤖</div>
+    <div class="bub" id="kronos"><b>ЖИ Кеңесші Кронос:</b> Агент! Графикалық текетірес басталды! Оң жақтағы суреттерді талдап, олардың қай түрге жататынын анықта. 🔍 батырмасымен жақындатып көр: пиксельдер көрінсе — <b>растр</b>, тегіс қисық болса — <b>вектор</b>. Сосын дұрыс платформаға сүйреп апар! 🆚</div>
+  </div>
+</div>
+
+<!-- zoom modal -->
+<div class="zveil" id="zveil">
+  <div class="zbox">
+    <div class="zpic" id="zpic"></div>
+    <h3 id="ztitle"></h3>
+    <p id="zdesc"></p>
+    <button class="btn-ghost close" id="zclose" style="width:100%">Жабу</button>
+  </div>
+</div>
+
+<!-- win -->
+{% include '_win_modal.html' %}
+
+<script>
+/* ── icon renderers (return inner SVG markup) ── */
+const RM={ s:'#8fd3ff',u:'#ffcf4a',g:'#57b15e',t:'#2f8f4a',r:'#8a5a2b',h:'#ff5a78','.':'none',
+           c:'#f3e6c4',d:'#3a3024',k:'#1f2937' };
+function pixels(mat,grid){
+  const N=mat.length; let s=`<svg viewBox="0 0 ${N} ${N}" shape-rendering="crispEdges">`;
+  s+=`<rect width="${N}" height="${N}" fill="#0a1f1a"/>`;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const ch=mat[y][x]; const col=RM[ch]||'none'; if(col==='none')continue;
+    s+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col}"`;
+    if(grid) s+=` stroke="#04140f" stroke-width="0.06"`;
+    s+=`/>`;
+  }
+  s+=`</svg>`; return s;
+}
+const PHOTO=["ssssssuu","ssssssuu","sssttsss","sssttsss","ggrrgggg","ggrrgggg","gggggggg","gggggggg"];
+const HEART=[".hh..hh.","hhhhhhhh","hhhhhhhh","hhhhhhhh",".hhhhhh.","..hhhh..","...hh...","........"];
+function rasterText(grid){
+  // scanned handwriting look: cream bg + dark ragged lines
+  let s='<svg viewBox="0 0 64 64" '+(grid?'':'')+'>';
+  s+='<rect width="64" height="64" fill="#f3e6c4"/>';
+  const lines=[[8,46],[8,38],[8,50],[8,30],[8,42]];
+  let y=11;
+  lines.forEach((w,i)=>{ const wd=w[1];
+    s+=`<rect x="8" y="${y}" width="${wd}" height="3.4" rx="1.4" fill="#3a3024" opacity="${grid?0.95:0.85}"/>`;
+    y+=10;
+  });
+  if(grid){ // zoom reveals fuzzy/jagged pixel edges
+    s+='<g fill="#6a5a3a" opacity=".5">';
+    for(let i=0;i<60;i+=3)for(let j=0;j<60;j+=3){ if(Math.random()<0.10) s+=`<rect x="${i}" y="${j}" width="3" height="3"/>`; }
+    s+='</g>';
+    s='<svg viewBox="0 0 64 64" style="filter:blur(0.6px)">'+s.slice(s.indexOf('>')+1);
+  }
+  return s+'</svg>';
+}
+function vLogo(){ // star logo (vector)
+  return `<svg viewBox="0 0 64 64"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#7dffd0"/><stop offset="1" stop-color="#2fa0ff"/></linearGradient></defs>
+    <rect width="64" height="64" fill="#06161f"/>
+    <path d="M32 8 L39 25 L57 25 L42 36 L48 54 L32 43 L16 54 L22 36 L7 25 L25 25 Z"
+      fill="url(#lg)" stroke="#eafff9" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+}
+function vContour(){ // bezier contour with anchor points
+  return `<svg viewBox="0 0 64 64"><rect width="64" height="64" fill="#06161f"/>
+    <path d="M10 40 C 16 14, 30 14, 32 30 C 34 46, 50 46, 54 22" fill="none" stroke="#37e3a0" stroke-width="2.4"/>
+    <g fill="#0a3a30" stroke="#7dffd0" stroke-width="1.6">
+      <rect x="7" y="37" width="6" height="6"/><rect x="29" y="27" width="6" height="6"/><rect x="51" y="19" width="6" height="6"/></g>
+    <g fill="#ff5ad0"><circle cx="22" cy="16" r="2.2"/><circle cx="42" cy="44" r="2.2"/></g></svg>`;
+}
+function vGeo(){ // smooth geometric shape
+  return `<svg viewBox="0 0 64 64"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#9bafff"/><stop offset="1" stop-color="#37a0ff"/></linearGradient></defs>
+    <rect width="64" height="64" fill="#06161f"/>
+    <polygon points="32,8 54,20 54,44 32,56 10,44 10,20" fill="none" stroke="url(#gg)" stroke-width="2.6"/>
+    <polygon points="32,18 45,40 19,40" fill="url(#gg)" opacity=".85"/></svg>`;
+}
+function pixIconHeart(){ return `<div></div>`; }
+
+/* ── items ── */
+const ITEMS=[
+  {id:'photo',  type:'raster', label:'Пиксельді фотосурет', icon:()=>pixels(PHOTO,false), zicon:()=>pixels(PHOTO,true),
+    why:'Жақындатқанда кескін кішкентай түрлі-түсті <b>шаршыларға (пиксельдерге)</b> ыдырайды. Бұл — растрлық графиканың басты белгісі!'},
+  {id:'logo',   type:'vector', label:'Векторлық логотип', icon:vLogo, zicon:vLogo,
+    why:'Үлкейтсең де жиектері <b>анық әрі тегіс</b> қалады — пішін математикалық қисықтармен салынған. Бұл — вектор!'},
+  {id:'text',   type:'raster', label:'Растрлық мәтін (скан)', icon:()=>rasterText(false), zicon:()=>rasterText(true),
+    why:'Сканерленген мәтін — пиксельден тұрады. Жақындатқанда әріптердің <b>жиектері бұлдырап</b>, пиксельдер көрінеді. Растр!'},
+  {id:'contour',type:'vector', label:'Векторлық контур', icon:vContour, zicon:vContour,
+    why:'<b>Тірек нүктелер мен Безье қисықтарынан</b> тұрады. Кез келген масштабта сапасы жоғалмайды — вектор!'},
+  {id:'pixelart',type:'raster',label:'Пиксель-арт иконка', icon:()=>pixels(HEART,false), zicon:()=>pixels(HEART,true),
+    why:'Әр пиксель — бөлек шаршы. Үлкейтсең торы (пиксель торы) айқын көрінеді. Растр!'},
+  {id:'geo',    type:'vector', label:'Геометриялық пішін', icon:vGeo, zicon:vGeo,
+    why:'Көпбұрыштар мен сызықтардан тұрады, формуламен есептеледі. Шексіз үлкейтсе де <b>анық</b> — вектор!'},
+];
+const TOTAL=ITEMS.length;
+const place={};   // id -> 'raster'|'vector'|null
+ITEMS.forEach(it=>place[it.id]=null);
+
+/* ── build cards ── */
+const conv=document.getElementById("conv");
+function buildCard(it){
+  const d=document.createElement("div");
+  d.className="item"; d.dataset.id=it.id; d.dataset.type=it.type;
+  d.innerHTML=`<span class="badge"></span><button class="zoom" title="Жақындату">🔍</button>
+    <div class="pic">${it.icon()}</div><div class="lab">${it.label}</div>`;
+  d.querySelector(".zoom").addEventListener("pointerdown",e=>{e.stopPropagation();});
+  d.querySelector(".zoom").addEventListener("click",e=>{e.stopPropagation();openZoom(it);});
+  d.addEventListener("pointerdown",e=>startDrag(e,d));
+  return d;
+}
+ITEMS.forEach(it=>conv.appendChild(buildCard(it)));
+
+/* ── zoom modal ── */
+const zveil=document.getElementById("zveil");
+function openZoom(it){
+  document.getElementById("zpic").innerHTML=it.zicon();
+  document.getElementById("ztitle").textContent=it.type==='raster'?'🟢 РАСТРЛЫҚ (Пиксельдер)':'🔵 ВЕКТОРЛЫҚ (Қисықтар)';
+  document.getElementById("ztitle").style.color=it.type==='raster'?'#7dffa0':'#7db4ff';
+  document.getElementById("zdesc").innerHTML=it.why;
+  zveil.classList.add("on");
+}
+document.getElementById("zclose").onclick=()=>zveil.classList.remove("on");
+zveil.addEventListener("click",e=>{ if(e.target===zveil) zveil.classList.remove("on"); });
+
+/* ── drag & drop (pointer) ── */
+let dragEl=null, ghost=null, gx=0, gy=0;
+function startDrag(e,card){
+  e.preventDefault();
+  dragEl=card;
+  const r=card.getBoundingClientRect();
+  gx=e.clientX-r.left; gy=e.clientY-r.top;
+  ghost=card.cloneNode(true);
+  ghost.classList.add("ghost");
+  ghost.style.width=r.width+"px";
+  ghost.style.left=(e.clientX-gx)+"px"; ghost.style.top=(e.clientY-gy)+"px";
+  document.body.appendChild(ghost);
+  card.style.opacity=".35";
+}
+window.addEventListener("pointermove",e=>{
+  if(!ghost) return; e.preventDefault();
+  ghost.style.left=(e.clientX-gx)+"px"; ghost.style.top=(e.clientY-gy)+"px";
+  ghost.style.display="none";
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  ghost.style.display="";
+  document.querySelectorAll(".platform").forEach(p=>p.classList.remove("hover"));
+  const plat=el&&el.closest(".platform");
+  if(plat) plat.classList.add("hover");
+},{passive:false});
+window.addEventListener("pointerup",e=>{
+  if(!ghost) return;
+  ghost.style.display="none";
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  ghost.remove(); ghost=null;
+  document.querySelectorAll(".platform").forEach(p=>p.classList.remove("hover"));
+  const card=dragEl; dragEl=null; if(card) card.style.opacity="";
+  if(!el||!card){ return; }
+  const plat=el.closest(".platform");
+  const id=card.dataset.id;
+  if(plat){
+    const zone=plat.dataset.zone;
+    plat.querySelector(".plat-drop").appendChild(card);
+    place[id]=zone;
+    onDrop(card,zone);
+  } else if(el.closest(".conveyor")){
+    conv.appendChild(card); place[id]=null;
+  }
+  clearBadges(); updateIndi();
+});
+
+function onDrop(card,zone){
+  const type=card.dataset.type;
+  const it=ITEMS.find(i=>i.id===card.dataset.id);
+  if(zone!==type){
+    kronos(`Тоқта, Агент! «${it.label}» — бұл <b>${type==='raster'?'растрлық':'векторлық'}</b> графика. ${it.why} 🔍 батырмасымен тексеріп көр!`);
+    flashIndi(false);
+  } else {
+    kronos(`Дұрыс! «${it.label}» — ${type==='raster'?'<b>растр</b> (пиксельдер)':'<b>вектор</b> (қисықтар)'}. Келесісін сұрыпта! ✅`);
+    flashIndi(true);
+  }
+}
+
+/* ── indicators ── */
+function updateIndi(){
+  const sorted=Object.values(place).filter(v=>v).length;
+  document.getElementById("indiTxt").textContent="Сұрыпталды: "+sorted+"/"+TOTAL;
+  document.getElementById("crys").textContent="Кристалл: "+sorted+"/"+TOTAL;
+}
+function flashIndi(ok){
+  const ind=document.getElementById("indi");
+  ind.style.borderColor=ok?"#46e06a":"#ff5a6a";
+  ind.firstChild.textContent=ok?"✅ ":"❌ ";
+  setTimeout(()=>{ ind.style.borderColor="rgba(255,255,255,.12)"; ind.firstChild.textContent="⏳ "; },1200);
+}
+function clearBadges(){ document.querySelectorAll(".item").forEach(c=>c.classList.remove("ok","bad")); }
+function kronos(html){ document.getElementById("kronos").innerHTML="<b>ЖИ Кеңесші Кронос:</b> "+html; }
+
+/* ── check / finish ── */
+let submitting=false; const MAX=0.6;
+document.getElementById("checkBtn").onclick=()=>{
+  const sorted=Object.values(place).filter(v=>v).length;
+  if(sorted<TOTAL){
+    kronos(`Әлі барлық сурет сұрыпталмады (${sorted}/${TOTAL}). Қалғандарын платформаларға сүйреп апар! 📦`);
+    return;
+  }
+  let correct=0;
+  ITEMS.forEach(it=>{
+    const card=document.querySelector(`.item[data-id="${it.id}"]`);
+    const ok=place[it.id]===it.type;
+    card.classList.toggle("ok",ok); card.classList.toggle("bad",!ok);
+    card.querySelector(".badge").textContent=ok?"✅":"❌";
+    if(ok)correct++;
+  });
+  const acc=correct/TOTAL, pct=Math.round(acc*100);
+  if(acc<0.8){
+    kronos(`Салыстыру нәтижесі: <b>${pct}%</b>. Қызыл ❌ белгісі бар суреттер қате платформада тұр — оларды 🔍 жақындатып, дұрыс жерге апар! Кемінде <b>80%</b> керек.`);
+    return;
+  }
+  if(submitting)return; submitting=true;
+  const score=Math.round(MAX*acc*100)/100;
+  bqFinish({game_name:'Графика текетірес', score, stars:acc>=1?1:0, accuracy:pct,
+    title:'Портал ашылды!', subtitle:'Барлық деректер дұрыс сұрыпталды. Сен растр мен векторды ажыратуды толық меңгердің!',
+    backUrl:'/toqsan_2'});
+};
+document.getElementById("resetBtn").onclick=()=>{
+  ITEMS.forEach(it=>place[it.id]=null);
+  conv.innerHTML=""; document.querySelectorAll(".plat-drop").forEach(d=>d.innerHTML="");
+  ITEMS.forEach(it=>conv.appendChild(buildCard(it)));
+  clearBadges(); updateIndi();
+  kronos('Тапсырма қайта басталды. Суреттерді талдап, дұрыс платформаға сұрыпта! 🆚');
+};
+
+function confetti(){
+  const cols=['#7dffd0','#37e3a0','#2fe1f0','#ffd24a','#c7d2e0','#fff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';
+    const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+    c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cols[i%cols.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
+}
+
+updateIndi();
+</script>
+</body>
+</html>

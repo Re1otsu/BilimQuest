@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Laser Path — Қисық бетімен жұмыс</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7fbff;
+  background:#04140f;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(ellipse 110% 60% at 50% -5%,rgba(20,120,90,.45),transparent 60%),
+  radial-gradient(ellipse 90% 55% at 50% 110%,rgba(20,140,160,.28),transparent 60%),
+  #04140f;
+  padding:14px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:1000px;display:flex;flex-direction:column;gap:12px}
+
+/* header */
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr-title{display:flex;align-items:center;gap:11px;font-weight:900;font-size:17px;line-height:1.15}
+.hdr-shield{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 38% 30%,#22c4a0,#0c5b48);border:1.5px solid rgba(80,255,210,.5);
+  box-shadow:0 0 16px rgba(40,220,180,.45);font-size:22px}
+.hdr-right{display:flex;align-items:center;gap:9px}
+.hdr-star{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(14,60,50,.92),rgba(8,34,30,.96));border:1.5px solid rgba(255,210,74,.4);
+  font-weight:900;font-size:15px;color:#ffd24a;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.qnav-home{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:14px;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);color:#fff;text-decoration:none;
+  font-weight:800;font-size:14px;white-space:nowrap;line-height:1;transition:background .2s}
+.qnav-home:hover{background:rgba(255,255,255,.2)}
+
+/* meters */
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.meters{grid-template-columns:1fr}}
+.meter{background:linear-gradient(180deg,rgba(10,40,34,.9),rgba(6,26,22,.95));border:1.5px solid rgba(40,180,150,.32);
+  border-radius:14px;padding:10px 14px}
+.meter-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700;color:#9fe6d6;margin-bottom:7px}
+.meter-top b{font-family:'Rubik';font-weight:900;font-size:16px}
+.acc-top b{color:#ff7a7a;transition:color .3s}
+.eng-top b{color:#7dffd0}
+.track{height:13px;border-radius:8px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.fill{height:100%;border-radius:8px;width:0%;transition:width .3s ease,background .4s}
+.acc-fill{background:linear-gradient(90deg,#b91c1c,#f59e0b)}
+.acc-fill.ok{background:linear-gradient(90deg,#0f9e6a,#37e3a0,#7dffd0);box-shadow:0 0 14px rgba(70,224,180,.6)}
+.eng-fill{background:linear-gradient(90deg,#10a07a,#37e3a0,#7dffd0);box-shadow:0 0 12px rgba(70,224,180,.5)}
+
+/* layout */
+.studio{display:grid;grid-template-columns:1fr 250px;gap:14px}
+@media(max-width:820px){.studio{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,rgba(10,40,34,.92),rgba(6,24,20,.96));
+  border:1.5px solid rgba(40,170,140,.3);border-radius:18px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.card-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:#bfeede;margin-bottom:12px}
+.card-head .dot{width:9px;height:9px;border-radius:50%;background:#37e3a0;box-shadow:0 0 9px #37e3a0}
+
+/* canvas */
+.stagebox{border-radius:14px;border:1.5px solid rgba(40,170,140,.25);overflow:hidden;
+  background:
+    linear-gradient(rgba(40,200,160,.06) 1px,transparent 1px) 0 0/30px 30px,
+    linear-gradient(90deg,rgba(40,200,160,.06) 1px,transparent 1px) 0 0/30px 30px,
+    radial-gradient(circle at 50% 45%,rgba(20,90,70,.45),rgba(4,18,15,.95))}
+svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.node{cursor:grab;fill:#0a3a30;stroke:#7dffd0;stroke-width:2.5}
+.node.sel{fill:#7dffd0;stroke:#fff}
+.node.corner{rx:0}
+.handleLine{stroke:#ff5ad0;stroke-width:1.6;stroke-dasharray:4 3;opacity:.85}
+.handleTip{cursor:grab;fill:#ff5ad0;stroke:#fff;stroke-width:1.5}
+.ring{fill:none;stroke:#ffd24a;stroke-width:3;stroke-dasharray:6 5;opacity:.9}
+.ring.hit{stroke:#37e3a0;stroke-dasharray:none;filter:drop-shadow(0 0 6px #37e3a0)}
+
+/* tools */
+.tools{display:flex;flex-direction:column;gap:9px}
+.tool{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:13px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(14,52,44,.7),rgba(8,30,26,.8));border:1.5px solid rgba(40,160,130,.28);
+  font-weight:700;font-size:13.5px;color:#dcfff4;transition:.15s;user-select:none}
+.tool:hover{border-color:rgba(80,255,210,.55)}
+.tool.active{background:linear-gradient(180deg,#11a07e,#0a6650);border-color:#5affd2;box-shadow:0 0 14px rgba(60,225,180,.4)}
+.tool .ic{font-size:18px;width:22px;text-align:center}
+.tool.danger{border-color:rgba(255,90,120,.4)}
+.tool.danger:hover{border-color:rgba(255,90,120,.8);background:rgba(80,20,30,.5)}
+
+/* reference */
+.ref-box{display:flex;flex-direction:column;align-items:center;gap:7px}
+.ref-cap{font-size:11px;color:#8fc9b9}
+
+/* buttons */
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;min-width:120px;padding:13px;border:none;border-radius:14px;font-family:'Rubik';font-weight:900;font-size:15px;
+  cursor:pointer;transition:.15s;color:#04140f}
+.btn-primary{background:linear-gradient(180deg,#3be3a8,#10a07a);box-shadow:0 6px 18px rgba(40,210,160,.4)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,.08);color:#dcfff4;border:1.5px solid rgba(255,255,255,.18)}
+.btn-ghost:hover{background:rgba(255,255,255,.16)}
+
+/* Kronos */
+.kronos{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(12,48,70,.85),rgba(8,28,42,.92));border:1.5px solid rgba(60,180,230,.35)}
+.kronos .av{width:42px;height:42px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:23px;background:radial-gradient(circle at 40% 30%,#2f9fe0,#11406a);border:1.5px solid rgba(90,200,255,.5);
+  box-shadow:0 0 14px rgba(60,170,255,.4)}
+.kronos .bub{font-size:13.5px;line-height:1.4;color:#d6f0ff}
+.kronos .bub b{color:#5ad0ff}
+
+/* win */
+.veil{position:fixed;inset:0;background:rgba(4,16,12,.82);backdrop-filter:blur(6px);display:none;
+  align-items:center;justify-content:center;z-index:100;padding:20px}
+.veil.on{display:flex}
+.win{max-width:420px;width:100%;text-align:center;background:linear-gradient(180deg,rgba(12,52,44,.97),rgba(6,26,22,.99));
+  border:1.5px solid rgba(80,255,210,.4);border-radius:22px;padding:30px 26px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.win .em{font-size:62px;margin-bottom:8px;animation:pop .5s cubic-bezier(.34,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.win h2{font-size:24px;font-weight:900;margin-bottom:8px;color:#7dffd0}
+.win p{font-size:14.5px;color:#bfeede;line-height:1.5;margin-bottom:8px}
+.win .big{font-size:40px;font-weight:900;color:#37e3a0;margin:10px 0}
+.confetti{position:fixed;top:-20px;z-index:120;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.4}}
+.hint{font-size:12px;color:#8fc9b9;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hdr">
+    <div class="hdr-title">
+      <div class="hdr-shield">📐</div>
+      <div>Laser Path<br><span style="font-weight:600;font-size:12.5px;color:#8fc9b9">Қисық бетімен жұмыс · Безье қисықтары</span></div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-star">⭐ <span id="scoreTop">{{ "%.2f"|format(student.score) }}</span></div>
+      <a class="qnav-home" href="/toqsan_2">← Картаға</a>
+    </div>
+  </header>
+
+  <div class="meters">
+    <div class="meter">
+      <div class="meter-top acc-top"><span>🎯 Дәлдік (Accuracy) — кемінде 90%</span><b id="accNum">0%</b></div>
+      <div class="track"><div class="fill acc-fill" id="accFill"></div></div>
+    </div>
+    <div class="meter">
+      <div class="meter-top eng-top"><span>🔋 Энергия (аз нүкте = бонус)</span><b id="engNum">100%</b></div>
+      <div class="track"><div class="fill eng-fill" id="engFill" style="width:100%"></div></div>
+    </div>
+  </div>
+
+  <div class="studio">
+    <!-- LEFT: vector canvas -->
+    <section class="card">
+      <div class="card-head"><span class="dot"></span> ЛАЗЕР ПОРТАЛЫ → ҚАБЫЛДАҒЫШ — векторлық тор</div>
+      <div class="stagebox">
+        <svg id="stage" viewBox="0 0 600 360" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+      <div class="btns" style="margin-top:14px">
+        <button class="btn btn-ghost" id="resetBtn">↺ Қайта бастау</button>
+        <button class="btn btn-primary" id="finishBtn">✓ Аяқтау</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: tools -->
+    <aside style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-head"><span class="dot"></span> 🛠️ Векторлық құралдар</div>
+        <div class="tools">
+          <div class="tool active" data-tool="select"><span class="ic">🔄</span> Тұтқаларды бұру / сүйреу</div>
+          <div class="tool" data-tool="add"><span class="ic">📌</span> Түйін қосу</div>
+          <div class="tool" data-tool="corner"><span class="ic">📐</span> Түйін түрін өзгерту</div>
+          <div class="tool danger" id="delBtn"><span class="ic">🗑️</span> Түйінді өшіру</div>
+        </div>
+        <div class="hint" style="text-align:left;margin-top:10px">Көк <b style="color:#7dffd0">●</b> — тірек нүкте, қызғылт <b style="color:#ff5ad0">◆</b> — тұтқа (ус). Сары шеңберлерден лазерді өткіз!</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="dot"></span> 🟢 Эталон (үлгі)</div>
+        <div class="ref-box">
+          <svg width="180" height="100" viewBox="0 0 180 100">
+            <path d="M14,80 C50,80 55,22 90,50 C125,78 130,20 166,20" fill="none" stroke="#37e3a0" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+            <circle cx="14" cy="80" r="5" fill="#7dffd0"/><circle cx="166" cy="20" r="5" fill="#ffd24a"/>
+          </svg>
+          <div class="ref-cap">Лазер осындай S-қисығымен жүруі тиіс</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="kronos">
+    <div class="av">🤖</div>
+    <div class="bub" id="kronos"><b>ЖИ Кеңесші Кронос:</b> Агент! Порталды іске қосу үшін лазерді қабылдағышқа жеткіз. Бастапқы сызық түзу — ол сары шеңберлерден өтпейді. <b>«Түйін қосу»</b> арқылы тірек нүкте қой, оны шеңберге сүйреп апар, сосын қызғылт <b>тұтқаларды</b> бұрап қисық жаса! 📐</div>
+  </div>
+  <div class="hint">Векторлық графиканың алтын ережесі: мүмкіндігінше <b>аз нүкте</b> қолдан — сызық тегіс, энергия үнемді болады.</div>
+</div>
+
+<!-- WIN -->
+{% include '_win_modal.html' %}
+
+<script>
+const SVGNS="http://www.w3.org/2000/svg";
+const stage=document.getElementById("stage");
+
+/* ── level data ── */
+const checkpoints=[ {x:200,y:110,r:30}, {x:400,y:250,r:30} ];
+const obstacles=[ {x:205,y:255,r:28}, {x:400,y:108,r:28} ];
+const START={x:40,y:180}, END={x:560,y:180};
+
+/* ── nodes: start & end fixed; middle added by player ──
+   node = {x,y,hx,hy,type:'smooth'|'corner',fixed} */
+function freshNodes(){
+  return [
+    {x:START.x,y:START.y,hx:55,hy:0,type:'smooth',fixed:true},
+    {x:END.x,y:END.y,hx:55,hy:0,type:'smooth',fixed:true},
+  ];
+}
+let nodes=freshNodes();
+let tool="select", selIdx=-1, drag=null;
+let lastHint=0, nodeWarned=false;
+
+/* ── coord conversion ── */
+function toSvg(evt){
+  const p=stage.createSVGPoint();
+  const t=evt.touches?evt.touches[0]:evt;
+  p.x=t.clientX; p.y=t.clientY;
+  const m=stage.getScreenCTM().inverse();
+  const r=p.matrixTransform(m);
+  return {x:Math.max(0,Math.min(600,r.x)), y:Math.max(0,Math.min(360,r.y))};
+}
+
+/* ── path building (cubic segments through ordered nodes) ── */
+function ordered(){
+  // keep start first, end last, middle sorted by x
+  const mid=nodes.slice(1,-1).slice().sort((a,b)=>a.x-b.x);
+  return [nodes[0],...mid,nodes[nodes.length-1]];
+}
+function pathD(list){
+  if(list.length<2) return "";
+  let d=`M ${list[0].x},${list[0].y}`;
+  for(let i=0;i<list.length-1;i++){
+    const a=list[i], b=list[i+1];
+    const c1 = a.type==='corner' ? {x:a.x,y:a.y} : {x:a.x+a.hx, y:a.y+a.hy};
+    const c2 = b.type==='corner' ? {x:b.x,y:b.y} : {x:b.x-b.hx, y:b.y-b.hy};
+    d+=` C ${c1.x},${c1.y} ${c2.x},${c2.y} ${b.x},${b.y}`;
+  }
+  return d;
+}
+/* sample points along path for hit-testing */
+function sampleBezier(a,c1,c2,b,n){
+  const pts=[];
+  for(let i=0;i<=n;i++){const t=i/n,u=1-t;
+    const x=u*u*u*a.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*b.x;
+    const y=u*u*u*a.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*b.y;
+    pts.push({x,y});}
+  return pts;
+}
+function samplePath(list){
+  let pts=[];
+  for(let i=0;i<list.length-1;i++){
+    const a=list[i], b=list[i+1];
+    const c1 = a.type==='corner' ? a : {x:a.x+a.hx, y:a.y+a.hy};
+    const c2 = b.type==='corner' ? b : {x:b.x-b.hx, y:b.y-b.hy};
+    pts=pts.concat(sampleBezier(a,c1,c2,b,24));
+  }
+  return pts;
+}
+
+/* ── accuracy + energy ── */
+function evaluate(){
+  const list=ordered();
+  const pts=samplePath(list);
+  // checkpoint scores
+  let cpScore=0; const hits=[];
+  checkpoints.forEach(cp=>{
+    let md=1e9; pts.forEach(p=>{const d=Math.hypot(p.x-cp.x,p.y-cp.y); if(d<md)md=d;});
+    const passed = md<=cp.r;
+    hits.push(passed);
+    cpScore += passed ? 1 : Math.max(0,1-(md-cp.r)/55);
+  });
+  cpScore/=checkpoints.length;
+  // obstacle penalty
+  let pen=0;
+  obstacles.forEach(ob=>{
+    let md=1e9; pts.forEach(p=>{const d=Math.hypot(p.x-ob.x,p.y-ob.y); if(d<md)md=d;});
+    if(md<ob.r) pen+=0.30;
+  });
+  const acc=Math.max(0,Math.min(1, cpScore-pen));
+  // energy: 4 nodes ideal
+  const extra=Math.max(0,nodes.length-4);
+  const energy=Math.max(0,1-extra*0.18);
+  return {acc, energy, hits, blocked:pen>0};
+}
+
+/* ── render ── */
+function render(){
+  const list=ordered();
+  stage.innerHTML=`
+    <defs>
+      <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="4.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <linearGradient id="laser" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7dffd0"/><stop offset="1" stop-color="#2fe1f0"/>
+      </linearGradient>
+    </defs>`;
+
+  // obstacles (stones)
+  obstacles.forEach(ob=>{
+    const c=document.createElementNS(SVGNS,"circle");
+    c.setAttribute("cx",ob.x);c.setAttribute("cy",ob.y);c.setAttribute("r",ob.r);
+    c.setAttribute("fill","rgba(120,140,150,.35)");c.setAttribute("stroke","rgba(180,200,210,.5)");c.setAttribute("stroke-width","2");
+    stage.appendChild(c);
+    const t=document.createElementNS(SVGNS,"text");
+    t.setAttribute("x",ob.x);t.setAttribute("y",ob.y+6);t.setAttribute("text-anchor","middle");
+    t.setAttribute("font-size","20");t.textContent="🪨";stage.appendChild(t);
+  });
+
+  const ev=evaluate();
+
+  // checkpoints (rings)
+  checkpoints.forEach((cp,i)=>{
+    const c=document.createElementNS(SVGNS,"circle");
+    c.setAttribute("cx",cp.x);c.setAttribute("cy",cp.y);c.setAttribute("r",cp.r);
+    c.setAttribute("class","ring"+(ev.hits[i]?" hit":""));
+    stage.appendChild(c);
+    if(ev.hits[i]){
+      const t=document.createElementNS(SVGNS,"text");
+      t.setAttribute("x",cp.x);t.setAttribute("y",cp.y+6);t.setAttribute("text-anchor","middle");
+      t.setAttribute("font-size","20");t.textContent="✓";t.setAttribute("fill","#37e3a0");stage.appendChild(t);
+    }
+  });
+
+  // portal + receiver markers
+  addMarker(START.x,START.y,"🛰️","#7dffd0");
+  addMarker(END.x,END.y,"🎯","#ffd24a");
+
+  // laser beam (glow + core)
+  const d=pathD(list);
+  const glow=document.createElementNS(SVGNS,"path");
+  glow.setAttribute("d",d);glow.setAttribute("fill","none");glow.setAttribute("stroke","url(#laser)");
+  glow.setAttribute("stroke-width","7");glow.setAttribute("stroke-linecap","round");
+  glow.setAttribute("filter","url(#glow)");glow.setAttribute("opacity",ev.acc>=0.9?"1":".8");
+  stage.appendChild(glow);
+  const core=document.createElementNS(SVGNS,"path");
+  core.setAttribute("d",d);core.setAttribute("fill","none");core.setAttribute("stroke","#eafff9");
+  core.setAttribute("stroke-width","2");core.setAttribute("stroke-linecap","round");
+  stage.appendChild(core);
+
+  // handles for selected node
+  if(selIdx>=0 && selIdx<nodes.length){
+    const nd=nodes[selIdx];
+    if(nd.type!=='corner'){
+      drawHandle(nd, nd.x+nd.hx, nd.y+nd.hy, "out");
+      drawHandle(nd, nd.x-nd.hx, nd.y-nd.hy, "in");
+    }
+  }
+
+  // nodes
+  nodes.forEach((nd,i)=>{
+    const r=document.createElementNS(SVGNS,nd.type==='corner'?"rect":"circle");
+    if(nd.type==='corner'){ r.setAttribute("x",nd.x-7);r.setAttribute("y",nd.y-7);r.setAttribute("width",14);r.setAttribute("height",14); }
+    else { r.setAttribute("cx",nd.x);r.setAttribute("cy",nd.y);r.setAttribute("r",8); }
+    r.setAttribute("class","node"+(i===selIdx?" sel":""));
+    r.dataset.idx=i;
+    r.addEventListener("pointerdown",e=>onNodeDown(e,i));
+    stage.appendChild(r);
+  });
+
+  // meters
+  updateMeters(ev);
+}
+function addMarker(x,y,emoji,col){
+  const ring=document.createElementNS(SVGNS,"circle");
+  ring.setAttribute("cx",x);ring.setAttribute("cy",y);ring.setAttribute("r",15);
+  ring.setAttribute("fill","rgba(8,30,26,.8)");ring.setAttribute("stroke",col);ring.setAttribute("stroke-width","2.5");
+  stage.appendChild(ring);
+  const t=document.createElementNS(SVGNS,"text");
+  t.setAttribute("x",x);t.setAttribute("y",y+6);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","17");
+  t.textContent=emoji;stage.appendChild(t);
+}
+function drawHandle(nd,hx,hy,which){
+  const ln=document.createElementNS(SVGNS,"line");
+  ln.setAttribute("x1",nd.x);ln.setAttribute("y1",nd.y);ln.setAttribute("x2",hx);ln.setAttribute("y2",hy);
+  ln.setAttribute("class","handleLine");stage.appendChild(ln);
+  const t=document.createElementNS(SVGNS,"circle");
+  t.setAttribute("cx",hx);t.setAttribute("cy",hy);t.setAttribute("r",6);t.setAttribute("class","handleTip");
+  t.addEventListener("pointerdown",e=>onHandleDown(e,which));
+  stage.appendChild(t);
+}
+function updateMeters(ev){
+  const pct=Math.round(ev.acc*100), eng=Math.round(ev.energy*100);
+  const accNum=document.getElementById("accNum"),accFill=document.getElementById("accFill");
+  accNum.textContent=pct+"%"; accFill.style.width=pct+"%";
+  const ok=pct>=90; accFill.classList.toggle("ok",ok);
+  accNum.style.color=ok?"#37e3a0":(pct>=60?"#f59e0b":"#ff7a7a");
+  document.getElementById("engNum").textContent=eng+"%";
+  document.getElementById("engFill").style.width=eng+"%";
+}
+
+/* ── interactions ── */
+function onNodeDown(e,i){
+  e.preventDefault(); e.stopPropagation();
+  if(tool==="corner"){
+    nodes[i].type = nodes[i].type==='corner'?'smooth':'corner';
+    selIdx=i; render();
+    kronos(nodes[i].type==='corner'
+      ? 'Бұл нүкте енді <b>бұрышты (Corner)</b> — сызық осы жерде сынады, түзу болады. 📐'
+      : 'Бұл нүкте <b>тегіс (Smooth)</b> — тұтқалары арқылы әдемі доға жасайды. 🔄');
+    return;
+  }
+  selIdx=i;
+  drag={kind:'node',i}; render();
+}
+function onHandleDown(e,which){
+  e.preventDefault(); e.stopPropagation();
+  drag={kind:'handle',i:selIdx,which};
+}
+stage.addEventListener("pointerdown",e=>{
+  // empty-canvas click
+  if(tool==="add"){
+    const p=toSvg(e);
+    const nd={x:p.x,y:p.y,hx:50,hy:0,type:'smooth',fixed:false};
+    nodes.splice(nodes.length-1,0,nd);   // insert before end; ordering by x handles position
+    selIdx=nodes.indexOf(nd);
+    checkNodeCount();
+    render();
+    return;
+  }
+  selIdx=-1; render();
+});
+window.addEventListener("pointermove",e=>{
+  if(!drag) return;
+  e.preventDefault();
+  const p=toSvg(e);
+  if(drag.kind==='node'){
+    const nd=nodes[drag.i];
+    if(nd.fixed){ // endpoints: lock x, allow small y move
+      nd.y=p.y;
+    } else { nd.x=p.x; nd.y=p.y; }
+  } else if(drag.kind==='handle'){
+    const nd=nodes[drag.i];
+    let hx=p.x-nd.x, hy=p.y-nd.y;
+    if(drag.which==='in'){ hx=-hx; hy=-hy; }   // mirror for smooth
+    nd.hx=hx; nd.hy=hy;
+  }
+  render();
+  liveHints();
+},{passive:false});
+window.addEventListener("pointerup",()=>{ if(drag){drag=null;} });
+
+/* delete selected (non-fixed) node */
+document.getElementById("delBtn").onclick=()=>{
+  if(selIdx<0||nodes[selIdx].fixed){ kronos('Өшіру үшін алдымен ортадағы (көк) тірек нүктені таңда. Бастау мен қабылдағышты өшіруге болмайды. 🛰️'); return; }
+  nodes.splice(selIdx,1); selIdx=-1; render();
+  kronos('Артық нүкте өшірілді — энергия үнемделді! Аз нүкте = тегіс сызық. 🔋');
+};
+
+/* tools */
+document.querySelectorAll(".tool[data-tool]").forEach(t=>t.onclick=()=>{
+  tool=t.dataset.tool;
+  document.querySelectorAll(".tool[data-tool]").forEach(x=>x.classList.toggle("active",x.dataset.tool===tool));
+  if(tool==="add") kronos('📌 <b>Түйін қосу</b> режимі: тордың кез келген жеріне басып жаңа тірек нүкте қой.');
+  if(tool==="corner") kronos('📐 <b>Түйін түрін өзгерту</b>: нүктеге бассаң, ол тегіс ↔ бұрышты болып ауысады.');
+});
+
+/* ── Kronos ── */
+function kronos(html){ document.getElementById("kronos").innerHTML="<b>ЖИ Кеңесші Кронос:</b> "+html; }
+function checkNodeCount(){
+  if(nodes.length>5 && !nodeWarned){
+    nodeWarned=true;
+    kronos('Агент! Векторлық графиканың басты ережесі — <b>мүмкіндігінше аз нүкте</b> қолдану. Артық нүктені өшіріп, ортадағы нүктенің <b>тұтқасын ұзартсаң</b>, сызық әдемі әрі тегіс болады! ✂️');
+  }
+}
+function liveHints(){
+  const now=Date.now(); if(now-lastHint<2500) return;
+  const ev=evaluate();
+  if(ev.blocked){ lastHint=now;
+    kronos('Лазер кедергіге (🪨) соғылып тұр! Тірек нүктесін сәл жоғары/төмен жылжытып, <b>иілу радиусын арттыр</b>! ⚠️'); return; }
+  if(ev.hits.every(h=>h) && ev.acc>=0.9){ lastHint=now;
+    kronos('Тамаша! Лазер барлық шеңберден өтті — портал іске қосылуға дайын. <b>«Аяқтау»</b> батырмасын бас! ✅'); }
+}
+
+/* ── reset / finish ── */
+document.getElementById("resetBtn").onclick=()=>{
+  nodes=freshNodes(); selIdx=-1; tool="select"; nodeWarned=false;
+  document.querySelectorAll(".tool[data-tool]").forEach(x=>x.classList.toggle("active",x.dataset.tool==="select"));
+  render(); kronos('Сызық бастапқы күйге қайтарылды. Қайтадан қисық жаса! 📐');
+};
+let submitting=false; const MAX=0.5;
+document.getElementById("finishBtn").onclick=()=>{
+  const ev=evaluate(); const pct=Math.round(ev.acc*100);
+  if(pct<90){
+    kronos(`Дәлдік жеткіліксіз — <b>${pct}%</b>. Лазерді барлық сары шеңберден өткіз, тастарға тигізбе! Кемінде <b>90%</b> керек. 💪`);
+    document.getElementById("accFill").animate([{filter:'brightness(2)'},{filter:'brightness(1)'}],{duration:500});
+    return;
+  }
+  if(submitting)return; submitting=true;
+  const a=ev.acc*(0.9+0.1*ev.energy);   // score = accuracy with a small energy bonus
+  const score=Math.round(MAX*a*100)/100;
+  bqFinish({game_name:'Лазер жолы', score, stars:(pct>=98&&ev.energy>=0.82)?1:0, accuracy:pct,
+    title:'Портал ашылды!', subtitle:'Лазер сәулесі қабылдағышқа дәл жетті. Квест картасында жаңа деңгей ашылды!',
+    backUrl:'/toqsan_2'});
+};
+
+function confetti(){
+  const cols=['#7dffd0','#37e3a0','#2fe1f0','#ffd24a','#c7d2e0','#fff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';
+    const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+    c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cols[i%cols.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
+}
+
+/* init */
+render();
+</script>
+</body>
+</html>

@@ -756,9 +756,7 @@ function submitResult() {
   const stars = Math.round(avg);                    // 0..3 for the quest map
   const score = Math.round((total / (LEVELS.length*3)) * 0.5 * 100) / 100; // 0..0.5
   submitCount++;
-  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Лабиринт ойыны',score,stars,completed:stars>0})
-  }).catch(()=>{});
+  if(submitCount===1) bqFinish({game_name:'Лабиринт ойыны', score, stars, backUrl:'/toqsan_3'});
 }
 
 function goNext(){window.location.href='{{ url_for("quest3_m5") }}';}
@@ -808,5 +806,6 @@ function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 switchLevel(0);   // level 0 unlocked by default (see `unlocked` state above)
 startTimer();
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

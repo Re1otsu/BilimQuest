@@ -372,11 +372,8 @@ function finishGame(){
     if(s.status[1]==='locked') s.status[1]='active';
     localStorage.setItem(k,JSON.stringify(s));
   }catch(e){}
-  // submit real score, then go back to the map
-  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Эргономика',score:0.1,stars:1,completed:true})})
-    .finally(()=>{ window.location.href='/toqsan_4'; });
-  setTimeout(()=>{ if(submitting) window.location.href='/toqsan_4'; },1500);
+  // бірыңғай нәтиже терезесі (ұпай + тарау жетоны + артқа)
+  bqFinish({game_name:'Эргономика', score:0.1, stars:1, backUrl:'/toqsan_4'});
 }
 
 /* ── FX ── */
@@ -414,5 +411,6 @@ function tone(f1,f2,type,dur,gain){try{actx=actx||new(window.AudioContext||windo
 function ding(){ tone(660,1320,'sine',.4,.25); setTimeout(()=>tone(990,1760,'sine',.35,.2),120); }
 function buzz(){ tone(200,70,'sawtooth',.28,.18); }
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

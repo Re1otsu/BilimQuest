@@ -1,0 +1,189 @@
+<!-- ================================================================
+     BilimQuest — бірыңғай ойын аяқталу терезесі (unified win modal)
+     Игра шақырады:
+       bqFinish({ game_name, score, stars, accuracy?, title?, subtitle?, backUrl? })
+     Сервер /game_result қайтарады: score, added, total_score,
+     reward:{kind,label,total,back}. Жетон (3-карточка + жоғарғы
+     белгіше) тарауға қарай өзгереді: star / puzzle / map / chip.
+================================================================= -->
+<style>
+.bq-veil{position:fixed;inset:0;background:rgba(8,6,20,.82);backdrop-filter:blur(7px);
+  display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;
+  font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif}
+.bq-veil.on{display:flex}
+.bq-win{max-width:440px;width:100%;text-align:center;color:#eceaf7;
+  background:linear-gradient(180deg,#252046,#181433);
+  border:1px solid rgba(150,130,255,.28);border-radius:26px;padding:30px 26px 24px;
+  box-shadow:0 28px 80px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06);
+  animation:bq-rise .35s cubic-bezier(.34,1.4,.5,1)}
+@keyframes bq-rise{0%{transform:translateY(26px) scale(.95);opacity:0}100%{transform:none;opacity:1}}
+.bq-win h2{font-size:25px;font-weight:900;letter-spacing:.3px;margin-bottom:4px;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.bq-sub{font-size:13.5px;color:#b7afe0;line-height:1.45;margin-bottom:6px}
+.bq-hero{font-size:58px;line-height:1;margin:10px 0 18px;display:flex;align-items:center;justify-content:center;
+  animation:bq-pop .5s cubic-bezier(.34,1.6,.5,1)}
+.bq-hero svg{width:60px;height:60px}
+.bq-hero.gold{filter:drop-shadow(0 6px 16px rgba(255,193,45,.55))}
+@keyframes bq-pop{0%{transform:scale(0) rotate(-20deg)}100%{transform:scale(1) rotate(0)}}
+.bq-earned{display:flex;gap:12px;justify-content:center;align-items:center;margin:14px 0 6px;min-height:50px}
+.bq-earned .slot{font-size:46px;line-height:1;animation:bq-pop .5s cubic-bezier(.34,1.6,.5,1) both;filter:drop-shadow(0 4px 12px rgba(255,193,45,.5))}
+.bq-earned .slot:nth-child(2){animation-delay:.12s}
+.bq-earned .slot:nth-child(3){animation-delay:.24s}
+.bq-earned .slot svg{width:46px;height:46px}
+.bq-earned .slot.off{filter:grayscale(1);opacity:.22}
+.bq-earned-lab{font-size:13px;font-weight:800;color:#ffd98a;margin-bottom:14px}
+
+.bq-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+@media(max-width:430px){.bq-cards{grid-template-columns:1fr 1fr;gap:9px}}
+.bq-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;padding:14px 8px 13px;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:104px;justify-content:center}
+.bq-card .bq-lab{font-size:12.5px;font-weight:600;color:#9a92c4;line-height:1.2}
+.bq-card .bq-val{font-size:27px;font-weight:900;line-height:1}
+.bq-card.score .bq-val{color:#ffc23d}
+.bq-card.total .bq-val{color:#a99bff}
+.bq-card.token .bq-val{color:#ffc23d}
+.bq-card.token .bq-tic{font-size:26px;line-height:1;margin:1px 0}
+.bq-card.token .bq-tic svg{width:27px;height:27px;display:block}
+
+.bq-note{font-size:12px;color:#ffcf6a;background:rgba(255,180,60,.1);border:1px solid rgba(255,180,60,.25);
+  border-radius:10px;padding:8px 12px;margin-bottom:12px;display:none}
+.bq-note.on{display:block}
+
+.bq-actions{display:flex;gap:10px;justify-content:center;margin-top:4px}
+.bq-btn{border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:16px;border-radius:999px;transition:transform .15s,filter .2s}
+.bq-btn:active{transform:translateY(1px)}
+.bq-back{flex:1;max-width:220px;padding:15px 24px;color:#fff;
+  background:linear-gradient(180deg,#8268ff,#6248e0);box-shadow:0 10px 24px rgba(98,72,224,.45), inset 0 1px 0 rgba(255,255,255,.25)}
+.bq-back:hover{filter:brightness(1.08)}
+.bq-replay{flex:0 0 auto;padding:15px 18px;color:#cfc8f0;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.14);font-size:15px}
+.bq-replay:hover{background:rgba(255,255,255,.12)}
+
+.bq-confetti{position:fixed;top:-20px;z-index:1010;pointer-events:none;animation:bq-fall linear forwards}
+@keyframes bq-fall{to{transform:translateY(105vh) rotate(540deg);opacity:.4}}
+</style>
+
+<div class="bq-veil" id="bqVeil">
+  <div class="bq-win">
+    <h2 id="bqTitle">Ойын аяқталды!</h2>
+    <div class="bq-sub" id="bqSub" style="display:none"></div>
+    <div class="bq-earned" id="bqEarned"></div>
+    <div class="bq-earned-lab" id="bqEarnedLab"></div>
+
+    <div class="bq-cards" id="bqCards">
+      <div class="bq-card score">
+        <div class="bq-lab">Бұл ойын</div>
+        <div class="bq-val"><span id="bqScore">+0.00</span></div>
+      </div>
+      <div class="bq-card total">
+        <div class="bq-lab">Жалпы ұпай</div>
+        <div class="bq-val" id="bqTotal">0.00</div>
+      </div>
+      <div class="bq-card token">
+        <div class="bq-lab" id="bqTokLab">Жұлдыз</div>
+        <div class="bq-tic" id="bqTokIcon">⭐</div>
+        <div class="bq-val" id="bqTokVal">0</div>
+      </div>
+    </div>
+
+    <div class="bq-note" id="bqNote"></div>
+
+    <div class="bq-actions">
+      <button class="bq-btn bq-replay" id="bqReplay">🔄 Қайта ойнау</button>
+      <button class="bq-btn bq-back" id="bqBack">Артқа</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  let backUrl='/student', busy=false;
+
+  // тарау жетондары: иконка + атау
+  const KIND={
+    star:  {label:'Жұлдыз', ic:'⭐'},
+    puzzle:{label:'Пазл',   ic:'🧩'},
+    map:   {label:'Карта',  ic:'🗺️'},
+    chip:  {label:'Чип',    svg:'<svg viewBox="0 0 24 24" fill="none" stroke="#ffc23d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>'}
+  };
+
+  window.bqFinish = async function(opts){
+    if(busy) return; busy=true; opts=opts||{};
+    backUrl = opts.backUrl || '/student';
+    let resp=null;
+    try{
+      const r = await fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ game_name:opts.game_name, score:opts.score||0, stars:opts.stars||0, completed:opts.completed!==false })});
+      resp = await r.json();
+    }catch(e){ resp=null; }
+    bqRender(opts, resp);
+    busy=false;
+  };
+
+  function setIcon(el, k){
+    if(k.svg){ el.innerHTML=k.svg; } else { el.textContent=k.ic; }
+  }
+
+  function bqRender(opts, resp){
+    const ok = resp && resp.status==='ok';
+    const denied = resp && resp.status==='denied';
+    const note = document.getElementById('bqNote');
+    const cards = document.getElementById('bqCards');
+
+    document.getElementById('bqTitle').textContent = denied ? 'Лимит таусылды' : (opts.title || 'Ойын аяқталды!');
+    const subEl=document.getElementById('bqSub');
+    if(opts.subtitle && !denied){ subEl.style.display=''; subEl.textContent=opts.subtitle; } else subEl.style.display='none';
+
+    const reward = (resp && resp.reward) || {kind:'star', total:(resp&&resp.total_stars)||0, back:null};
+    const k = KIND[reward.kind] || KIND.star;
+    const earnedEl = document.getElementById('bqEarned');
+    const earnedLab = document.getElementById('bqEarnedLab');
+    if(denied){
+      earnedEl.innerHTML = '<span class="slot">🔒</span>';
+      earnedLab.textContent = '';
+    } else {
+      const tier = Math.max(0, Math.min(3, ok ? (resp.stars||0) : (opts.stars||0)));
+      const ic = k.svg || k.ic;
+      let slots='';
+      for(let i=0;i<3;i++){ slots += '<span class="slot'+(i<tier?'':' off')+'">'+ic+'</span>'; }
+      earnedEl.innerHTML = slots;
+      earnedLab.textContent = 'Бұл ойында: ' + tier + ' значок';
+    }
+
+    if(denied){
+      cards.style.display='none';
+      note.className='bq-note on'; note.textContent = resp.message || 'Бұл жолы ұпай қосылмады.';
+    } else {
+      cards.style.display='';
+      const earned = ok ? resp.score : (opts.score||0);
+      document.getElementById('bqScore').textContent = '+' + (+earned).toFixed(2);
+      document.getElementById('bqTotal').textContent  = ok ? (+resp.total_score).toFixed(2) : '—';
+      document.getElementById('bqTokLab').textContent = k.label;
+      setIcon(document.getElementById('bqTokIcon'), k);
+      document.getElementById('bqTokVal').textContent = (reward.total!=null ? reward.total : 0);
+
+      if(ok && resp.added===0 && earned>0){
+        note.className='bq-note on';
+        note.innerHTML='♻️ Қайта өту: ұпай қосылмады <span style="opacity:.8">(алғашқы нәтиже сақталған)</span>';
+      } else if(!ok){
+        note.className='bq-note on'; note.textContent='⚠️ Желі қатесі — ұпай кейін синхрондалады.';
+      } else { note.className='bq-note'; }
+    }
+
+    backUrl = opts.backUrl || (reward && reward.back) || '/student';
+    document.getElementById('bqVeil').classList.add('on');
+    bqConfetti();
+  }
+
+  document.getElementById('bqBack').onclick=function(){ window.location.href=backUrl; };
+  document.getElementById('bqReplay').onclick=function(){ window.location.href = window.location.pathname + '?play=1'; };
+
+  function bqConfetti(){
+    const cols=['#a99bff','#8268ff','#ffc23d','#7dffd0','#ff8ad8','#fff'];
+    for(let i=0;i<90;i++){const c=document.createElement('div');c.className='bq-confetti';
+      const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+      c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cols[i%cols.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+      document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
+  }
+})();
+</script>

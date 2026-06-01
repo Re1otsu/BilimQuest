@@ -404,10 +404,7 @@ function finishGame(){
     localStorage.setItem(k,JSON.stringify(s));
   }catch(e){}
   const score=Math.round(crystals/5*0.2*100)/100;
-  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Цифрлық детектив',score,stars:crystals>=5?1:0,completed:true})})
-    .finally(()=>{ window.location.href='/toqsan_4'; });
-  setTimeout(()=>{ if(submitting) window.location.href='/toqsan_4'; },1500);
+  bqFinish({game_name:'Цифрлық детектив', score, stars:crystals>=5?1:0, backUrl:'/toqsan_4'});
 }
 
 /* ── FX + audio ── */
@@ -434,5 +431,6 @@ function buzz(){tone(200,70,'sawtooth',.28,.18);}
 /* ── init ── */
 renderScene();
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

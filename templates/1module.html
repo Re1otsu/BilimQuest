@@ -7,13 +7,16 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/1module.css') }}">
 <title>BilimQuest Карты</title>
+<style>.qnav-home{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:50px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;text-decoration:none;font-weight:700;font-size:14px;white-space:nowrap;line-height:1;transition:background .2s}.qnav-home:hover{background:rgba(255,255,255,.26)}</style>
 </head>
 <body>
 
   <!-- Верхняя панель -->
   <div class="topbar">
     <div class="title">BilimQuest</div>
-    <div class="coins">⭐ {{ "%.2f"|format(student.score) }}</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="coins">⭐ {{ "%.2f"|format(student.score) }}</div>
+    </div>
   </div>
 
   <!-- Полотно карты -->

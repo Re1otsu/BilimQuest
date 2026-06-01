@@ -563,8 +563,7 @@ function showResult(stars,score){
 let submitted=false;
 function submitResult(score,stars){
   if(submitted)return; submitted=true;
-  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Робот тарихы',score,stars,completed:stars>0})}).catch(()=>{});
+  bqFinish({game_name:'Робот тарихы', score, stars, backUrl:'/toqsan_3'});
 }
 function goNext(){ window.location.href='/quest3/m3'; }
 
@@ -629,5 +628,6 @@ function playSound(ok){try{const a=getAudio(),o=a.createOscillator(),g=a.createG
 buildTray();
 startTimer();
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

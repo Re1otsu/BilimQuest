@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>PhotoLab — Түстер лабораториясы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7fbff;
+  background:#04140f;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(ellipse 110% 60% at 50% -5%,rgba(20,120,90,.45),transparent 60%),
+  radial-gradient(ellipse 90% 55% at 50% 110%,rgba(20,140,160,.28),transparent 60%),
+  #04140f;
+  padding:14px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:980px;display:flex;flex-direction:column;gap:12px}
+
+/* header */
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr-title{display:flex;align-items:center;gap:11px;font-weight:900;font-size:17px;line-height:1.15}
+.hdr-shield{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 38% 30%,#22c4a0,#0c5b48);border:1.5px solid rgba(80,255,210,.5);
+  box-shadow:0 0 16px rgba(40,220,180,.45);font-size:22px}
+.hdr-right{display:flex;align-items:center;gap:9px}
+.hdr-star{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(14,60,50,.92),rgba(8,34,30,.96));border:1.5px solid rgba(255,210,74,.4);
+  font-weight:900;font-size:15px;color:#ffd24a;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.qnav-home{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:14px;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);color:#fff;text-decoration:none;
+  font-weight:800;font-size:14px;white-space:nowrap;line-height:1;transition:background .2s}
+.qnav-home:hover{background:rgba(255,255,255,.2)}
+
+/* accuracy bar */
+.acc{background:linear-gradient(180deg,rgba(10,40,34,.9),rgba(6,26,22,.95));border:1.5px solid rgba(40,180,150,.32);
+  border-radius:14px;padding:11px 15px}
+.acc-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#9fe6d6;margin-bottom:8px}
+.acc-top b{font-family:'Rubik';font-weight:900;font-size:18px;color:#ff7a7a;transition:color .3s}
+.acc-track{height:15px;border-radius:8px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.acc-fill{height:100%;border-radius:8px;width:0%;
+  background:linear-gradient(90deg,#b91c1c,#f59e0b);
+  box-shadow:0 0 14px rgba(245,158,11,.5);transition:width .3s ease,background .4s}
+.acc-fill.ok{background:linear-gradient(90deg,#0f9e6a,#37e3a0,#7dffd0);box-shadow:0 0 16px rgba(70,224,180,.6)}
+
+/* layout */
+.studio{display:grid;grid-template-columns:1fr 300px;gap:14px}
+@media(max-width:820px){.studio{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,rgba(10,40,34,.92),rgba(6,24,20,.96));
+  border:1.5px solid rgba(40,170,140,.3);border-radius:18px;padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.card-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:#bfeede;margin-bottom:12px}
+.card-head .dot{width:9px;height:9px;border-radius:50%;background:#37e3a0;box-shadow:0 0 9px #37e3a0}
+
+/* stage */
+.stage{display:flex;justify-content:center;align-items:center;min-height:300px;
+  background:
+    linear-gradient(rgba(40,200,160,.07) 1px,transparent 1px) 0 0/100% 26px,
+    radial-gradient(circle at 50% 42%,rgba(20,90,70,.5),rgba(4,18,15,.92));
+  border-radius:14px;padding:18px;border:1.5px solid rgba(40,170,140,.25);position:relative;overflow:hidden}
+.holo{position:relative;width:230px;height:230px;display:flex;align-items:center;justify-content:center;
+  transition:filter .12s linear}
+.holo svg{width:100%;height:100%;filter:drop-shadow(0 0 18px rgba(60,230,180,.35))}
+/* tint overlay = RGB balance */
+.tint{position:absolute;inset:0;mix-blend-mode:overlay;pointer-events:none;border-radius:14px;opacity:.5;transition:background .12s}
+/* digital noise = artifacts */
+.noise{position:absolute;inset:0;pointer-events:none;opacity:.55;mix-blend-mode:screen;transition:opacity .4s;
+  background-image:
+    repeating-conic-gradient(rgba(255,255,255,.5) 0 1deg,transparent 1deg 3deg),
+    repeating-linear-gradient(115deg,rgba(255,0,80,.25) 0 2px,transparent 2px 5px),
+    repeating-linear-gradient(35deg,rgba(0,160,255,.22) 0 2px,transparent 2px 6px);
+  background-size:7px 7px,100% 100%,100% 100%}
+.noise.cleared{opacity:0}
+
+/* slider panel */
+.slider{margin-bottom:14px}
+.slider-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#dcfff4;margin-bottom:6px}
+.slider-top .val{font-weight:900;font-size:12.5px;color:#7dffd0;background:rgba(0,0,0,.3);padding:2px 9px;border-radius:8px;min-width:46px;text-align:center}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:6px;outline:none;cursor:pointer;
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.08)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle at 38% 32%,#7dffd0,#10a07a);border:2px solid #04140f;
+  box-shadow:0 0 10px rgba(60,225,180,.7);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;border:2px solid #04140f;
+  background:#37e3a0;box-shadow:0 0 10px rgba(60,225,180,.7);cursor:pointer}
+.s-bri{background:linear-gradient(90deg,#1b3a32,#fff)}
+.s-con{background:linear-gradient(90deg,#000,#777,#fff)}
+.s-sat{background:linear-gradient(90deg,#5a5a5a,#37e3a0,#2fe1f0)}
+.s-r{background:linear-gradient(90deg,#3a1414,#ff4d4d)}
+.s-g{background:linear-gradient(90deg,#143a16,#4dff66)}
+.s-b{background:linear-gradient(90deg,#14233a,#4d8bff)}
+.rgb-row{display:grid;grid-template-columns:18px 1fr 44px;gap:8px;align-items:center;margin-bottom:9px}
+.rgb-row .lab{font-weight:900;text-align:center}
+.rgb-row .lab.r{color:#ff6b6b}.rgb-row .lab.g{color:#5dff7a}.rgb-row .lab.b{color:#6da8ff}
+.rgb-row .val{font-size:11.5px;font-weight:800;color:#9fe6d6;text-align:right}
+
+/* filters */
+.filters{display:flex;flex-direction:column;gap:8px}
+.flt{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(14,52,44,.7),rgba(8,30,26,.8));border:1.5px solid rgba(40,160,130,.28);
+  font-weight:700;font-size:13.5px;color:#dcfff4;transition:.15s;user-select:none}
+.flt:hover{border-color:rgba(80,255,210,.55)}
+.flt.active{background:linear-gradient(180deg,#11a07e,#0a6650);border-color:#5affd2;box-shadow:0 0 14px rgba(60,225,180,.4)}
+.flt .ic{font-size:17px;width:22px;text-align:center}
+
+/* buttons */
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;min-width:130px;padding:13px;border:none;border-radius:14px;font-family:'Rubik';font-weight:900;font-size:15px;
+  cursor:pointer;transition:.15s;color:#04140f}
+.btn-primary{background:linear-gradient(180deg,#3be3a8,#10a07a);box-shadow:0 6px 18px rgba(40,210,160,.4)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,.08);color:#dcfff4;border:1.5px solid rgba(255,255,255,.18)}
+.btn-ghost:hover{background:rgba(255,255,255,.16)}
+
+/* reference */
+.ref-box{display:flex;flex-direction:column;align-items:center;gap:7px}
+.ref-holo{width:120px;height:120px;display:flex;align-items:center;justify-content:center;
+  border-radius:12px;border:1.5px solid rgba(80,255,210,.3);background:radial-gradient(circle at 50% 40%,rgba(20,90,70,.5),rgba(4,18,15,.9))}
+.ref-holo svg{width:90%;height:90%}
+.ref-cap{font-size:11px;color:#8fc9b9}
+
+/* Kronos */
+.kronos{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(12,48,70,.85),rgba(8,28,42,.92));border:1.5px solid rgba(60,180,230,.35)}
+.kronos .av{width:42px;height:42px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:23px;background:radial-gradient(circle at 40% 30%,#2f9fe0,#11406a);border:1.5px solid rgba(90,200,255,.5);
+  box-shadow:0 0 14px rgba(60,170,255,.4)}
+.kronos .bub{font-size:13.5px;line-height:1.4;color:#d6f0ff}
+.kronos .bub b{color:#5ad0ff}
+
+/* win */
+.veil{position:fixed;inset:0;background:rgba(4,16,12,.82);backdrop-filter:blur(6px);display:none;
+  align-items:center;justify-content:center;z-index:100;padding:20px}
+.veil.on{display:flex}
+.win{max-width:420px;width:100%;text-align:center;background:linear-gradient(180deg,rgba(12,52,44,.97),rgba(6,26,22,.99));
+  border:1.5px solid rgba(80,255,210,.4);border-radius:22px;padding:30px 26px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.win .em{font-size:62px;margin-bottom:8px;animation:pop .5s cubic-bezier(.34,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.win h2{font-size:24px;font-weight:900;margin-bottom:8px;color:#7dffd0}
+.win p{font-size:14.5px;color:#bfeede;line-height:1.5;margin-bottom:8px}
+.win .big{font-size:40px;font-weight:900;color:#37e3a0;margin:10px 0}
+.confetti{position:fixed;top:-20px;z-index:120;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.4}}
+.hint{font-size:12px;color:#8fc9b9;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hdr">
+    <div class="hdr-title">
+      <div class="hdr-shield">📸</div>
+      <div>PhotoLab<br><span style="font-weight:600;font-size:12.5px;color:#8fc9b9">Түстер лабораториясы · Түсті түзету</span></div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-star">⭐ <span id="scoreTop">{{ "%.2f"|format(student.score) }}</span></div>
+      <a class="qnav-home" href="/toqsan_2">← Картаға</a>
+    </div>
+  </header>
+
+  <div class="acc">
+    <div class="acc-top"><span>📊 Дәлдік (Accuracy) — эталонға сәйкестендір, кемінде 90%</span><b id="accNum">0%</b></div>
+    <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
+  </div>
+
+  <div class="studio">
+    <!-- LEFT: stage -->
+    <section class="card">
+      <div class="card-head"><span class="dot"></span> ШЫҒАРМАШЫЛЫҚ АЙМАҒЫ — растрлық кескінді өңдеу</div>
+      <div class="stage">
+        <div class="holo" id="holo">
+          <div class="tint" id="tint"></div>
+          <div class="noise" id="noise"></div>
+        </div>
+      </div>
+      <div class="btns" style="margin-top:14px">
+        <button class="btn btn-ghost" id="resetBtn">↺ Басына оралу</button>
+        <button class="btn btn-primary" id="finishBtn">✓ Аяқтау</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: tools -->
+    <aside style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-head"><span class="dot"></span> 🟢 Эталон (үлгі)</div>
+        <div class="ref-box">
+          <div class="ref-holo" id="refHolo"></div>
+          <div class="ref-cap">Сурет осындай болуы керек</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="dot"></span> 🎛️ Түсті түзету жүгірткілері</div>
+
+        <div class="slider">
+          <div class="slider-top"><span>🔆 Жарықтық</span><span class="val" id="vBri">55%</span></div>
+          <input type="range" class="s-bri" id="bri" min="40" max="200" value="55">
+        </div>
+        <div class="slider">
+          <div class="slider-top"><span>🌗 Контраст</span><span class="val" id="vCon">70%</span></div>
+          <input type="range" class="s-con" id="con" min="50" max="180" value="70">
+        </div>
+        <div class="slider">
+          <div class="slider-top"><span>🌈 Қанықтылық</span><span class="val" id="vSat">18%</span></div>
+          <input type="range" class="s-sat" id="sat" min="0" max="200" value="18">
+        </div>
+
+        <div class="card-head" style="margin:14px 0 10px"><span class="dot"></span> 🔴🟢🔵 RGB балансы</div>
+        <div class="rgb-row"><span class="lab r">R</span><input type="range" class="s-r" id="cr" min="50" max="150" value="88"><span class="val" id="vR">88</span></div>
+        <div class="rgb-row"><span class="lab g">G</span><input type="range" class="s-g" id="cg" min="50" max="150" value="68"><span class="val" id="vG">68</span></div>
+        <div class="rgb-row"><span class="lab b">B</span><input type="range" class="s-b" id="cb" min="50" max="150" value="82"><span class="val" id="vB">82</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="dot"></span> 🧪 Сүзгілер (Фильтрлер)</div>
+        <div class="filters" id="filters">
+          <div class="flt" data-f="blur"><span class="ic">💧</span> Бұлдырату (Blur)</div>
+          <div class="flt" data-f="sharpen"><span class="ic">🔺</span> Айқындау (Sharpen)</div>
+          <div class="flt" data-f="denoise"><span class="ic">🪄</span> Шуылды жою (Denoise)</div>
+          <div class="flt" data-f="none"><span class="ic">🚫</span> Сүзгісіз</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="kronos">
+    <div class="av">🤖</div>
+    <div class="bub" id="kronos"><b>ЖИ Кеңесші Кронос:</b> Агент! Вирус роботтың түс арналарын бұзды — сурет тым күңгірт әрі түссіз, үстінде цифрлық шуыл бар. Жүгірткілермен жарықтық, контраст, қанықтылық пен RGB балансын реттеп, дұрыс сүзгіні таңдап түпнұсқаны қалпына келтір! 🎛️</div>
+  </div>
+  <div class="hint">Кеңес: алдымен <b>Қанықтылықты</b> көтер, сосын <b>G (жасыл)</b> арнаны түзет, шуылды <b>«Шуылды жою»</b> сүзгісімен тазала.</div>
+</div>
+
+<!-- WIN -->
+{% include '_win_modal.html' %}
+
+<!-- robot SVG template (cloned into stage + reference) -->
+<template id="robotTpl">
+  <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#9bffe0"/><stop offset="1" stop-color="#16b98c"/>
+      </linearGradient>
+      <radialGradient id="eye" cx="40%" cy="35%" r="70%">
+        <stop offset="0" stop-color="#d6fbff"/><stop offset="1" stop-color="#1fd6e6"/>
+      </radialGradient>
+    </defs>
+    <!-- antenna -->
+    <rect x="57" y="10" width="6" height="12" rx="3" fill="url(#body)"/>
+    <circle cx="60" cy="9" r="5" fill="url(#eye)"/>
+    <!-- head -->
+    <rect x="34" y="22" width="52" height="40" rx="14" fill="url(#body)" stroke="#0a6650" stroke-width="2"/>
+    <rect x="40" y="30" width="40" height="24" rx="10" fill="#0c2e28"/>
+    <circle cx="51" cy="42" r="6.5" fill="url(#eye)"/>
+    <circle cx="69" cy="42" r="6.5" fill="url(#eye)"/>
+    <!-- body -->
+    <rect x="38" y="66" width="44" height="38" rx="12" fill="url(#body)" stroke="#0a6650" stroke-width="2"/>
+    <circle cx="60" cy="85" r="9" fill="#0c2e28"/>
+    <circle cx="60" cy="85" r="5" fill="url(#eye)"/>
+    <!-- arms -->
+    <rect x="22" y="68" width="12" height="28" rx="6" fill="url(#body)"/>
+    <rect x="86" y="68" width="12" height="28" rx="6" fill="url(#body)"/>
+    <!-- legs -->
+    <rect x="44" y="104" width="11" height="12" rx="5" fill="url(#body)"/>
+    <rect x="65" y="104" width="11" height="12" rx="5" fill="url(#body)"/>
+  </svg>
+</template>
+
+<script>
+/* ── targets for each parameter (ideal restored image) ── */
+const P = {
+  bri:{t:100, tol:70},
+  con:{t:115, tol:60},
+  sat:{t:120, tol:80},
+  r:{t:100, tol:55},
+  g:{t:130, tol:55},
+  b:{t:112, tol:55},
+};
+const correctFilter="denoise";
+
+/* current state */
+const st={bri:55,con:70,sat:18,r:88,g:68,b:82,filter:"none"};
+
+/* clone robot into stage + reference */
+const tpl=document.getElementById("robotTpl");
+document.getElementById("holo").prepend(tpl.content.cloneNode(true));
+document.getElementById("refHolo").appendChild(tpl.content.cloneNode(true));
+
+const holo=document.getElementById("holo");
+const tintEl=document.getElementById("tint");
+const noiseEl=document.getElementById("noise");
+
+/* render image from a parameter set */
+function applyVisual(el,tint,p){
+  // map sharpen→extra contrast, blur→blur px
+  let extra="";
+  if(p.filter==="blur") extra=" blur(1.6px)";
+  if(p.filter==="sharpen") extra=" contrast(1.18)";
+  el.style.filter=`brightness(${p.bri/100}) contrast(${p.con/100}) saturate(${p.sat/100})${extra}`;
+  if(tint){
+    // RGB balance → tint colour around mid 100
+    const r=Math.round(128 + (p.r-100)*1.2);
+    const g=Math.round(128 + (p.g-100)*1.2);
+    const b=Math.round(128 + (p.b-100)*1.2);
+    tint.style.background=`rgb(${clamp255(r)},${clamp255(g)},${clamp255(b)})`;
+  }
+}
+function clamp255(x){return Math.max(0,Math.min(255,x));}
+
+/* render reference with target values (correct) */
+const refTint=document.createElement("div");
+applyVisual(document.getElementById("refHolo").querySelector("svg"),refTint,
+  {bri:P.bri.t,con:P.con.t,sat:P.sat.t,r:P.r.t,g:P.g.t,b:P.b.t,filter:"none"});
+
+/* ── accuracy ── */
+function paramScore(key){
+  const d=Math.abs(st[key]-P[key].t);
+  return Math.max(0,1-d/P[key].tol);
+}
+function computeAccuracy(){
+  const keys=["bri","con","sat","r","g","b"];
+  let sum=0; keys.forEach(k=>sum+=paramScore(k));
+  const sliderAvg=sum/keys.length;
+  const filterScore = st.filter===correctFilter?1:(st.filter==="none"?0.35:0);
+  return 0.80*sliderAvg + 0.20*filterScore;
+}
+
+/* ── Kronos ── */
+let lastHint=0, greenPraised=false;
+function kronos(html){ document.getElementById("kronos").innerHTML="<b>ЖИ Кеңесші Кронос:</b> "+html; }
+function smartHints(changed){
+  const now=Date.now();
+  if(st.bri>165 && now-lastHint>4000){ lastHint=now;
+    kronos('Агент, тоқта! Жарықтықты шектен тыс арттырдың — детальдар ақ түске айналып жоғалуда (<b>переэкспозиция</b>). Жүгірткіні сәл солға жылжыт! ⚠️'); return; }
+  if(changed==="g" && !greenPraised && paramScore("g")>0.85){ greenPraised=true; lastHint=now;
+    kronos('Өте жақсы! <b>Жасыл (G) арна</b> қалпына келді. Енді <b>Контрастты</b> сәл көтерсең, сурет толық жөнделеді! ✅'); return; }
+  if(changed==="sat" && st.sat<35 && now-lastHint>5000){ lastHint=now;
+    kronos('Сурет әлі ақ-қара (<b>десатурация</b>). Қанықтылықты көтеріп, неонды түстерді қайтар! 🌈'); }
+}
+
+/* ── update ── */
+function update(changed){
+  applyVisual(holo.querySelector("svg"),tintEl,st);
+  noiseEl.classList.toggle("cleared", st.filter==="denoise");
+  // labels
+  vBri.textContent=st.bri+"%"; vCon.textContent=st.con+"%"; vSat.textContent=st.sat+"%";
+  vR.textContent=st.r; vG.textContent=st.g; vB.textContent=st.b;
+  const a=computeAccuracy(), pct=Math.round(a*100);
+  accNum.textContent=pct+"%"; accFill.style.width=pct+"%";
+  const ok=pct>=90; accFill.classList.toggle("ok",ok);
+  accNum.style.color=ok?"#37e3a0":(pct>=60?"#f59e0b":"#ff7a7a");
+  if(changed) smartHints(changed);
+}
+const vBri=document.getElementById("vBri"),vCon=document.getElementById("vCon"),vSat=document.getElementById("vSat");
+const vR=document.getElementById("vR"),vG=document.getElementById("vG"),vB=document.getElementById("vB");
+const accNum=document.getElementById("accNum"),accFill=document.getElementById("accFill");
+
+/* slider bindings */
+const map={bri:"bri",con:"con",sat:"sat",r:"cr",g:"cg",b:"cb"};
+Object.entries(map).forEach(([k,id])=>{
+  document.getElementById(id).addEventListener("input",e=>{ st[k]=+e.target.value; update(k); });
+});
+
+/* filters */
+document.querySelectorAll(".flt").forEach(f=>f.onclick=()=>{
+  document.querySelectorAll(".flt").forEach(x=>x.classList.remove("active"));
+  f.classList.add("active");
+  st.filter=f.dataset.f;
+  if(st.filter==="blur"){ kronos('Абайла! <b>Blur</b> суретті бұлдыратады — шуылды жасырғанмен, детальдарды да жоғалтады. Шуылды <b>«Шуылды жою»</b> сүзгісімен таза тазала! 💧'); }
+  else if(st.filter==="sharpen"){ kronos('<b>Sharpen</b> шекараларды айқындайды, бірақ цифрлық шуылды одан да күшейтіп жіберуі мүмкін. 🔺'); }
+  else if(st.filter==="denoise"){ kronos('Тамаша! <b>Шуылды жою (Denoise)</b> артефактілерді кетірді — сурет тазарды. 🪄'); }
+  update();
+});
+
+/* reset */
+document.getElementById("resetBtn").onclick=()=>{
+  Object.assign(st,{bri:55,con:70,sat:18,r:88,g:68,b:82,filter:"none"});
+  bri.value=55;con.value=70;sat.value=18;cr.value=88;cg.value=68;cb.value=82;
+  document.querySelectorAll(".flt").forEach(x=>x.classList.remove("active"));
+  greenPraised=false;
+  kronos('Параметрлер бастапқы (бұзылған) күйге қайтарылды. Қайтадан түзетіп көр! 🎛️');
+  update();
+};
+
+/* finish */
+let submitting=false; const MAX=0.5;
+document.getElementById("finishBtn").onclick=()=>{
+  const a=computeAccuracy(), pct=Math.round(a*100);
+  if(pct<90){
+    kronos(`Дәлдік әлі жеткіліксіз — <b>${pct}%</b>. Кемінде <b>90%</b> керек. Эталонмен салыстыр: қанықтылық, RGB баланс пен сүзгіні тексер! 💪`);
+    accFill.animate([{filter:'brightness(2)'},{filter:'brightness(1)'}],{duration:500});
+    return;
+  }
+  if(submitting)return; submitting=true;
+  const score=Math.round(MAX*a*100)/100;
+  bqFinish({game_name:'Фотолаб', score, stars:pct>=98?1:0, accuracy:pct,
+    title:'Сурет қалпына келді!', subtitle:'Робот голограммасы түпнұсқалық түстеріне қайтты. Жаңа деңгей ашылды!',
+    backUrl:'/toqsan_2'});
+};
+
+function confetti(){
+  const cols=['#7dffd0','#37e3a0','#2fe1f0','#ffd24a','#c7d2e0','#fff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';
+    const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+    c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cols[i%cols.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
+}
+
+/* init */
+update();
+</script>
+</body>
+</html>

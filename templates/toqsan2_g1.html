@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Пиксель Шебері — Цифрлық қалпына келтіру</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7fbff;
+  background:#04140f;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(ellipse 110% 60% at 50% -5%,rgba(20,120,90,.45),transparent 60%),
+  radial-gradient(ellipse 90% 55% at 50% 110%,rgba(20,140,160,.28),transparent 60%),
+  #04140f;
+  padding:14px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:980px;display:flex;flex-direction:column;gap:12px}
+
+/* ── header ── */
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr-title{display:flex;align-items:center;gap:11px;font-weight:900;font-size:17px;line-height:1.15}
+.hdr-shield{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 38% 30%,#22c4a0,#0c5b48);border:1.5px solid rgba(80,255,210,.5);
+  box-shadow:0 0 16px rgba(40,220,180,.45);font-size:22px}
+.hdr-right{display:flex;align-items:center;gap:9px}
+.hdr-star{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(14,60,50,.92),rgba(8,34,30,.96));border:1.5px solid rgba(255,210,74,.4);
+  font-weight:900;font-size:15px;color:#ffd24a;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.qnav-home{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:14px;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.22);color:#fff;text-decoration:none;
+  font-weight:800;font-size:14px;white-space:nowrap;line-height:1;transition:background .2s}
+.qnav-home:hover{background:rgba(255,255,255,.2)}
+
+/* ── accuracy bar ── */
+.acc{background:linear-gradient(180deg,rgba(10,40,34,.9),rgba(6,26,22,.95));border:1.5px solid rgba(40,180,150,.32);
+  border-radius:14px;padding:11px 15px}
+.acc-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#9fe6d6;margin-bottom:8px}
+.acc-top b{font-family:'Rubik';font-weight:900;font-size:18px;color:#ff7a7a;transition:color .3s}
+.acc-track{height:15px;border-radius:8px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(255,255,255,.08);position:relative}
+.acc-fill{height:100%;border-radius:8px;width:0%;
+  background:linear-gradient(90deg,#b91c1c,#f59e0b);
+  box-shadow:0 0 14px rgba(245,158,11,.5);transition:width .35s ease,background .4s}
+.acc-fill.ok{background:linear-gradient(90deg,#0f9e6a,#37e3a0,#7dffd0);box-shadow:0 0 16px rgba(70,224,180,.6)}
+
+/* ── layout ── */
+.studio{display:grid;grid-template-columns:1fr 280px;gap:14px}
+@media(max-width:820px){.studio{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,rgba(10,40,34,.92),rgba(6,24,20,.96));
+  border:1.5px solid rgba(40,170,140,.3);border-radius:18px;padding:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.card-head{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;color:#bfeede;margin-bottom:12px}
+.card-head .dot{width:9px;height:9px;border-radius:50%;background:#37e3a0;box-shadow:0 0 9px #37e3a0}
+
+/* ── canvas grid ── */
+.canvas-wrap{display:flex;justify-content:center;align-items:center;
+  background:
+    linear-gradient(rgba(40,200,160,.08) 1px,transparent 1px) 0 0/100% 24px,
+    radial-gradient(circle at 50% 40%,rgba(20,90,70,.5),rgba(4,18,15,.9));
+  border-radius:14px;padding:14px;border:1.5px solid rgba(40,170,140,.25);overflow:auto}
+#grid{display:grid;gap:1px;background:rgba(255,255,255,.06);touch-action:none;
+  border:2px solid rgba(80,255,210,.25);border-radius:4px}
+.cell{width:var(--cs,20px);height:var(--cs,20px);background:transparent;cursor:crosshair;
+  background-image:linear-gradient(45deg,rgba(255,255,255,.03) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.03) 75%),
+                   linear-gradient(45deg,rgba(255,255,255,.03) 25%,transparent 25%,transparent 75%,rgba(255,255,255,.03) 75%);
+  background-size:10px 10px;background-position:0 0,5px 5px;transition:background-color .05s}
+.cell.match{box-shadow:inset 0 0 0 9px transparent}
+
+/* ── tools ── */
+.tools{display:flex;flex-direction:column;gap:9px}
+.tool{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:13px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(14,52,44,.7),rgba(8,30,26,.8));border:1.5px solid rgba(40,160,130,.28);
+  font-weight:700;font-size:14px;color:#dcfff4;transition:.15s;user-select:none}
+.tool:hover{border-color:rgba(80,255,210,.55);transform:translateY(-1px)}
+.tool.active{background:linear-gradient(180deg,#11a07e,#0a6650);border-color:#5affd2;box-shadow:0 0 16px rgba(60,225,180,.4)}
+.tool .ic{font-size:19px;width:24px;text-align:center}
+
+/* ── palette ── */
+.palette{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:4px}
+.sw{aspect-ratio:1;border-radius:10px;cursor:pointer;border:2.5px solid rgba(255,255,255,.16);transition:.15s;position:relative}
+.sw:hover{transform:scale(1.08)}
+.sw.active{border-color:#fff;box-shadow:0 0 0 3px rgba(90,255,210,.5),0 0 14px rgba(90,255,210,.5)}
+.sw[data-empty]{background:
+  linear-gradient(45deg,#444 25%,transparent 25%,transparent 75%,#444 75%),
+  linear-gradient(45deg,#444 25%,transparent 25%,transparent 75%,#444 75%),#222;
+  background-size:10px 10px;background-position:0 0,5px 5px}
+
+/* ── reference ── */
+.ref{display:grid;gap:1px;background:rgba(0,0,0,.4);margin:0 auto;border-radius:5px;
+  border:1.5px solid rgba(80,255,210,.3);padding:3px}
+.ref .rc{width:9px;height:9px}
+
+/* ── buttons ── */
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;min-width:130px;padding:13px;border:none;border-radius:14px;font-family:'Rubik';font-weight:900;font-size:15px;
+  cursor:pointer;transition:.15s;color:#04140f}
+.btn-primary{background:linear-gradient(180deg,#3be3a8,#10a07a);box-shadow:0 6px 18px rgba(40,210,160,.4)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,.08);color:#dcfff4;border:1.5px solid rgba(255,255,255,.18)}
+.btn-ghost:hover{background:rgba(255,255,255,.16)}
+
+/* ── Kronos advisor ── */
+.kronos{display:flex;gap:11px;align-items:flex-start;padding:13px 15px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(12,48,70,.85),rgba(8,28,42,.92));border:1.5px solid rgba(60,180,230,.35)}
+.kronos .av{width:42px;height:42px;flex-shrink:0;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:23px;background:radial-gradient(circle at 40% 30%,#2f9fe0,#11406a);border:1.5px solid rgba(90,200,255,.5);
+  box-shadow:0 0 14px rgba(60,170,255,.4)}
+.kronos .bub{font-size:13.5px;line-height:1.4;color:#d6f0ff}
+.kronos .bub b{color:#5ad0ff}
+
+/* ── win overlay ── */
+.veil{position:fixed;inset:0;background:rgba(4,16,12,.82);backdrop-filter:blur(6px);display:none;
+  align-items:center;justify-content:center;z-index:100;padding:20px}
+.veil.on{display:flex}
+.win{max-width:420px;width:100%;text-align:center;background:linear-gradient(180deg,rgba(12,52,44,.97),rgba(6,26,22,.99));
+  border:1.5px solid rgba(80,255,210,.4);border-radius:22px;padding:30px 26px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.win .em{font-size:62px;margin-bottom:8px;animation:pop .5s cubic-bezier(.34,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.win h2{font-size:24px;font-weight:900;margin-bottom:8px;color:#7dffd0}
+.win p{font-size:14.5px;color:#bfeede;line-height:1.5;margin-bottom:8px}
+.win .big{font-size:40px;font-weight:900;color:#37e3a0;margin:10px 0}
+.confetti{position:fixed;top:-20px;z-index:120;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.4}}
+.hint{font-size:12px;color:#8fc9b9;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hdr">
+    <div class="hdr-title">
+      <div class="hdr-shield">🎨</div>
+      <div>Пиксель Шебері<br><span style="font-weight:600;font-size:12.5px;color:#8fc9b9">Цифрлық қалпына келтіру</span></div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-star">⭐ <span id="scoreTop">{{ "%.2f"|format(student.score) }}</span></div>
+      <a class="qnav-home" href="/toqsan_2">← Картаға</a>
+    </div>
+  </header>
+
+  <div class="acc">
+    <div class="acc-top"><span>📊 Дәлдік (Accuracy) — кемінде 90% жинаңыз</span><b id="accNum">0%</b></div>
+    <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
+  </div>
+
+  <div class="studio">
+    <!-- LEFT: canvas -->
+    <section class="card">
+      <div class="card-head"><span class="dot"></span> ШЫҒАРМАШЫЛЫҚ АЙМАҒЫ — растрлық тор (Grid)</div>
+      <div class="canvas-wrap"><div id="grid"></div></div>
+      <div class="btns" style="margin-top:14px">
+        <button class="btn btn-ghost" id="zoomBtn">🔍 Масштаб</button>
+        <button class="btn btn-ghost" id="resetBtn">↺ Қалпына келтіру</button>
+        <button class="btn btn-primary" id="finishBtn">✓ Аяқтау</button>
+      </div>
+    </section>
+
+    <!-- RIGHT: tools -->
+    <aside style="display:flex;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-head"><span class="dot"></span> 🛠️ Эталон (үлгі)</div>
+        <div class="ref" id="ref"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="dot"></span> 🛠️ Тооль</div>
+        <div class="tools">
+          <div class="tool active" data-tool="brush"><span class="ic">🖌️</span> Қылқалам</div>
+          <div class="tool" data-tool="eraser"><span class="ic">🧹</span> Өшіргіш</div>
+          <div class="tool" data-tool="bucket"><span class="ic">🪣</span> Құю</div>
+          <div class="tool" data-tool="picker"><span class="ic">💧</span> Тамшы</div>
+        </div>
+        <div class="palette" id="palette"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="kronos">
+    <div class="av">🤖</div>
+    <div class="bub" id="kronos"><b>ЖИ Кеңесші Кронос:</b> Агент! Вирус роботтың суретін бұзып, пиксельдерге ыдыратты. Эталон бойынша тор көздерін бояп, артық пиксельдерді өшіріп, суретті қайта құр! 🧩</div>
+  </div>
+  <div class="hint">Тінтуірмен басып, баса отырып сүйреп бояуға болады. Үлкен аймақтарды <b>«Құю»</b> құралымен толтырыңыз.</div>
+</div>
+
+<!-- WIN -->
+{% include '_win_modal.html' %}
+
+<script>
+/* ════ TARGET (16×16 robot) ════
+   . empty · 1 light gray · 3 cyan · 4 dark outline */
+const TARGET = [
+ "................",
+ ".......44.......",
+ ".......33.......",
+ "....44444444....",
+ "....41311314....",
+ "....41311314....",
+ "....41111114....",
+ "....41333314....",
+ "....44444444....",
+ ".......44.......",
+ "...4444444444...",
+ "...4111111114...",
+ "...4113333114...",
+ "...4111111114...",
+ "...4111111114...",
+ "...4444444444...",
+].map(r=>r.split(""));
+
+const N=16;
+const COLORS={ "1":"#c7d2e0", "3":"#2fe1f0", "4":"#2b3654" };
+/* palette: empty(eraser color), 3 needed + 2 virus distractors */
+const PALETTE=[
+  {key:".",empty:true},
+  {key:"4",hex:"#2b3654"},
+  {key:"1",hex:"#c7d2e0"},
+  {key:"3",hex:"#2fe1f0"},
+  {key:"x1",hex:"#ef4444"},   // virus colours — not in target
+  {key:"x2",hex:"#f59e0b"},
+];
+
+/* ── build a corrupted starting grid ── */
+function makeStart(){
+  const g=[];
+  for(let r=0;r<N;r++){g.push([]);for(let c=0;c<N;c++){
+    let v=TARGET[r][c];
+    if(v!=="."){ if(Math.random()<0.45) v="."; }              // virus erased ~45% of pixels
+    else { if(Math.random()<0.06) v=(Math.random()<.5?"x1":"x2"); } // virus noise artefacts
+    g[r].push(v);
+  }}
+  return g;
+}
+let grid=makeStart();
+
+/* ── state ── */
+let tool="brush", color="4", cs=20, painting=false;
+let brushSpree=0, lastHint=0;
+
+/* ── render reference ── */
+(function(){
+  const ref=document.getElementById("ref");
+  ref.style.gridTemplateColumns=`repeat(${N},9px)`;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const d=document.createElement("div");d.className="rc";
+    const v=TARGET[r][c];
+    d.style.background=v==="."?"transparent":COLORS[v];
+    ref.appendChild(d);
+  }
+})();
+
+/* ── render palette ── */
+(function(){
+  const p=document.getElementById("palette");
+  PALETTE.forEach(col=>{
+    const s=document.createElement("div");s.className="sw";
+    if(col.empty){s.dataset.empty="1";} else s.style.background=col.hex;
+    if(col.key===color)s.classList.add("active");
+    s.dataset.key=col.key;
+    s.title=col.empty?"Бос (өшіру)":"Түс";
+    s.onclick=()=>{ color=col.key;
+      document.querySelectorAll(".sw").forEach(x=>x.classList.remove("active"));
+      s.classList.add("active");
+      if(col.empty){ setTool("eraser"); } else if(tool==="eraser"){ setTool("brush"); }
+    };
+    p.appendChild(s);
+  });
+})();
+
+/* ── render grid ── */
+const gridEl=document.getElementById("grid");
+function buildGrid(){
+  gridEl.innerHTML="";
+  gridEl.style.gridTemplateColumns=`repeat(${N},var(--cs))`;
+  gridEl.style.setProperty("--cs",cs+"px");
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const d=document.createElement("div");d.className="cell";
+    d.dataset.r=r;d.dataset.c=c;
+    paintCellEl(d,grid[r][c]);
+    gridEl.appendChild(d);
+  }
+}
+function cellHex(v){
+  if(v===".")return "transparent";
+  if(v==="x1")return "#ef4444";
+  if(v==="x2")return "#f59e0b";
+  return COLORS[v];
+}
+function paintCellEl(d,v){
+  d.style.backgroundColor=cellHex(v);
+}
+function cellAt(r,c){ return gridEl.children[r*N+c]; }
+
+/* ── tools ── */
+function setTool(t){
+  tool=t;
+  document.querySelectorAll(".tool").forEach(x=>x.classList.toggle("active",x.dataset.tool===t));
+}
+document.querySelectorAll(".tool").forEach(t=>t.onclick=()=>setTool(t.dataset.tool));
+
+/* ── apply action to a cell ── */
+function applyAt(r,c){
+  if(r<0||c<0||r>=N||c>=N)return;
+  if(tool==="picker"){
+    const v=grid[r][c];
+    if(v!=="."){ color=v;
+      document.querySelectorAll(".sw").forEach(x=>x.classList.toggle("active",x.dataset.key===v));
+    }
+    setTool("brush"); return;
+  }
+  if(tool==="eraser"){ setCell(r,c,"."); return; }
+  if(tool==="bucket"){ floodFill(r,c,color); brushSpree=0; return; }
+  // brush
+  setCell(r,c,color);
+  brushSpree++; maybeHintBucket();
+}
+function setCell(r,c,v){
+  if(grid[r][c]===v)return;
+  grid[r][c]=v;
+  paintCellEl(cellAt(r,c),v);
+  updateAccuracy();
+}
+function floodFill(r,c,v){
+  const target=grid[r][c];
+  if(target===v)return;
+  const st=[[r,c]];
+  while(st.length){
+    const [y,x]=st.pop();
+    if(y<0||x<0||y>=N||x>=N)continue;
+    if(grid[y][x]!==target)continue;
+    grid[y][x]=v; paintCellEl(cellAt(y,x),v);
+    st.push([y+1,x],[y-1,x],[y,x+1],[y,x-1]);
+  }
+  updateAccuracy();
+}
+
+/* ── pointer handling ── */
+function cellFromEvent(e){
+  const t=(e.touches?e.touches[0]:e);
+  const el=document.elementFromPoint(t.clientX,t.clientY);
+  if(el&&el.classList.contains("cell"))return [+el.dataset.r,+el.dataset.c];
+  return null;
+}
+gridEl.addEventListener("pointerdown",e=>{
+  e.preventDefault(); painting=true;
+  const rc=cellFromEvent(e); if(rc)applyAt(rc[0],rc[1]);
+});
+gridEl.addEventListener("pointermove",e=>{
+  if(!painting||tool==="bucket"||tool==="picker")return;
+  const rc=cellFromEvent(e); if(rc)applyAt(rc[0],rc[1]);
+});
+window.addEventListener("pointerup",()=>painting=false);
+
+/* ── accuracy ── */
+function computeAccuracy(){
+  let ok=0;
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){ if(grid[r][c]===TARGET[r][c])ok++; }
+  return ok/(N*N);
+}
+function updateAccuracy(){
+  const a=computeAccuracy(); const pct=Math.round(a*100);
+  document.getElementById("accNum").textContent=pct+"%";
+  const fill=document.getElementById("accFill");
+  fill.style.width=pct+"%";
+  const ok=pct>=90;
+  fill.classList.toggle("ok",ok);
+  document.getElementById("accNum").style.color=ok?"#37e3a0":(pct>=60?"#f59e0b":"#ff7a7a");
+}
+
+/* ── Kronos hints ── */
+function kronos(html){ document.getElementById("kronos").innerHTML="<b>ЖИ Кеңесші Кронос:</b> "+html; }
+function maybeHintBucket(){
+  const now=Date.now();
+  if(brushSpree>=12 && now-lastHint>9000){
+    lastHint=now; brushSpree=0;
+    kronos('Агент! Уақытты үнемде. Үлкен бір түсті аймақты бояуда <b>«Құю» (Bucket)</b> құралы әлдеқайда тиімдірек! 🪣');
+  }
+}
+/* warn on virus colours */
+document.getElementById("palette").addEventListener("click",e=>{
+  const sw=e.target.closest(".sw"); if(!sw)return;
+  if(sw.dataset.key==="x1"||sw.dataset.key==="x2"){
+    kronos('Абайла! Бұл түс эталонда жоқ — вирус «артефактісі». Дұрыс пиксельдер сұр (🩶), көгілдір (🩵) және қара (◼️) түстен тұрады. 🧹');
+  }
+});
+
+/* ── buttons ── */
+document.getElementById("zoomBtn").onclick=()=>{
+  cs = cs>=30 ? 14 : cs+8;
+  gridEl.style.setProperty("--cs",cs+"px");
+  kronos('🔍 Масштаб. Жақындатқанда растрлық сурет жеке <b>пиксельдерге</b> ыдырайды, алыстатқанда біртұтас суретке айналады!');
+};
+document.getElementById("resetBtn").onclick=()=>{
+  grid=makeStart(); buildGrid(); updateAccuracy();
+  kronos('Тор қайта бұзылды. Эталон бойынша қайта құрап көр! 🧩');
+};
+document.getElementById("finishBtn").onclick=finish;
+
+/* ── finish ── */
+let submitting=false;
+const MAX=0.5;
+function finish(){
+  const a=computeAccuracy(); const pct=Math.round(a*100);
+  if(pct<90){
+    kronos(`Дәлдік әлі тым төмен — <b>${pct}%</b>. Кемінде <b>90%</b> жинау керек. Жетіспейтін пиксельдерді боя, артық түстерді өшір! 💪`);
+    const fill=document.getElementById("accFill");
+    fill.animate([{filter:'brightness(2)'},{filter:'brightness(1)'}],{duration:500});
+    return;
+  }
+  if(submitting)return; submitting=true;
+  const score=Math.round(MAX*a*100)/100;
+  bqFinish({game_name:'Пиксель шебері', score, stars:pct>=98?1:0, accuracy:pct,
+    title:'Сурет жанданды!', subtitle:'Цифрлық реставрация сәтті аяқталды. Робот квест картасына оралды!',
+    backUrl:'/toqsan_2'});
+}
+
+function confetti(){
+  const cols=['#7dffd0','#37e3a0','#2fe1f0','#ffd24a','#c7d2e0','#fff'];
+  for(let i=0;i<90;i++){const c=document.createElement('div');c.className='confetti';
+    const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
+    c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cols[i%cols.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
+}
+
+/* ── init ── */
+buildGrid();
+updateAccuracy();
+</script>
+</body>
+</html>

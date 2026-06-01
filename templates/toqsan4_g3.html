@@ -430,10 +430,8 @@ function finishGame(crys){
     if(crys>0){s.status[2]='done';if(s.status[3]==='locked')s.status[3]='active';}
     localStorage.setItem(k,JSON.stringify(s));}catch(e){}
   const score=Math.round(crys/3*0.3*100)/100;
-  if(crys>0){fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Желілік жүгіруші',score,stars:crys>=3?1:0,completed:true})}).finally(()=>{location.href='/toqsan_4';});
-    setTimeout(()=>{if(submitting)location.href='/toqsan_4';},1500);
-  } else location.href='/toqsan_4';
+  if(crys>0){ bqFinish({game_name:'Желілік жүгіруші', score, stars:crys>=3?1:0, backUrl:'/toqsan_4'}); }
+  else location.href='/toqsan_4';
 }
 
 let actx;
@@ -449,5 +447,6 @@ function fit(){const s=Math.min(innerWidth/W,innerHeight/H);document.getElementB
 addEventListener('resize',fit); fit();
 reset(); requestAnimationFrame(loop);
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

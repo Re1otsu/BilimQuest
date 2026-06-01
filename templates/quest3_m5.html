@@ -623,9 +623,7 @@ function showResult(win, stars, score, hold){
 let submitted=false;
 function submitResult(score,stars){
   if(submitted) return; submitted=true;
-  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Сызық робот',score,stars,completed:stars>0})
-  }).catch(()=>{});
+  bqFinish({game_name:'Сызық робот', score, stars, backUrl:'/toqsan_3'});
 }
 
 function resetGame(){
@@ -686,5 +684,6 @@ sizeGraph();
 drawTrack(); drawRobot(); drawGraph();
 startTimer();
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

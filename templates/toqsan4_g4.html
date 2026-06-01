@@ -481,12 +481,8 @@ function finishGame(crys){
     localStorage.setItem(k,JSON.stringify(s));
   }catch(e){}
   const score=Math.round(crys/3*0.3*100)/100;
-  if(crys>0){
-    fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({game_name:'Кибер-бекініс',score,stars:crys>=3?1:0,completed:true})})
-      .finally(()=>{ location.href='/toqsan_4'; });
-    setTimeout(()=>{ if(submitting) location.href='/toqsan_4'; },1500);
-  } else location.href='/toqsan_4';
+  if(crys>0){ bqFinish({game_name:'Кибер-бекініс', score, stars:crys>=3?1:0, backUrl:'/toqsan_4'}); }
+  else location.href='/toqsan_4';
 }
 function goBack(){ location.href='/toqsan_4'; }
 
@@ -514,5 +510,6 @@ updateEnergy(); updateDef(); refreshShop();
 kron('','👋 Сәлем, Агент! Мен — Кронос. Базаны қорғау үшін мұнараларды дүкеннен таңдап, картаға қой. 🔥 Брандмауэрді порталдарға, 🛡️ Антивирусты жолдарға жақын орналастыр. Дайын болсаң — «Шабуыл бастау».');
 requestAnimationFrame(loop);
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

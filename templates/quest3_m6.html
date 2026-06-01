@@ -626,8 +626,7 @@ function showResult(win){
 let submitted=false;
 function submitResult(){
   if(submitted) return; submitted=true;
-  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Сумо',score,stars,completed:stars>0})}).catch(()=>{});
+  bqFinish({game_name:'Сумо', score, stars, backUrl:'/toqsan_3'});
 }
 
 function retryBattle(){
@@ -724,5 +723,6 @@ updateHp(); updateEnergy();
 startTimer();
 idle();
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

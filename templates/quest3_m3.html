@@ -1289,10 +1289,7 @@ function showResult(win, stars, score, timeout) {
 }
 
 function submitResult(score, stars, completed) {
-  fetch('/game_result', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ game_name:'Гироскоп', score, stars, completed })
-  }).catch(() => {});
+  bqFinish({ game_name:'Гироскоп', score, stars, backUrl:'/toqsan_3' });
 }
 
 /* ════ RESTART ════ */
@@ -1360,5 +1357,6 @@ window.addEventListener('load', () => {
   }, 200);
 });
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

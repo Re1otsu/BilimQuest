@@ -112,10 +112,32 @@
 
     <div class="games-section">
       <div class="stars-summary">
-        <h3>Вейдждер</h3>
-        <p>{% for i in range(stars_sum|int) %}⭐{% endfor %}
-    {{ stars_sum|int }}</p>
+        <h3>Вейджер — значки</h3>
+        <div class="badge-grid">
+          {% for b in chapter_badges %}
+            <div class="badge-cell{% if b.done %} done{% endif %}" title="{{ b.label }}">
+              <div class="badge-ic">{{ b.icon }}{% if b.done %}<span class="badge-trophy">🏆</span>{% endif %}</div>
+              <div class="badge-cnt">{{ b.count }}<span class="badge-max">/{{ b.max }}</span></div>
+              <div class="badge-lab">{{ b.label }}</div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="badge-total">Барлығы: <b>{{ badges_total }}</b> значок</div>
       </div>
+      <style>
+        .stars-summary .badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}
+        @media(max-width:520px){.stars-summary .badge-grid{grid-template-columns:repeat(2,1fr)}}
+        .badge-cell{position:relative;text-align:center;padding:12px 6px;border-radius:14px;
+          background:rgba(124,58,237,.06);border:1.5px solid rgba(124,58,237,.18)}
+        .badge-cell.done{background:rgba(255,193,45,.12);border-color:rgba(255,193,45,.5);box-shadow:0 0 14px rgba(255,193,45,.25)}
+        .badge-ic{font-size:30px;line-height:1;position:relative;display:inline-block}
+        .badge-trophy{position:absolute;right:-14px;bottom:-4px;font-size:15px}
+        .badge-cnt{font-size:22px;font-weight:900;color:#5b21b6;margin-top:4px}
+        .badge-cnt .badge-max{font-size:13px;font-weight:700;color:#9b8cce}
+        .badge-lab{font-size:12.5px;font-weight:700;color:#6b6890;margin-top:2px}
+        .badge-total{font-size:14px;color:#444;margin-top:4px}
+        .badge-total b{color:#7c3aed;font-size:16px}
+      </style>
       <div class="games-history">
         <h3>Ойын нәтижелері</h3>
         {% if games %}

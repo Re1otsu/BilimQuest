@@ -513,9 +513,7 @@ function finishGame(){
     if(!s||!s.status||s.status.length!==5) s={status:['active','locked','locked','locked','locked']};
     s.status[4]='done'; localStorage.setItem(k,JSON.stringify(s)); }catch(e){}
   const score=Math.round(crys/3*0.3*100)/100;
-  fetch('/game_result',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({game_name:'Файл әлемі',score,stars:crys>=3?1:0,completed:true})}).finally(()=>{ location.href='/toqsan_4'; });
-  setTimeout(()=>{ if(submitting) location.href='/toqsan_4'; },1500);
+  bqFinish({game_name:'Файл әлемі', score, stars:crys>=3?1:0, backUrl:'/toqsan_4'});
 }
 
 /* helpers */
@@ -539,5 +537,6 @@ function confetti(){const cs=['#7dffa0','#46e06a','#37e1ff','#ffd24a','#b98bff',
 /* init */
 genBoard(); updateGoals(); updateMoves();
 </script>
+{% include '_win_modal.html' %}
 </body>
 </html>

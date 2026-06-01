@@ -51,6 +51,8 @@
   to   { transform: scale(1) rotate(0deg);  opacity:1 }
 }
 #gro-stars span.dim { filter: grayscale(1) opacity(.3); animation: none; }
+#gro-earned-lab { font-size: .85rem; font-weight: 800; color: #fbbf24;
+  margin: -18px 0 24px; font-family: 'Nunito','Open Sans',sans-serif; }
 
 #gro-stats {
   display: flex; gap: 20px; justify-content: center;
@@ -91,6 +93,20 @@
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(124,58,237,.65);
 }
+#gro-note {
+  font-size: .8rem; color: #ffcf6a;
+  background: rgba(255,180,60,.1); border: 1px solid rgba(255,180,60,.25);
+  border-radius: 10px; padding: 8px 12px; margin: -10px 0 20px;
+  font-family: 'Nunito', sans-serif;
+}
+#gro-actions { display: flex; gap: 10px; justify-content: center; }
+#gro-replay {
+  background: rgba(255,255,255,.08); color: #cfc8f0;
+  border: 1px solid rgba(255,255,255,.16); border-radius: 50px;
+  padding: 13px 22px; font-size: .95rem; font-weight: 800; cursor: pointer;
+  font-family: 'Nunito','Open Sans',sans-serif; transition: background .2s;
+}
+#gro-replay:hover { background: rgba(255,255,255,.16); }
 `;
 
   function inject() {
@@ -105,24 +121,37 @@
     inject();
 
     const earned  = parseFloat(data.score  || 0);
-    const stars   = parseInt(data.stars    || 0, 10);
     const total   = parseFloat(data.total_score || 0);
-    const tStars  = parseInt(data.total_stars   || 0, 10);
+    const added   = (data.added != null) ? parseFloat(data.added) : earned;
+    const reward  = data.reward || { kind: 'star', total: parseInt(data.total_stars || 0, 10) };
+
+    // тарау жетоны: иконка + атау
+    const KINDS = {
+      star:   { label: 'Жұлдыз', ic: '⭐' },
+      puzzle: { label: 'Пазл',   ic: '🧩' },
+      map:    { label: 'Карта',  ic: '🗺️' },
+      chip:   { label: 'Чип',    ic: '🔩' }
+    };
+    const k = KINDS[reward.kind] || KINDS.star;
+    const tokenTotal = (reward.total != null) ? reward.total : 0;
+
+    // бұл ойында жиналған значки (тир 0–3)
+    const tier = Math.max(0, Math.min(3, parseInt(data.stars || 0, 10)));
+    let starsHTML = '';
+    for (let i = 0; i < 3; i++) { starsHTML += '<span class="' + (i < tier ? '' : 'dim') + '">' + k.ic + '</span>'; }
 
     // Build overlay
     const backdrop = document.createElement('div');
     backdrop.id = 'gro-backdrop';
 
-    const maxStars = 1; // games give 0 or 1 star
-    let starsHTML = '';
-    for (let i = 0; i < maxStars; i++) {
-      starsHTML += `<span class="${i < stars ? '' : 'dim'}">⭐</span>`;
-    }
+    const noteHTML = (added === 0 && earned > 0)
+      ? `<div id="gro-note">♻️ Қайта өту: ұпай қосылмады</div>` : '';
 
     backdrop.innerHTML = `
       <div id="gro-card">
         <div id="gro-title">Ойын аяқталды!</div>
         <div id="gro-stars">${starsHTML}</div>
+        <div id="gro-earned-lab">Бұл ойында: ${tier} значок</div>
         <div id="gro-stats">
           <div class="gro-stat">
             <div class="gro-stat-label">Бұл ойын</div>
@@ -133,15 +162,23 @@
             <div class="gro-stat-value purple">${total.toFixed(2)}</div>
           </div>
           <div class="gro-stat">
-            <div class="gro-stat-label">Жұлдыз</div>
-            <div class="gro-stat-value gold">⭐ ${tStars}</div>
+            <div class="gro-stat-label">${k.label}</div>
+            <div class="gro-stat-value gold">${k.ic} ${tokenTotal}</div>
           </div>
         </div>
-        <button id="gro-btn">Артқа</button>
+        ${noteHTML}
+        <div id="gro-actions">
+          <button id="gro-replay">🔄 Қайта ойнау</button>
+          <button id="gro-btn">Артқа</button>
+        </div>
       </div>`;
 
     document.body.appendChild(backdrop);
 
+    document.getElementById('gro-replay').addEventListener('click', function () {
+      backdrop.remove();
+      window.location.href = window.location.pathname + '?play=1';
+    });
     document.getElementById('gro-btn').addEventListener('click', function () {
       backdrop.remove();
       // Navigate back to student main page
