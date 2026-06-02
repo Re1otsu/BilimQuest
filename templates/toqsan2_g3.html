@@ -147,7 +147,7 @@ svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshai
   <div class="studio">
     <!-- LEFT: vector canvas -->
     <section class="card">
-      <div class="card-head"><span class="dot"></span> ЛАЗЕР ПОРТАЛЫ → ҚАБЫЛДАҒЫШ — векторлық тор</div>
+      <div class="card-head"><span class="dot"></span> ЛАЗЕР ПОРТАЛЫ → ҚАБЫЛДАҒЫШ · <span id="lvlBadge" style="color:#7dffd0">Деңгей 1/3</span></div>
       <div class="stagebox">
         <svg id="stage" viewBox="0 0 600 360" preserveAspectRatio="xMidYMid meet"></svg>
       </div>
@@ -197,10 +197,29 @@ svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshai
 const SVGNS="http://www.w3.org/2000/svg";
 const stage=document.getElementById("stage");
 
-/* ── level data ── */
-const checkpoints=[ {x:200,y:110,r:30}, {x:400,y:250,r:30} ];
-const obstacles=[ {x:205,y:255,r:28}, {x:400,y:108,r:28} ];
-const START={x:40,y:180}, END={x:560,y:180};
+/* ── level data (бірнеше деңгей) ── */
+const LEVELS=[
+  { start:{x:40,y:180}, end:{x:560,y:180},
+    checkpoints:[{x:200,y:110,r:30},{x:400,y:250,r:30}],
+    obstacles:[{x:205,y:255,r:28},{x:400,y:108,r:28}] },
+  { start:{x:40,y:120}, end:{x:560,y:240},
+    checkpoints:[{x:160,y:250,r:28},{x:300,y:90,r:28},{x:440,y:250,r:28}],
+    obstacles:[{x:160,y:120,r:26},{x:300,y:215,r:24},{x:440,y:120,r:26}] },
+  { start:{x:40,y:300}, end:{x:560,y:60},
+    checkpoints:[{x:150,y:95,r:26},{x:300,y:285,r:26},{x:450,y:95,r:26}],
+    obstacles:[{x:150,y:270,r:23},{x:300,y:100,r:23},{x:450,y:270,r:23}] },
+];
+let level=0, levelScores=[];
+let checkpoints=LEVELS[0].checkpoints, obstacles=LEVELS[0].obstacles;
+let START=LEVELS[0].start, END=LEVELS[0].end;
+function loadLevel(){
+  const L=LEVELS[level];
+  checkpoints=L.checkpoints; obstacles=L.obstacles; START=L.start; END=L.end;
+  nodes=freshNodes(); selIdx=-1; tool="select"; nodeWarned=false;
+  document.querySelectorAll(".tool[data-tool]").forEach(x=>x.classList.toggle("active",x.dataset.tool==="select"));
+  const b=document.getElementById("lvlBadge"); if(b) b.textContent="Деңгей "+(level+1)+"/"+LEVELS.length;
+  render();
+}
 
 /* ── nodes: start & end fixed; middle added by player ──
    node = {x,y,hx,hy,type:'smooth'|'corner',fixed} */
@@ -490,11 +509,18 @@ document.getElementById("finishBtn").onclick=()=>{
     document.getElementById("accFill").animate([{filter:'brightness(2)'},{filter:'brightness(1)'}],{duration:500});
     return;
   }
+  levelScores[level]=ev.acc*(0.9+0.1*ev.energy);
+  if(level < LEVELS.length-1){
+    level++;
+    kronos(`🎉 Деңгей ${level}/${LEVELS.length} өтілді! Келесі деңгей — жаңа кедергілер мен шеңберлер. Жалғастыр!`);
+    loadLevel();
+    return;
+  }
   if(submitting)return; submitting=true;
-  const a=ev.acc*(0.9+0.1*ev.energy);   // score = accuracy with a small energy bonus
-  const score=Math.round(MAX*a*100)/100;
-  bqFinish({game_name:'Лазер жолы', score, stars:(pct>=98&&ev.energy>=0.82)?1:0, accuracy:pct,
-    title:'Портал ашылды!', subtitle:'Лазер сәулесі қабылдағышқа дәл жетті. Квест картасында жаңа деңгей ашылды!',
+  const avg=levelScores.reduce((a,b)=>a+b,0)/LEVELS.length;
+  const score=Math.round(MAX*avg*100)/100;
+  bqFinish({game_name:'Лазер жолы', score, accuracy:Math.round(avg*100),
+    title:'Барлық деңгей өтілді!', subtitle:'Лазер барлық порталдарды іске қосты! 🎉',
     backUrl:'/toqsan_2'});
 };
 
@@ -507,7 +533,7 @@ function confetti(){
 }
 
 /* init */
-render();
+loadLevel();
 </script>
 </body>
 </html>

@@ -63,7 +63,10 @@
     </style>
 
     <!-- n1: Робот орны -->
-    <a class="p-node{% if completed['Робот орны'] %} p-done{% endif %}" id="n1" href="{{ url_for('quest3_m1') }}" aria-label="Робот орны">
+    <a class="p-node{% if completed['Робот орны'] %} p-done{% endif %}" id="n1" href="{{ url_for('quest3_m1') }}"
+       data-desc="Робот түрлері мен орналасуын танып, әрқайсысын дұрыс орнына қой."
+       data-tags="🎮 Ойын|🤖 Робот|+0.30 ⭐"
+       aria-label="Робот орны">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_1.png') }}" alt="">
         {% if completed['Робот орны'] %}<div class="p-done-badge">✓</div>{% endif %}
@@ -75,7 +78,10 @@
     </a>
 
     <!-- n2: Робот тарихы -->
-    <a class="p-node{% if completed['Робот тарихы'] %} p-done{% endif %}" id="n2" href="{{ url_for('quest3_m2') }}" aria-label="Робот тарихы">
+    <a class="p-node{% if completed['Робот тарихы'] %} p-done{% endif %}" id="n2" href="{{ url_for('quest3_m2') }}"
+       data-desc="Робототехника тарихындағы маңызды оқиғаларды дұрыс ретімен орналастыр."
+       data-tags="🎮 Ойын|📜 Тарих|+0.50 ⭐"
+       aria-label="Робот тарихы">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_2.1.png') }}" alt="">
         {% if completed['Робот тарихы'] %}<div class="p-done-badge">✓</div>{% endif %}
@@ -87,7 +93,10 @@
     </a>
 
     <!-- n3: Гироскоп -->
-    <a class="p-node{% if completed['Гироскоп'] %} p-done{% endif %}" id="n3" href="{{ url_for('quest3_m3') }}" aria-label="Гироскоп">
+    <a class="p-node{% if completed['Гироскоп'] %} p-done{% endif %}" id="n3" href="{{ url_for('quest3_m3') }}"
+       data-desc="Гироскоптық датчиктің жұмысын түсініп, роботтың тепе-теңдігін сақта."
+       data-tags="🎮 Ойын|🌀 Датчик|+0.30 ⭐"
+       aria-label="Гироскоп">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_3.1.png') }}" alt="">
         {% if completed['Гироскоп'] %}<div class="p-done-badge">✓</div>{% endif %}
@@ -99,7 +108,10 @@
     </a>
 
     <!-- n4: Лабиринт ойыны -->
-    <a class="p-node{% if completed['Лабиринт ойыны'] %} p-done{% endif %}" id="n4" href="{{ url_for('quest3_m4') }}" aria-label="Лабиринт ойыны">
+    <a class="p-node{% if completed['Лабиринт ойыны'] %} p-done{% endif %}" id="n4" href="{{ url_for('quest3_m4') }}"
+       data-desc="Роботты бұрылыстармен басқарып, лабиринттен шығар. Бірнеше деңгей!"
+       data-tags="🎮 Ойын|🧭 Лабиринт|+0.50 ⭐"
+       aria-label="Лабиринт ойыны">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_4.1.png') }}" alt="">
         {% if completed['Лабиринт ойыны'] %}<div class="p-done-badge">✓</div>{% endif %}
@@ -111,7 +123,10 @@
     </a>
 
     <!-- n5: Сызық робот -->
-    <a class="p-node{% if completed['Сызық робот'] %} p-done{% endif %}" id="n5" href="{{ url_for('quest3_m5') }}" aria-label="Сызық робот">
+    <a class="p-node{% if completed['Сызық робот'] %} p-done{% endif %}" id="n5" href="{{ url_for('quest3_m5') }}"
+       data-desc="Line-follower роботты Kp, Kd және жылдамдықпен бапта. 3 трасса!"
+       data-tags="🎮 Ойын|📈 Баптау|+0.50 ⭐"
+       aria-label="Сызық робот">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_5.1.png') }}" alt="">
         {% if completed['Сызық робот'] %}<div class="p-done-badge">✓</div>{% endif %}
@@ -123,7 +138,10 @@
     </a>
 
     <!-- n6: Сумо -->
-    <a class="p-node p-finish{% if completed['Сумо'] %} p-done{% endif %}" id="n6" href="{{ url_for('quest3_m6') }}" aria-label="Робо-сумо">
+    <a class="p-node p-finish{% if completed['Сумо'] %} p-done{% endif %}" id="n6" href="{{ url_for('quest3_m6') }}"
+       data-desc="Робо-сумо жекпе-жегінде қарсыласты алаңнан итеріп шығар!"
+       data-tags="🎮 Жекпе-жек|🥊 Сумо|+0.50 ⭐"
+       aria-label="Робо-сумо">
       <div class="p-platform">
         <img class="p-platform-img" src="{{ url_for('static', filename='img/quest_final_1.png') }}" alt="">
         {% if completed['Сумо'] %}<div class="p-done-badge">✓</div>{% endif %}
@@ -200,6 +218,10 @@
   document.querySelectorAll(".q-fireflies").forEach(initFireflies);
 })();
 </script>
+
+{% set node_accent = '#38bdf8' %}
+{% set node_accent_soft = 'rgba(56,189,248,.14)' %}
+{% include '_node_modal.html' %}
 
 </body>
 </html>

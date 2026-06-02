@@ -336,93 +336,88 @@ def login_teacher():
     return render_template("login_tchr.html")
 
 def _render_dashboard(student_id):
-    """Shared logic for rendering a student's progress dashboard."""
+    """Барлық ойындар бойынша прогресс + Блум таксономиясы + қорытынды."""
     student = Student.query.get(student_id)
     if not student:
         return "Студент не найден", 404
 
-    games = GameProgress.query.filter_by(student_id=student_id, completed=True).all()
-
-    GAME_TO_CHAPTER = {
-        "Қағып ал": ["Білу"],
-        "Көпір": ["Білу"],
-        "Сәйкестік": ["Білу"],
-        "Лабиринт": ["Түсіну"],
-        "Ғарыш хабаршысы": ["Түсіну"],
-        "Хабаршы": ["Түсіну"],
-        "Қамал": ["Қолдану"],
-        "Шифр": ["Қолдану"],
-        "Агент": ["Қолдану"],
-        "Робот": ["Анализ", "Синтез"],
-        "Сиқырлы шарлар": ["Анализ", "Синтез"],
-        "Блоктар": ["Анализ", "Синтез"],
-    }
-
-    CHAPTER_MAX_SCORE = {
-        "Білу": 1,
-        "Түсіну": 1,
-        "Қолдану": 2,
-        "Анализ": 4,
-        "Синтез": 4,
-    }
-
-    chapters = {chapter: {"score_sum": 0, "max_score": max_score}
-                for chapter, max_score in CHAPTER_MAX_SCORE.items()}
-
-    for g in games:
-        for chapter in GAME_TO_CHAPTER.get(g.game_name, []):
-            if chapter in chapters:
-                chapters[chapter]["score_sum"] += g.score
-
-    chapters_progress = {
-        chapter: {
-            "score": data["score_sum"],
-            "max_score": data["max_score"],
-            "percent": round(data["score_sum"] / data["max_score"] * 100, 1) if data["max_score"] > 0 else 0
-        }
-        for chapter, data in chapters.items()
-    }
-
-    for g in games:
-        chapters_list = GAME_TO_CHAPTER.get(g.game_name, [])
-        g.chapter = ", ".join(chapters_list) if chapters_list else "—"
-
-    stars_sum = sum(g.stars for g in games)
-    total_score = sum(g.score for g in games)
-
-    CHAPTER_DISPLAY_NAMES = {
-        "Білу": "Біздің айналамыздағы ақпарат",
-        "Түсіну": "Ақпарат беру",
-        "Қолдану": "Ақпаратты шифрлау",
-        "Анализ": "Екілік ақпаратты ұсыну",
-        "Синтез": "Екілік ақпаратты ұсыну. Практикум",
-    }
-    chapters_progress_display = {
-        CHAPTER_DISPLAY_NAMES.get(ch, ch): data
-        for ch, data in chapters_progress.items()
-    }
-
-    # ── Значки по главам (синхронно с игровыми жетонами) ──
-    CHAPTER_BADGE = {
-        "info":     ("Жұлдыз", "⭐"),
-        "graphics": ("Пазл",   "🧩"),
-        "robotics": ("Карта",  "🗺️"),
-        "security": ("Чип",    "🔩"),
-    }
     all_progress = GameProgress.query.filter_by(student_id=student_id).all()
+    best = {p.game_name: p for p in all_progress}   # бір ойын — бір жазба (ең үздік)
+
+    def earned_of(gname):
+        p = best.get(gname)
+        return min(float(p.score), MAX_SCORE.get(gname, 0)) if p else 0.0
+
+    # ── Блум таксономиясы (барлық ойын бойынша) ──
+    bloom = {lvl: {"earned": 0.0, "max": 0.0} for lvl in BLOOM_LEVELS}
+    for gname, mx in MAX_SCORE.items():
+        lvl = GAME_BLOOM.get(gname)
+        if not lvl:
+            continue
+        bloom[lvl]["max"] += mx
+        bloom[lvl]["earned"] += earned_of(gname)
+    chapters_progress = {
+        lvl: {
+            "score": round(d["earned"], 2),
+            "max_score": round(d["max"], 2),
+            "percent": round(d["earned"] / d["max"] * 100, 1) if d["max"] > 0 else 0,
+        }
+        for lvl, d in bloom.items()
+    }
+
+    # ── Тарау (тоқсан) прогрессі ──
+    chapters_progress_display = {}
+    for ck, info in GAME_CHAPTERS.items():
+        mx = sum(MAX_SCORE.get(g, 0) for g in info["games"])
+        earned = sum(earned_of(g) for g in info["games"])
+        chapters_progress_display[CHAPTER_LABELS.get(ck, ck)] = {
+            "score": round(earned, 2),
+            "max_score": round(mx, 2),
+            "percent": round(earned / mx * 100, 1) if mx > 0 else 0,
+        }
+
+    # ── Значки по главам (тоқсан жетондары) ──
+    CHAPTER_BADGE = {
+        "info": ("Жұлдыз", "⭐"), "graphics": ("Пазл", "🧩"),
+        "robotics": ("Карта", "🗺️"), "security": ("Чип", "🔩"),
+    }
     chapter_badges = []
     badges_total = 0
     for ck, info in GAME_CHAPTERS.items():
-        names = set(info["games"])
-        cnt = sum(int(p.stars or 0) for p in all_progress if p.game_name in names)
-        mx = len(info["games"]) * 3   # тир-максимум: 3 значка на игру
+        cnt = sum(int(best[g].stars or 0) for g in info["games"] if g in best)
+        mx = len(info["games"]) * 3
         label, icon = CHAPTER_BADGE.get(ck, (ck, "⭐"))
         chapter_badges.append({
             "kind": ck, "label": label, "icon": icon,
-            "count": cnt, "max": mx,
-            "done": mx > 0 and cnt >= 0.8 * mx,   # глава пройдена ≥80%
+            "count": cnt, "max": mx, "done": mx > 0 and cnt >= 0.8 * mx,
         })
         badges_total += cnt
+
+    # ── Жалпы қорытынды ──
+    total_games = len(MAX_SCORE)
+    played = sum(1 for g in MAX_SCORE if g in best)
+    completed_cnt = sum(1 for p in all_progress if p.completed)
+    max_total = sum(MAX_SCORE.values())
+    earned_total = sum(earned_of(g) for g in MAX_SCORE)
+    summary = {
+        "total_games": total_games,
+        "played": played,
+        "play_percent": round(played / total_games * 100) if total_games else 0,
+        "completed": completed_cnt,
+        "earned": round(earned_total, 2),
+        "max_total": round(max_total, 2),
+        "earned_percent": round(earned_total / max_total * 100, 1) if max_total else 0,
+        "badges": badges_total,
+        "badges_max": sum(len(i["games"]) * 3 for i in GAME_CHAPTERS.values()),
+        "score": round(float(student.score), 2),
+    }
+
+    # ── Ойын тарихы ──
+    games = sorted(all_progress, key=lambda p: p.id, reverse=True)
+    for p in games:
+        ck = GAME_TO_CHAPTER.get(p.game_name, "info")
+        p.chapter = CHAPTER_LABELS.get(ck, "—")
+        p.bloom = GAME_BLOOM.get(p.game_name, "—")
 
     return render_template(
         "dashboard.html",
@@ -430,10 +425,11 @@ def _render_dashboard(student_id):
         games=games,
         chapters_progress=chapters_progress,
         chapters_progress_display=chapters_progress_display,
-        stars_sum=stars_sum,
-        total_score=total_score,
         chapter_badges=chapter_badges,
-        badges_total=badges_total
+        badges_total=badges_total,
+        summary=summary,
+        stars_sum=badges_total,
+        total_score=summary["score"],
     )
 
 
@@ -471,6 +467,44 @@ GAME_CHAPTERS = {
     },
 }
 GAME_TO_CHAPTER = {g: ck for ck, info in GAME_CHAPTERS.items() for g in info["games"]}
+
+# Ойынның максимал ұпайы (барлық ойын — бір жерде)
+MAX_SCORE = {
+    "Сәйкестік": 0.4, "Көпір": 0.3, "Қағып ал": 0.3, "Лабиринт": 0.3,
+    "Ғарыш хабаршысы": 0.3, "Хабаршы": 0.3, "Қамал": 0.6, "Шифр": 0.7,
+    "Агент": 0.7, "Робот": 1.2, "Сиқырлы шарлар": 1.4, "Блоктар": 1.4, "Пазл": 2,
+    "Робот орны": 0.3, "Робот тарихы": 0.5, "Гироскоп": 0.3, "Лабиринт ойыны": 0.5,
+    "Сызық робот": 0.5, "Сумо": 0.5,
+    "Эргономика": 0.1, "Цифрлық детектив": 0.2, "Кибер-бекініс": 0.3,
+    "Файл әлемі": 0.3, "Желілік жүгіруші": 0.3,
+    "Пиксель шебері": 0.5, "Фотолаб": 0.5, "Лазер жолы": 0.5,
+    "Вектор ядро": 0.5, "Графика текетірес": 0.6,
+}
+
+# Блум таксономиясы: әр ойын → танымдық деңгей
+BLOOM_LEVELS = ["Білу", "Түсіну", "Қолдану", "Талдау", "Бағалау", "Жасау"]
+GAME_BLOOM = {
+    # Ақпаратты ұсыну
+    "Қағып ал": "Білу", "Көпір": "Білу", "Сәйкестік": "Білу",
+    "Лабиринт": "Түсіну", "Ғарыш хабаршысы": "Түсіну", "Хабаршы": "Түсіну",
+    "Қамал": "Қолдану", "Шифр": "Қолдану", "Агент": "Қолдану",
+    "Робот": "Талдау", "Сиқырлы шарлар": "Бағалау", "Блоктар": "Жасау", "Пазл": "Жасау",
+    # Компьютерлік графика
+    "Пиксель шебері": "Қолдану", "Фотолаб": "Қолдану",
+    "Вектор ядро": "Жасау", "Лазер жолы": "Жасау", "Графика текетірес": "Бағалау",
+    # Робототехника
+    "Робот орны": "Білу", "Робот тарихы": "Түсіну", "Гироскоп": "Түсіну",
+    "Лабиринт ойыны": "Қолдану", "Сумо": "Қолдану", "Сызық робот": "Талдау",
+    # Компьютер және қауіпсіздік
+    "Эргономика": "Түсіну", "Цифрлық детектив": "Қолдану", "Желілік жүгіруші": "Қолдану",
+    "Кибер-бекініс": "Талдау", "Файл әлемі": "Бағалау",
+}
+CHAPTER_LABELS = {
+    "info": "Ақпаратты ұсыну",
+    "graphics": "Компьютерлік графика",
+    "robotics": "Робототехника",
+    "security": "Компьютер және қауіпсіздік",
+}
 
 
 def _chapter_reward(student_id, game_name):
@@ -548,39 +582,6 @@ def game_result():
     score = float(data.get("score", 0))  # дробное значение
     stars = int(data.get("stars", 0))
     completed = bool(data.get("completed", True))
-
-    # максимальные очки для игры
-    MAX_SCORE = {
-        "Сәйкестік": 0.4,
-        "Көпір": 0.3,
-        "Қағып ал": 0.3,
-        "Лабиринт": 0.3,
-        "Ғарыш хабаршысы":0.3,
-        "Хабаршы":0.3,
-        "Қамал":0.6,
-        "Шифр":0.7,
-        "Агент":0.7,
-        "Робот": 1.2,
-        "Сиқырлы шарлар": 1.4,
-        "Блоктар":1.4,
-        "Пазл": 2,
-        "Робот орны": 0.3,
-        "Робот тарихы": 0.5,
-        "Гироскоп": 0.3,
-        "Лабиринт ойыны": 0.5,
-        "Сызық робот": 0.5,
-        "Сумо": 0.5,
-        "Эргономика": 0.1,
-        "Цифрлық детектив": 0.2,
-        "Кибер-бекініс": 0.3,
-        "Файл әлемі": 0.3,
-        "Желілік жүгіруші": 0.3,
-        "Пиксель шебері": 0.5,
-        "Фотолаб": 0.5,
-        "Лазер жолы": 0.5,
-        "Вектор ядро": 0.5,
-        "Графика текетірес": 0.6,
-    }
 
     max_score = MAX_SCORE.get(game_name)
     if max_score is None:

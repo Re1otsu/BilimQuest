@@ -125,7 +125,7 @@ svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshai
     </div>
   </header>
 
-  <div class="mission">🌀 Миссия: Деректердің векторлық <b>ядросын</b> контурмен дәл жиектеп, порталды іске қос! &nbsp;·&nbsp; Ядро: <b id="coreCnt">2/5</b></div>
+  <div class="mission">🌀 Миссия: Деректердің векторлық <b>ядросын</b> контурмен дәл жиектеп, порталды іске қос! &nbsp;·&nbsp; Ядро: <b id="coreCnt">0/3</b></div>
 
   <div class="meters">
     <div class="meter">
@@ -188,8 +188,17 @@ svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshai
 const SVGNS="http://www.w3.org/2000/svg";
 const stage=document.getElementById("stage");
 
-/* ── target core: a circle to be traced ── */
-const C={x:300,y:185}, R=110;
+/* ── target core: a circle to be traced (бірнеше деңгей) ── */
+const LEVELS=[ {C:{x:300,y:185},R:110}, {C:{x:300,y:182},R:82}, {C:{x:300,y:178},R:60} ];
+let level=0, levelScores=[];
+let C={x:LEVELS[0].C.x,y:LEVELS[0].C.y}, R=LEVELS[0].R;
+function loadLevel(){
+  C={x:LEVELS[level].C.x,y:LEVELS[level].C.y}; R=LEVELS[level].R;
+  nodes=freshNodes(); selIdx=-1; tool="select"; nodeWarned=false; cornerWarned=false;
+  document.querySelectorAll(".tool[data-tool]").forEach(x=>x.classList.toggle("active",x.dataset.tool==="select"));
+  const cc=document.getElementById("coreCnt"); if(cc) cc.textContent=level+"/"+LEVELS.length;
+  render();
+}
 
 /* ── nodes (all draggable; min 3). Start as small triangle near centre ── */
 function autoHandle(x,y,L){
@@ -430,12 +439,19 @@ document.getElementById("finishBtn").onclick=()=>{
     document.getElementById("accFill").animate([{filter:'brightness(2)'},{filter:'brightness(1)'}],{duration:500});
     return;
   }
+  levelScores[level]=0.8*ev.acc + 0.2*ev.energy;
+  if(level < LEVELS.length-1){
+    level++;
+    kronos(`🎉 Ядро ${level}/${LEVELS.length} қалпына келді! Келесі ядро кішірек — дәлдік маңызды!`);
+    loadLevel();
+    return;
+  }
   if(submitting)return; submitting=true;
-  const a=0.8*ev.acc + 0.2*ev.energy;
-  const score=Math.round(MAX*a*100)/100;
-  document.getElementById("coreCnt").textContent="3/5";
-  bqFinish({game_name:'Вектор ядро', score, stars:(pct>=98&&ev.energy>=0.82)?1:0, accuracy:pct,
-    title:'Ядро қалпына келді!', subtitle:'Векторлық контур ядроны дәл қоршады — портал іске қосылды. Жаңа деңгей ашылды!',
+  document.getElementById("coreCnt").textContent=LEVELS.length+"/"+LEVELS.length;
+  const avg=levelScores.reduce((a,b)=>a+b,0)/LEVELS.length;
+  const score=Math.round(MAX*avg*100)/100;
+  bqFinish({game_name:'Вектор ядро', score, accuracy:Math.round(avg*100),
+    title:'Барлық ядро қалпына келді!', subtitle:'Векторлық контурлар барлық ядроларды қоршады — портал толық іске қосылды! 🎉',
     backUrl:'/toqsan_2'});
 };
 
@@ -447,7 +463,7 @@ function confetti(){
     document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
 }
 
-render();
+loadLevel();
 </script>
 </body>
 </html>

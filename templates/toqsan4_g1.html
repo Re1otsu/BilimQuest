@@ -169,8 +169,8 @@ body{background:
 
   <!-- question -->
   <div class="card">
-    <span class="badge">СҰРАҚ</span>
-    <div class="q-text">Компьютер алдында үзіліссіз қанша уақыт отыруға болады?</div>
+    <span class="badge" id="qBadge">СҰРАҚ 1/3</span>
+    <div class="q-text" id="qText">Компьютер алдында үзіліссіз қанша уақыт отыруға болады?</div>
     <div class="q-img"><img src="{{ url_for('static', filename='img/toqsan4/node-safe.png') }}" alt="Компьютер алдындағы бала"></div>
     <div class="options" id="options"></div>
     <button class="answer-btn" id="answerBtn" disabled>▶ Жауап беру</button>
@@ -224,28 +224,55 @@ let won = false;
 let selected = -1;
 let answeredCorrect = false;
 
-/* ── options ── */
-const OPTS = [
-  { n:1, t:'10 минут', kind:'soft',
-    title:'Бұл дұрыс емес', tcls:'soft',
-    fb:'10 минут тым аз — жұмысты аяқтап үлгермейсің. Бірақ ұзақ үзіліссіз отыру да зиян. Қайта ойланып көр!' },
-  { n:2, t:'20–30 минут', kind:'correct',
-    title:'Дұрыс жауап!', tcls:'good',
-    fb:'Жарайсың! Бұл өте дұрыс әрекет. 20–30 минуттан кейін үзіліс жасау көздің шаршауын азайтады және денсаулықты қорғайды!' },
-  { n:3, t:'2 сағат', kind:'danger',
-    title:'Бұл қауіпті!', tcls:'bad',
-    fb:'Экранға телміріп 2 сағат тапжылмай отыру көру қабілетіне және омыртқаға өте үлкен зиян! Сол жақтағы Көмек сұрақтарын қарап көр.' },
+/* ── scenes (бірнеше деңгей-сұрақ) ── */
+const SCENES = [
+  { q:'Компьютер алдында үзіліссіз қанша уақыт отыруға болады?',
+    opts:[
+      { n:1,t:'10 минут',kind:'soft',title:'Бұл дұрыс емес',tcls:'soft',
+        fb:'10 минут тым аз — жұмысты аяқтап үлгермейсің. Бірақ ұзақ үзіліссіз отыру да зиян. Қайта ойлан!' },
+      { n:2,t:'20–30 минут',kind:'correct',title:'Дұрыс жауап!',tcls:'good',
+        fb:'Жарайсың! 20–30 минуттан кейін үзіліс жасау көздің шаршауын азайтады және денсаулықты қорғайды!' },
+      { n:3,t:'2 сағат',kind:'danger',title:'Бұл қауіпті!',tcls:'bad',
+        fb:'2 сағат тапжылмай отыру көру қабілетіне және омыртқаға өте үлкен зиян!' },
+    ] },
+  { q:'Экран мен көздің арасы қандай қашықтықта болуы керек?',
+    opts:[
+      { n:1,t:'20 см — жақынырақ жақсы',kind:'danger',title:'Тым жақын!',tcls:'bad',
+        fb:'20 см тым жақын — көздің линзасына үлкен салмақ. Кемінде 50–60 см керек!' },
+      { n:2,t:'50–60 см (қол созым)',kind:'correct',title:'Дұрыс!',tcls:'good',
+        fb:'Тамаша! Қол созым қашықтық (50–60 см) — көз үшін ең қауіпсіз ара қашықтық.' },
+      { n:3,t:'Қашықтық маңызды емес',kind:'soft',title:'Олай емес',tcls:'soft',
+        fb:'Қашықтық өте маңызды — жақын отыру көру қабілетін тез нашарлатады.' },
+    ] },
+  { q:'Компьютер алдында дұрыс отыру қалай болуы керек?',
+    opts:[
+      { n:1,t:'Арқа түзу, аяқ еденде, шынтақ 90°',kind:'correct',title:'Дұрыс!',tcls:'good',
+        fb:'Өте дұрыс! Арқа түзу, аяқ еденде, шынтақ 90° — омыртқа мен бұлшықетке қауіпсіз.' },
+      { n:2,t:'Диванда жатып',kind:'danger',title:'Қауіпті!',tcls:'bad',
+        fb:'Жатып отыру мойын мен көзге зиян, омыртқа қисаяды. Үстел басында түзу отыр!' },
+      { n:3,t:'Аяқты үстелге қойып',kind:'soft',title:'Олай емес',tcls:'soft',
+        fb:'Аяқ еденге тегіс тиіп тұруы керек — қан айналымы дұрыс болады.' },
+    ] },
 ];
+let scene=0, optEls=[];
 
-const optsEl = document.getElementById('options');
-OPTS.forEach((o,i)=>{
-  const d=document.createElement('div');
-  d.className='opt'; d.dataset.i=i;
-  d.innerHTML=`<span class="onum">${o.n}</span><span>${o.t}</span><span class="ocheck">✓</span>`;
-  d.onclick=()=>selectOpt(i);
-  optsEl.appendChild(d);
-});
-const optEls=[...document.querySelectorAll('.opt')];
+function renderScene(){
+  const sc=SCENES[scene];
+  document.getElementById('qText').textContent=sc.q;
+  document.getElementById('qBadge').textContent='СҰРАҚ '+(scene+1)+'/'+SCENES.length;
+  selected=-1; answeredCorrect=false;
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('answerBtn').disabled=true;
+  const optsEl=document.getElementById('options'); optsEl.innerHTML='';
+  sc.opts.forEach((o,i)=>{
+    const d=document.createElement('div');
+    d.className='opt'; d.dataset.i=i;
+    d.innerHTML=`<span class="onum">${o.n}</span><span>${o.t}</span><span class="ocheck">✓</span>`;
+    d.onclick=()=>selectOpt(i);
+    optsEl.appendChild(d);
+  });
+  optEls=[...document.querySelectorAll('.opt')];
+}
 
 function selectOpt(i){
   if(answeredCorrect) return;
@@ -257,7 +284,7 @@ function selectOpt(i){
 document.getElementById('answerBtn').onclick=submitAnswer;
 function submitAnswer(){
   if(selected<0 || answeredCorrect) return;
-  const o=OPTS[selected];
+  const o=SCENES[scene].opts[selected];
   const el=optEls[selected];
   showFeedback(o);
 
@@ -266,9 +293,13 @@ function submitAnswer(){
     el.classList.remove('sel'); el.classList.add('correct');
     optEls.forEach(e=>e.classList.add('locked'));
     document.getElementById('answerBtn').disabled=true;
-    setHealth(100);
+    setHealth(Math.round(40 + (scene+1)/SCENES.length*60));
     ding();
-    setTimeout(winSequence,500);
+    if(scene < SCENES.length-1){
+      setTimeout(()=>{ scene++; renderScene(); },1400);
+    } else {
+      setTimeout(winSequence,500);
+    }
   } else if(o.kind==='danger'){
     el.classList.add('wrong');
     dangerFlash();
@@ -299,7 +330,7 @@ function setHealth(v){
   f.style.width=v+'%'; p.textContent=v+'%';
   f.classList.toggle('warn', v<60);
 }
-setHealth(85);
+setHealth(40); renderScene();
 
 /* ── win ── */
 function winSequence(){

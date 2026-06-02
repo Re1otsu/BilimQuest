@@ -76,16 +76,20 @@
   .gate svg{width:26px;height:26px;}
 
   /* ---------- hero (static) ---------- */
-  #hero{position:absolute;left:55px;top:150px;width:200px;height:auto;z-index:7;
+  #hero{position:static;width:100%;height:auto;z-index:7;
     filter:drop-shadow(0 18px 22px rgba(0,0,0,.55));}
+  .hero-cap{margin-top:8px;text-align:center;font-weight:800;font-size:17px;color:#dff1ff;
+    background:linear-gradient(180deg,rgba(18,30,42,.92),rgba(10,18,26,.95));
+    border:1.5px solid rgba(120,210,255,.5);border-radius:14px;padding:7px 14px;
+    box-shadow:0 8px 20px rgba(0,0,0,.45);text-shadow:0 1px 3px rgba(0,0,0,.6);transition:.2s}
+  .hero-link:hover .hero-cap{border-color:rgba(120,210,255,.9);color:#fff;transform:translateY(-2px)}
 
   /* ---------- nodes ---------- */
   .node{position:absolute;transform:translate(-50%,-50%);z-index:8;
     background:none;border:none;cursor:pointer;padding:0;
     width:240px;display:flex;flex-direction:column;align-items:center;
     -webkit-tap-highlight-color:transparent;}
-  .node .art{position:relative;width:400px;height:300px;display:flex;align-items:center;justify-content:center;
-    animation:float var(--dur,5s) ease-in-out infinite;animation-delay:var(--delay,0s);}
+  .node .art{position:relative;width:400px;height:300px;display:flex;align-items:center;justify-content:center;}
   @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
   .node .art img{width:100%;height:100%;object-fit:contain;
     filter:drop-shadow(0 12px 16px rgba(0,0,0,.5));transition:filter .25s, transform .25s;}
@@ -122,7 +126,8 @@
     border:2px solid rgba(180,200,220,.35);}
   .corner svg{width:28px;height:28px;}
 
-  /* hover */
+  /* hover — қалқу анимациясы тек меңзегенде */
+  .node:not(.locked):hover .art{animation:float 1.6s ease-in-out infinite;}
   .node:not(.locked):hover .art img{transform:scale(1.06);
     filter:drop-shadow(0 16px 20px rgba(0,0,0,.55)) brightness(1.08);}
   .node:not(.locked):active .art img{transform:scale(.99);}
@@ -263,7 +268,7 @@
 .chip-score{height:54px;padding:0 22px;border-radius:999px;display:flex;align-items:center;gap:10px;background:linear-gradient(45deg,#ffd34d,#ffb300);color:#1f2d3d;font-weight:900;font-size:25px;box-shadow:0 10px 22px rgba(0,0,0,.25)}
 .chip-score b{font-size:26px}
 .chip-ico{width:28px;height:28px;flex-shrink:0}
-.hero-link{cursor:pointer;display:block}
+.hero-link{cursor:pointer;display:block;position:absolute;left:55px;top:150px;width:200px;z-index:7}
 .hero-link #hero{transition:transform .2s,filter .2s}
 .hero-link:hover #hero{transform:scale(1.05);filter:drop-shadow(0 22px 26px rgba(0,0,0,.6)) brightness(1.08)}
 .t4-badges{display:flex;gap:7px;justify-content:center;margin-top:6px}
@@ -302,7 +307,7 @@
     <!-- hero → главная -->
     <a href="/student" class="hero-link" title="Басты бетке оралу" aria-label="Басты бет">
       <img id="hero" src="{{ url_for('static', filename='img/toqsan4/hero.png') }}" alt="Кейіпкер">
-      
+      <div class="hero-cap"> Басты бет</div>
     </a>
 
     <!-- nodes injected by JS -->
@@ -325,12 +330,6 @@
     <div class="banner"><h1>Компьютер және қауіпсіздік</h1></div>
 
     <!-- chrome -->
-    <a class="side-tab" title="Мәзір" href="/student">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#9fdfff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-    </a>
-    <a class="home-btn" title="Шығу" href="/student">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#9fdfff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-    </a>
     <div class="compass" title="Карта">
       <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="none" stroke="#7fe0ff" stroke-width="1.6"/><polygon points="16,5 19,16 16,27 13,16" fill="#ff6a8a"/><polygon points="5,16 16,13 27,16 16,19" fill="#7fe0ff"/><circle cx="16" cy="16" r="2.2" fill="#fff"/></svg>
     </div>
@@ -430,7 +429,7 @@ NODES.forEach((n,i)=>{
       <div class="corner lock"><svg viewBox="0 0 24 24" fill="none" stroke="#cfe0ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
       <img src="${n.img}" alt="${n.title}">
     </div>
-    <div class="label"><span class="num">БЛОК ${i+1}</span><br>${n.short}</div>
+    <div class="label">${n.short}</div>
     <div class="t4-badges">${(function(){var sc=STARS[ROUTE_GAME[n.route]]||0,p='';for(var j=0;j<3;j++){p+='<span class="t4-pip'+(j<sc?' on':'')+'">🔩</span>';}return p;})()}</div>`;
   b.addEventListener('click',()=>openNode(i));
   nodesEl.appendChild(b);
@@ -516,7 +515,7 @@ applyState();
 
 /* ====== fit-to-viewport scaling ====== */
 const stage=document.getElementById('stage');
-function fit(){ const s=Math.min(innerWidth/1920, innerHeight/1080); stage.style.transform='scale('+s+')'; }
+function fit(){ stage.style.transform='scale('+(innerWidth/1920)+','+(innerHeight/1080)+')'; }
 window.addEventListener('resize',fit); fit();
 
 /* reset helper (dev): localStorage.removeItem('bilimquest_t4_progress_v1') */

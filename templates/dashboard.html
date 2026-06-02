@@ -22,6 +22,25 @@
       </div>
     </div>
 
+    {% if summary %}
+    <div class="summary-cards">
+      <div class="sc-card"><div class="sc-ic">🎮</div><div class="sc-val">{{ summary.played }}/{{ summary.total_games }}</div><div class="sc-lab">Ойналған ойын</div></div>
+      <div class="sc-card"><div class="sc-ic">✅</div><div class="sc-val">{{ summary.completed }}</div><div class="sc-lab">Аяқталды</div></div>
+      <div class="sc-card"><div class="sc-ic">📊</div><div class="sc-val">{{ summary.earned_percent }}%</div><div class="sc-lab">Жалпы үлгерім</div></div>
+      <div class="sc-card"><div class="sc-ic">🏅</div><div class="sc-val">{{ summary.badges }}/{{ summary.badges_max }}</div><div class="sc-lab">Значки</div></div>
+      <div class="sc-card"><div class="sc-ic">⭐</div><div class="sc-val">{{ summary.score }}</div><div class="sc-lab">Жалпы ұпай</div></div>
+    </div>
+    <style>
+      .summary-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0}
+      @media(max-width:640px){.summary-cards{grid-template-columns:repeat(2,1fr)}}
+      .sc-card{background:linear-gradient(180deg,#fff,#f4f1fb);border:1.5px solid #e7e1f6;border-radius:16px;
+        padding:14px 10px;text-align:center;box-shadow:0 4px 12px rgba(80,40,160,.06)}
+      .sc-ic{font-size:26px;line-height:1}
+      .sc-val{font-size:23px;font-weight:900;color:#6d28d9;margin-top:4px}
+      .sc-lab{font-size:12px;font-weight:700;color:#6b6890;margin-top:2px}
+    </style>
+    {% endif %}
+
     <div class="progress-section">
       <div class="bloom-container">
         <h2>Bloom таксаномиясы</h2>
@@ -70,7 +89,7 @@
         </script>
       </div>
         <div class="games-progress-container">
-          <h2>Тақырыптар прогрессі</h2>
+          <h2>Тарау бойынша прогресс</h2>
           <canvas id="gamesProgress"></canvas>
             <script>
             const ctx2 = document.getElementById('gamesProgress').getContext('2d');
@@ -145,8 +164,8 @@
             {% for game in games %}
               <li class="game-item">
                 <span class="game-name">{{ game.game_name }}</span>
-                <span class="game-chapter">{{ game.chapter }}</span>
-                <span class="game-score">{{ game.score }} балл</span>
+                <span class="game-chapter">{{ game.chapter }} · 🧠 {{ game.bloom }}</span>
+                <span class="game-score">{{ "%.2f"|format(game.score) }} балл{% if game.stars %} · {{ '★' * game.stars }}{% endif %}</span>
               </li>
             {% endfor %}
           </ul>

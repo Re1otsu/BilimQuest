@@ -1,0 +1,90 @@
+<!-- ================================================================
+     BilimQuest — ойын алдындағы preview-терезе (toqsan_4 стилінде)
+     Қолдану картада: node_accent / node_accent_soft айнымалыларын set етіп,
+     осы файлды include ету керек. Әр .p-node[href] түйініне data-desc,
+     data-tags ("a|b|c") қос — тақырып/сурет/сілтеме түйіннен оқылады.
+================================================================= -->
+<style>
+#nodeOvl{--ac:{{ node_accent|default('#37e3a0') }};--ac-soft:{{ node_accent_soft|default('rgba(55,227,160,.14)') }};
+  position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(4,10,14,.66);backdrop-filter:blur(4px);
+  font-family:'Rubik','Open Sans',system-ui,'Segoe UI',sans-serif}
+#nodeOvl.show{display:flex}
+#nodeOvl .nm-modal{width:560px;max-width:100%;border-radius:22px;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,#16303a,#0c1c24);border:2px solid var(--ac);
+  box-shadow:0 30px 80px rgba(0,0,0,.7);transform:translateY(18px) scale(.96);opacity:0;transition:transform .3s,opacity .3s}
+#nodeOvl.show .nm-modal{transform:none;opacity:1}
+#nodeOvl .nm-head{height:170px;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 40%, var(--ac-soft), transparent 65%);
+  border-bottom:1px solid var(--ac-soft)}
+#nodeOvl .nm-head img{height:148px;max-width:80%;object-fit:contain;filter:drop-shadow(0 12px 18px rgba(0,0,0,.5))}
+#nodeOvl .nm-body{padding:22px 28px 26px}
+#nodeOvl .nm-step{font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac)}
+#nodeOvl .nm-title{font-size:25px;font-weight:900;margin:5px 0 12px;line-height:1.12;color:#fff}
+#nodeOvl .nm-desc{font-size:15.5px;line-height:1.55;color:#c4dbe6}
+#nodeOvl .nm-meta{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 4px;min-height:10px}
+#nodeOvl .nm-chip{font-size:13px;font-weight:600;padding:6px 13px;border-radius:999px;
+  background:var(--ac-soft);border:1px solid var(--ac);color:#dffaf3}
+#nodeOvl .nm-actions{display:flex;gap:12px;margin-top:22px}
+#nodeOvl .nm-btn{flex:1;border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:18px;
+  padding:15px;border-radius:14px;transition:transform .15s,filter .2s;letter-spacing:.3px}
+#nodeOvl .nm-btn:active{transform:translateY(1px)}
+#nodeOvl .nm-start{color:#06231a;background:linear-gradient(180deg,#7dffb0,#33c75e);
+  box-shadow:0 8px 18px rgba(51,199,94,.4)}
+#nodeOvl .nm-start:hover{filter:brightness(1.07)}
+#nodeOvl .nm-close{flex:0 0 auto;padding:15px 22px;color:#cfe7ef;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16)}
+#nodeOvl .nm-close:hover{background:rgba(255,255,255,.12)}
+#nodeOvl .nm-x{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:12px;cursor:pointer;z-index:3;
+  background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18);color:#dff;font-size:22px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:background .2s}
+#nodeOvl .nm-x:hover{background:rgba(0,0,0,.55)}
+</style>
+
+<div id="nodeOvl">
+  <div class="nm-modal">
+    <button class="nm-x" id="nmX" aria-label="Жабу">&times;</button>
+    <div class="nm-head"><img id="nmImg" alt=""></div>
+    <div class="nm-body">
+      <div class="nm-step" id="nmStep"></div>
+      <div class="nm-title" id="nmTitle"></div>
+      <div class="nm-desc" id="nmDesc"></div>
+      <div class="nm-meta" id="nmMeta"></div>
+      <div class="nm-actions">
+        <button class="nm-btn nm-start" id="nmStart">▶ Ойынды бастау</button>
+        <button class="nm-btn nm-close" id="nmClose">Жабу</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const ovl=document.getElementById('nodeOvl');
+  const nodes=[...document.querySelectorAll('.p-node[href]')];
+  if(!nodes.length) return;
+  let url='';
+  function pick(n,sel){ const e=n.querySelector(sel); return e?e.getAttribute('src'):''; }
+  function open(n,step,total){
+    url=n.getAttribute('href');
+    const t=n.querySelector('.p-label-title');
+    document.getElementById('nmTitle').textContent = n.dataset.title || (t?t.textContent.trim():'Ойын');
+    document.getElementById('nmStep').textContent  = n.dataset.step || ('Блок '+step+' / '+total);
+    document.getElementById('nmDesc').textContent  = n.dataset.desc || '';
+    const img=document.getElementById('nmImg');
+    const ic=n.dataset.img || pick(n,'.p-topic-icon') || pick(n,'.p-platform-img');
+    if(ic){ img.src=ic; img.style.display=''; } else img.style.display='none';
+    const meta=document.getElementById('nmMeta'); meta.innerHTML='';
+    (n.dataset.tags||'').split('|').map(s=>s.trim()).filter(Boolean).forEach(tag=>{
+      const c=document.createElement('span'); c.className='nm-chip'; c.textContent=tag; meta.appendChild(c);
+    });
+    ovl.classList.add('show');
+  }
+  function close(){ ovl.classList.remove('show'); }
+  nodes.forEach((n,i)=>n.addEventListener('click',e=>{ e.preventDefault(); open(n,i+1,nodes.length); }));
+  document.getElementById('nmStart').onclick=()=>{ if(url) window.location.href=url; };
+  document.getElementById('nmClose').onclick=close;
+  document.getElementById('nmX').onclick=close;
+  ovl.addEventListener('click',e=>{ if(e.target===ovl) close(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+})();
+</script>
