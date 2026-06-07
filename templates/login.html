@@ -4,31 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кіру</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
       <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
-    <form action="/login" method="POST">
-        <h1>Кіру</h1>
-        <label for="name">Есім:</label>
-        <input type="text" id="name" name="name" required>
+    <form action="/login" method="POST" class="auth-card">
+        <div class="auth-head">
+            <div class="auth-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 17l5-5-5-5M15 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1>Қайта қош келдіңіз!</h1>
+            <p class="auth-sub">Жалғастыру үшін аккаунтыңызға кіріңіз</p>
+        </div>
 
-        <label for="surname">Тегі:</label>
-        <input type="text" id="surname" name="surname" required>
+        <label for="name">Есім</label>
+        <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="text" id="name" name="name" placeholder="Есіміңіз" required>
+        </div>
 
+        <label for="surname">Тегі</label>
+        <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="text" id="surname" name="surname" placeholder="Тегіңіз" required>
+        </div>
 
-        <label for="class">Сынып:</label>
-        <select id="class" name="class" required>
-            <option value="5А">5А</option>
-            <option value="5Б">5Б</option>
-            <option value="5В">5В</option>
-            <!-- Қажетті сыныптарды қосыңыз -->
-        </select>
+        <label for="class">Сынып</label>
+        <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-5 9 5-9 5-9-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 11v4c0 1 2.2 2 5 2s5-1 5-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <select id="class" name="class" required>
+                <option value="5А">5А</option>
+                <option value="5Б">5Б</option>
+                <option value="5В">5В</option>
+                <!-- Қажетті сыныптарды қосыңыз -->
+            </select>
+        </div>
 
-        <label for="password">Құпиясөз:</label>
-        <input type="password" id="password" name="password" required>
+        <label for="password">Құпиясөз</label>
+        <div class="field">
+            <svg class="field-icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="password" id="password" name="password" placeholder="Құпиясөз" required>
+        </div>
 
-        <button type="submit" style="border-radius:0.5em;">Кіру</button>
+        <button type="submit" class="auth-btn">Кіру</button>
 
         <!-- Дополнительный блок для кнопки регистрации -->
         <div class="register-link">

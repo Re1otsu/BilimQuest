@@ -148,7 +148,8 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 .pcard.dragging{opacity:.3}
 .pcard.used{opacity:.2;pointer-events:none;filter:saturate(.4)}
 .pc-art{flex:1;min-height:48px;display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;overflow:hidden}
-.pc-art .pc-emoji2{position:absolute;font-size:24px;bottom:7px;right:9px;opacity:.85}
+.pc-art .pc-emoji2{position:absolute;font-size:24px;bottom:7px;right:9px;opacity:.85;z-index:1;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
+.pc-art img,.slot-card .sc-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .pc-body{background:rgba(2,8,26,.85);padding:6px 9px;border-top:1px solid rgba(0,180,255,.18)}
 .pc-name{font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;color:#fff;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pc-year{font-size:10px;font-weight:800;color:#34d6ff;margin-top:1px}
@@ -316,7 +317,7 @@ body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
 
 const PERIODS = [
   { id:'ancient', order:1, name:'Ежелгі автоматтар', year:'б.з.д. IV ғ.–XVIII ғ.',
-    art:'🕊️', art2:'⚙️', grad:'linear-gradient(160deg,#7c5a1e,#3a2608,#1a1304)',
+    art:'🕊️', art2:'⚙️', img:'/static/img/Toqsan3/Mechanical%20bird.png', grad:'linear-gradient(160deg,#7c5a1e,#3a2608,#1a1304)',
     ctx:'Архиттың механикалық көгершіні, Леонардоның сауытты рыцарі.',
     q:'Бұл кезеңде роботтар не болды?',
     opts:[
@@ -325,7 +326,7 @@ const PERIODS = [
       {t:'Жасанды интеллекті бар жүйелер', ok:false},
     ]},
   { id:'term', order:2, name:'«Робот» термині', year:'1920–1921',
-    art:'🎭', art2:'📜', grad:'linear-gradient(160deg,#7c1d2e,#3a0a14,#1a0508)',
+    art:'🎭', art2:'📜', img:'/static/img/Toqsan3/Humanoid%20robot.png', grad:'linear-gradient(160deg,#7c1d2e,#3a0a14,#1a0508)',
     ctx:'Карел Чапек «R.U.R» пьесасында «робот» сөзін енгізді.',
     q:'Бұл кезеңнің басты жаңалығы неде?',
     opts:[
@@ -334,7 +335,7 @@ const PERIODS = [
       {t:'Роботтар ғарышты зерттей бастады', ok:false},
     ]},
   { id:'industrial', order:3, name:'Алғашқы өнеркәсіптік робот', year:'1954–1961',
-    art:'🦾', art2:'🏭', grad:'linear-gradient(160deg,#1f3a5c,#2a4a6a,#0a1424)',
+    art:'🦾', art2:'🏭', img:'/static/img/Toqsan3/Factory%20robot.png', grad:'linear-gradient(160deg,#1f3a5c,#2a4a6a,#0a1424)',
     ctx:'Джордж Девол бағдарламаланатын Unimate роботын жасады.',
     q:'Unimate роботының басты функциясы қандай?',
     opts:[
@@ -343,7 +344,7 @@ const PERIODS = [
       {t:'Ғарышты зерттеу', ok:false},
     ]},
   { id:'space', order:4, name:'Ғарыш және дербес роботтар', year:'1970–1990',
-    art:'🛰️', art2:'🌑', grad:'linear-gradient(160deg,#1a2a5c,#0a1840,#050a20)',
+    art:'🛰️', art2:'🌑', img:'/static/img/Toqsan3/Lunar%20rover.png', grad:'linear-gradient(160deg,#1a2a5c,#0a1840,#050a20)',
     ctx:'Луноходтар мен алғашқы гуманоидтар (ASIMO прототиптері).',
     q:'Бұл кезеңде роботтар нені үйренді?',
     opts:[
@@ -352,7 +353,7 @@ const PERIODS = [
       {t:'Ойыншық болуды', ok:false},
     ]},
   { id:'ai', order:5, name:'Жасанды интеллект дәуірі', year:'XXI ғ. – Болашақ',
-    art:'🧠', art2:'🤖', grad:'linear-gradient(160deg,#1a4a6c,#3a1a6c,#0a1430)',
+    art:'🧠', art2:'🤖', img:'/static/img/Toqsan3/AI.png', grad:'linear-gradient(160deg,#1a4a6c,#3a1a6c,#0a1430)',
     ctx:'Boston Dynamics, нейрожелілер, медициналық нанороботтар.',
     q:'Қазіргі заманғы роботтарды не басқарады?',
     opts:[
@@ -382,7 +383,7 @@ function buildTray(){
     const c = document.createElement('div');
     c.className='pcard'; c.id='pc_'+p.id; c.dataset.id=p.id; c.draggable=true;
     c.style.animationDelay=(0.08+i*0.08)+'s';
-    c.innerHTML=`<div class="pc-art" style="background:${p.grad}"><span>${p.art}</span><span class="pc-emoji2">${p.art2}</span></div>
+    c.innerHTML=`<div class="pc-art" style="background:${p.grad}">${p.img?`<img src="${p.img}" alt="">`:`<span>${p.art}</span>`}<span class="pc-emoji2">${p.art2}</span></div>
       <div class="pc-body"><div class="pc-name">${p.name}</div><div class="pc-year">${p.year}</div></div>`;
     tray.appendChild(c);
     attachDrag(c, p.id);
@@ -395,7 +396,7 @@ function attachDrag(card, id){
     if(card.classList.contains('used')){e.preventDefault();return;}
     dragId=id; card.classList.add('dragging');
     e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',id);
-    ghost.textContent=PERIODS.find(p=>p.id===id).art; ghost.style.display='flex';
+    {const _p=PERIODS.find(p=>p.id===id);ghost.innerHTML=_p.img?`<img src="${_p.img}" style="width:100%;height:100%;object-fit:cover">`:_p.art;} ghost.style.display='flex';
     const cv=document.createElement('canvas');cv.width=cv.height=1;e.dataTransfer.setDragImage(cv,0,0);
   });
   card.addEventListener('dragend', ()=>{card.classList.remove('dragging');ghost.style.display='none';dragId=null;
@@ -404,7 +405,7 @@ function attachDrag(card, id){
   card.addEventListener('touchstart', e=>{
     if(card.classList.contains('used'))return;
     dragId=id; card.classList.add('dragging');
-    ghost.textContent=PERIODS.find(p=>p.id===id).art;
+    {const _p=PERIODS.find(p=>p.id===id);ghost.innerHTML=_p.img?`<img src="${_p.img}" style="width:100%;height:100%;object-fit:cover">`:_p.art;}
     const t=e.touches[0]; ghost.style.left=t.clientX+'px'; ghost.style.top=t.clientY+'px'; ghost.style.display='flex';
   },{passive:true});
   card.addEventListener('touchmove', e=>{
@@ -459,7 +460,7 @@ function renderSlotCard(slot, p, locked){
   slot.querySelectorAll('.slot-num,.slot-arrow,.slot-hint,.slot-card').forEach(e=>e.remove());
   const sc=document.createElement('div');
   sc.className='slot-card'+(locked?' locked':'');
-  sc.innerHTML=`<div class="sc-art" style="background:${p.grad}">${p.art}</div><div class="sc-year">${p.year}</div>`+(locked?'<div class="sc-check">✓</div>':'');
+  sc.innerHTML=`<div class="sc-art" style="background:${p.grad}">${p.img?`<img src="${p.img}" alt="">`:p.art}</div><div class="sc-year">${p.year}</div>`+(locked?'<div class="sc-check">✓</div>':'');
   slot.appendChild(sc);
 }
 

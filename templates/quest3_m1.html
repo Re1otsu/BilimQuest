@@ -123,6 +123,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
 @keyframes gateWrong{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
 .gate-art{flex:1;display:flex;align-items:center;justify-content:center;font-size:46px;position:relative;overflow:hidden;
   background:var(--gbg)}
+.gate-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
 .gate-art .ga-fx{position:absolute;inset:0;pointer-events:none;opacity:0}
 .gate.activated .ga-fx{animation:gaFx 1.4s ease}
 @keyframes gaFx{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
@@ -214,22 +215,22 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   <div class="gates" id="gates">
     <div class="gate" data-sector="factory" style="--gc:#fb923c;--gcr:251,146,60;--gbg:linear-gradient(170deg,#5c3210,#2a1808)" onclick="routeActive('factory')">
       <div class="gate-count" id="gc_factory">2</div>
-      <div class="gate-art"><span>🏭</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 30%,rgba(251,191,36,.5),transparent 60%)">💨</div></div>
+      <div class="gate-art"><img src="/static/img/Toqsan3/Fabric.png" alt="Зауыт"><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 30%,rgba(251,191,36,.5),transparent 60%)">💨</div></div>
       <div class="gate-body"><div class="gate-name">🏭 Зауыт</div><div class="gate-sub">Өндірістік сектор</div></div>
     </div>
     <div class="gate" data-sector="hospital" style="--gc:#34d399;--gcr:52,211,153;--gbg:linear-gradient(170deg,#0a4a44,#04201e)" onclick="routeActive('hospital')">
       <div class="gate-count" id="gc_hospital">1</div>
-      <div class="gate-art"><span>🏥</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 40%,rgba(52,211,153,.4),transparent 60%)">➕</div></div>
+      <div class="gate-art"><img src="/static/img/Toqsan3/Hospital.png" alt="Аурухана"><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 40%,rgba(52,211,153,.4),transparent 60%)">➕</div></div>
       <div class="gate-body"><div class="gate-name">🏥 Аурухана</div><div class="gate-sub">Медициналық сектор</div></div>
     </div>
     <div class="gate" data-sector="school" style="--gc:#38bdf8;--gcr:56,189,248;--gbg:linear-gradient(170deg,#0a3a6a,#04162e)" onclick="routeActive('school')">
       <div class="gate-count" id="gc_school">1</div>
-      <div class="gate-art"><span>🏫</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 40%,rgba(56,189,248,.4),transparent 60%)">📚</div></div>
+      <div class="gate-art"><img src="/static/img/Toqsan3/School.png" alt="Мектеп"><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 40%,rgba(56,189,248,.4),transparent 60%)">📚</div></div>
       <div class="gate-body"><div class="gate-name">🏫 Мектеп</div><div class="gate-sub">Эксперименталды аймақ</div></div>
     </div>
     <div class="gate" data-sector="home" style="--gc:#a78bfa;--gcr:167,139,250;--gbg:linear-gradient(170deg,#3a2a6a,#16102e)" onclick="routeActive('home')">
       <div class="gate-count" id="gc_home">1</div>
-      <div class="gate-art"><span>🏠</span><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 50%,rgba(251,191,36,.45),transparent 60%)">💡</div></div>
+      <div class="gate-art"><img src="/static/img/Toqsan3/Home.png" alt="Үй"><div class="gate-door"></div><div class="ga-fx" style="background:radial-gradient(circle at 50% 50%,rgba(251,191,36,.45),transparent 60%)">💡</div></div>
       <div class="gate-body"><div class="gate-name">🏠 Үй</div><div class="gate-sub">Смарт-үй сектор</div></div>
     </div>
   </div>

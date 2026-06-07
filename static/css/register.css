@@ -1,100 +1,224 @@
+:root {
+    --accent: #4285f4;
+    --accent-dark: #3367d6;
+    --orange: #f4511e;
+}
+
+* { box-sizing: border-box; }
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f8ff;
+    font-family: 'Open Sans', 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #4f8ef7 0%, #6a5af9 60%, #8b5cf6 100%);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
+    padding: 24px;
+    position: relative;
+    overflow-x: hidden;
 }
+
+/* декоративные пятна */
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+}
+body::before { width: 380px; height: 380px; background: #7ed0ff; top: -110px; left: -120px; }
+body::after  { width: 420px; height: 420px; background: #b388ff; bottom: -140px; right: -120px; }
 
 .container {
-    max-width: 500px;
-    margin: auto;
-    text-align: center;
-    padding: 20px;
-}
-
-header {
-    background-color: #4caf50;
-    color: white;
-    padding: 10px 0;
-    border-radius: 8px;
-}
-
-header h1 {
-    font-size: 1.8em;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
     margin: 0;
+    padding: 0;
+    text-align: left;
 }
 
-header p {
-    margin: 5px 0 10px;
+/* ===== Карточка формы ===== */
+.auth-card {
+    background: rgba(255, 255, 255, 0.97);
+    padding: 40px 38px 34px;
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(20, 20, 60, 0.35);
+    width: 100%;
+    animation: rise 0.5s ease both;
 }
 
-form {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+@keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ===== Шапка карточки ===== */
+.auth-head {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.auth-avatar {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), #6a5af9);
+    box-shadow: 0 10px 22px rgba(66, 133, 244, 0.45);
+}
+.auth-avatar svg { width: 30px; height: 30px; }
+
+.auth-card h1 {
+    color: var(--accent-dark);
+    margin: 0 0 6px;
+    font-weight: 800;
+    font-size: 26px;
+}
+
+.auth-sub {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.auth-error {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    background: #fde8e8;
+    color: #c0392b;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ===== Лейблы ===== */
 label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
+    margin: 0 0 6px 2px;
+    color: #374151;
+    font-weight: 600;
+    font-size: 14px;
 }
 
-input, select {
+/* ===== Поля с иконкой ===== */
+.field {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.field-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #9aa3b2;
+    pointer-events: none;
+    transition: color 0.25s ease;
+}
+
+.field input,
+.field select {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 13px 14px 13px 44px;
+    border: 1.5px solid #e2e6ee;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #f7f9fc;
+    color: #1f2937;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    appearance: none;
 }
 
-input:focus, select:focus {
-    border-color: #4caf50;
-    outline: none;
-}
-
-button {
-    margin-top: 10px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 1em;
+.field select {
     cursor: pointer;
-    
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
 }
 
-button:hover {
-    background-color: #45a049;
+.field input::placeholder { color: #aab2c0; }
+
+.field input:focus,
+.field select:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.15);
 }
+
+.field:focus-within .field-icon { color: var(--accent); }
+
+/* ===== Главная кнопка ===== */
+.auth-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 6px;
+    background: linear-gradient(135deg, var(--accent), #5b6ef5);
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(66, 133, 244, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.auth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(66, 133, 244, 0.5);
+    filter: brightness(1.05);
+}
+.auth-btn:active { transform: translateY(0); }
+
+/* ===== Нижняя ссылка ===== */
 .login-link {
     text-align: center;
-    margin-top: 10px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #eef0f5;
 }
 
 .login-link p {
-    margin: 5px 0;
-    font-size: 0.9em;
-    color: #333;
+    margin: 0 0 10px;
+    color: #6b7280;
+    font-size: 14px;
 }
 
 .login-btn {
     display: inline-block;
-    background-color: #054dd4;
-    color: #fff;
-    padding: 8px 16px;
-    border-radius: 5px;
+    padding: 10px 26px;
+    border-radius: 10px;
     text-decoration: none;
-    font-size: 0.9em;
-    transition: background-color 0.3s ease;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    background: linear-gradient(135deg, #FF7043, var(--orange));
+    box-shadow: 0 6px 16px rgba(244, 81, 30, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease;
 }
 
 .login-btn:hover {
-    background-color: #091e92;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(244, 81, 30, 0.45);
+    filter: brightness(1.05);
+}
+
+@media (max-width: 480px) {
+    .auth-card { padding: 30px 24px 26px; }
+    .auth-card h1 { font-size: 22px; }
 }

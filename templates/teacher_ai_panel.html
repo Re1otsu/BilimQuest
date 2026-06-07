@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ИИ-Орталық · BilimQuest</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    :root{
+      --grad: linear-gradient(135deg,#7c3aed,#4f8ef7);
+      --ink:#2d1f60; --muted:#7c6bae; --line:#e7e1f6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Open Sans",system-ui,Arial,sans-serif;background:#f6f4fc;color:var(--ink)}
+
+    /* top bar */
+    .ai-top{
+      display:flex;align-items:center;gap:14px;
+      padding:16px 24px;background:var(--grad);color:#fff;
+      box-shadow:0 6px 20px rgba(100,60,220,.25);
+    }
+    .ai-top .logo{font-weight:800;font-size:20px;letter-spacing:.3px}
+    .ai-top .tag{
+      background:rgba(255,255,255,.18);padding:4px 12px;border-radius:30px;
+      font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;
+    }
+    .ai-top .spacer{flex:1}
+    .ai-top a,.ai-top button{
+      color:#fff;text-decoration:none;font-weight:700;font-size:14px;
+      background:rgba(255,255,255,.16);border:none;border-radius:10px;
+      padding:9px 15px;cursor:pointer;transition:background .2s;
+    }
+    .ai-top a:hover,.ai-top button:hover{background:rgba(255,255,255,.3)}
+
+    .wrap{max-width:1080px;margin:0 auto;padding:24px 18px 60px}
+
+    /* hero / class selector */
+    .ai-hero{
+      background:linear-gradient(135deg,#fff,#f4f0ff);
+      border:1.5px solid var(--line);border-radius:20px;
+      padding:22px 24px;margin-bottom:22px;
+      box-shadow:0 6px 22px rgba(100,60,220,.07);
+      display:flex;flex-wrap:wrap;align-items:center;gap:18px;
+    }
+    .ai-hero h1{margin:0;font-size:22px;font-weight:800}
+    .ai-hero p{margin:4px 0 0;color:var(--muted);font-size:14px}
+    .ai-hero .selbox{margin-left:auto;display:flex;align-items:center;gap:10px}
+    .ai-hero label{font-weight:700;font-size:14px}
+    .ai-hero select{
+      font:inherit;font-weight:700;color:var(--ink);
+      border:1.5px solid #c4b5f7;border-radius:12px;padding:10px 16px;
+      background:#fff;cursor:pointer;outline:none;
+    }
+    .ai-hero select:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.16)}
+
+    /* cards grid — карточки всегда компактные и одинаковой высоты */
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;align-items:stretch}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:#fff;border:1.5px solid var(--line);border-radius:18px;
+      padding:20px;box-shadow:0 4px 16px rgba(100,60,220,.06);
+      display:flex;flex-direction:column;transition:transform .15s,box-shadow .15s;
+    }
+    .card:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(100,60,220,.12)}
+    .card-head{display:flex;align-items:flex-start;gap:13px}
+    .card-ic{font-size:30px;flex-shrink:0;line-height:1}
+    .card-title{font-size:17px;font-weight:800}
+    .card-sub{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+    .card .stu-sel{margin-top:14px;width:100%;font:inherit;font-weight:600;
+      border:1.5px solid #d9d0f5;border-radius:10px;padding:9px 12px;background:#faf8ff;outline:none}
+    .card-btn{
+      margin-top:auto;align-self:flex-start;
+      background:var(--grad);color:#fff;border:none;border-radius:11px;
+      padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;
+      transition:filter .2s;display:inline-flex;align-items:center;gap:8px;
+    }
+    .card-btn-row{margin-top:16px;display:flex}
+    .card-btn:hover{filter:brightness(1.08)}
+    .card-btn:disabled{opacity:.6;cursor:not-allowed}
+
+    /* ===== Modal (всплывающее окно с результатом) ===== */
+    .modal-overlay{
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(40,25,90,.45);backdrop-filter:blur(4px);
+      display:flex;align-items:center;justify-content:center;padding:20px;
+      opacity:0;pointer-events:none;transition:opacity .2s ease;
+    }
+    .modal-overlay.show{opacity:1;pointer-events:auto}
+    .modal-box{
+      background:#fff;border-radius:20px;width:760px;max-width:100%;
+      max-height:88vh;display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:0 30px 70px rgba(40,25,90,.4);
+      transform:translateY(18px) scale(.98);transition:transform .25s ease;
+    }
+    .modal-overlay.show .modal-box{transform:none}
+    .modal-head{
+      display:flex;align-items:center;gap:12px;padding:18px 22px;
+      background:var(--grad);color:#fff;flex-shrink:0;
+    }
+    .modal-head .m-title{flex:1;font-size:17px;font-weight:800;line-height:1.3}
+    .modal-close{
+      width:36px;height:36px;border:none;border-radius:10px;flex-shrink:0;
+      background:rgba(255,255,255,.18);color:#fff;font-size:20px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;transition:background .2s;
+    }
+    .modal-close:hover{background:rgba(255,255,255,.34)}
+    .modal-body{
+      padding:22px 24px;overflow-y:auto;font-size:14px;line-height:1.65;
+    }
+    .modal-foot{
+      flex-shrink:0;display:flex;gap:10px;padding:14px 22px;
+      border-top:1px solid var(--line);background:#faf8ff;
+    }
+    .modal-foot .tool{
+      font-size:13px;font-weight:700;color:#7c3aed;background:#f1ebff;
+      border:1px solid #d9cdf7;border-radius:10px;padding:9px 16px;cursor:pointer;
+      transition:background .2s;
+    }
+    .modal-foot .tool:hover{background:#e7dbff}
+    .modal-foot .tool[disabled]{opacity:.5;cursor:not-allowed}
+
+    /* markdown inside modal */
+    .modal-body h1,.modal-body h2,.modal-body h3{color:#4c1d95;margin:.7em 0 .4em;line-height:1.3}
+    .modal-body h1{font-size:19px}.modal-body h2{font-size:17px}.modal-body h3{font-size:15px}
+    .modal-body p{margin:.5em 0}
+    .modal-body ul,.modal-body ol{margin:.5em 0;padding-left:22px}
+    .modal-body li{margin:.25em 0}
+    .modal-body strong{color:#5b21b6}
+    .modal-body hr{border:none;border-top:1px solid var(--line);margin:.8em 0}
+    .modal-body table{border-collapse:collapse;width:100%;margin:.6em 0;font-size:13px}
+    .modal-body th,.modal-body td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+    .modal-body th{background:#f4f0ff;font-weight:700;color:#4c1d95}
+    .modal-body blockquote{margin:.6em 0;padding:8px 14px;background:#f7f4ff;
+      border-left:3px solid #7c3aed;border-radius:8px;color:#4c1d95}
+
+    /* loader */
+    .loader{display:flex;align-items:center;gap:10px;color:var(--muted);font-style:italic;font-size:14px;padding:10px 0}
+    .dots{display:inline-flex;gap:4px}
+    .dots span{width:8px;height:8px;border-radius:50%;background:#a78bfa;animation:bnc 1.2s infinite}
+    .dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+    @keyframes bnc{0%,80%,100%{transform:translateY(0);opacity:.5}40%{transform:translateY(-6px);opacity:1}}
+  </style>
+</head>
+<body>
+  <header class="ai-top">
+    <span class="logo">BilimQuest</span>
+    <span class="tag">🤖 ИИ-Орталық</span>
+    <span class="spacer"></span>
+    <a href="/teacher">← Артқа</a>
+    <form action="/logout" method="POST" style="margin:0"><button type="submit">Шығу</button></form>
+  </header>
+
+  <div class="wrap">
+    <div class="ai-hero">
+      <div>
+        <h1>Жасанды интеллект көмекшісі</h1>
+        <p>Сынып үлгерімін талдаңыз, қауіп тобын анықтаңыз, сабақ жоспары мен ата-аналарға хат жасаңыз.</p>
+      </div>
+      <div class="selbox">
+        <label for="classSel">Сынып:</label>
+        <select id="classSel">
+          {% for c in class_list %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- 1. Class analytics -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-ic">📊</div>
+          <div>
+            <div class="card-title">Сынып аналитикасы</div>
+            <div class="card-sub">Тараулар бойынша игеру, күшті/әлсіз жақтар, ұсыныстар</div>
+          </div>
+        </div>
+        <div class="card-btn-row"><button class="card-btn" data-kind="analytics">Талдау ▶</button></div>
+      </div>
+
+      <!-- 2. At-risk -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-ic">⚠️</div>
+          <div>
+            <div class="card-title">Қауіп тобын болжау</div>
+            <div class="card-sub">Артта қалу қаупі бар оқушылар + көмек шаралары</div>
+          </div>
+        </div>
+        <div class="card-btn-row"><button class="card-btn" data-kind="at-risk">Болжау ▶</button></div>
+      </div>
+
+      <!-- 3. Lesson plan -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-ic">📅</div>
+          <div>
+            <div class="card-title">Сабақ жоспары</div>
+            <div class="card-sub">Деректерге негізделген келесі сабақ жоспары</div>
+          </div>
+        </div>
+        <div class="card-btn-row"><button class="card-btn" data-kind="lesson-plan">Жоспар құру ▶</button></div>
+      </div>
+
+      <!-- 4. Parent report -->
+      <div class="card">
+        <div class="card-head">
+          <div class="card-ic">📝</div>
+          <div>
+            <div class="card-title">Ата-анаға хат</div>
+            <div class="card-sub">Нақты оқушы бойынша жылы әрі сыпайы хабарлама</div>
+          </div>
+        </div>
+        <select class="stu-sel" id="stuSel"></select>
+        <div class="card-btn-row"><button class="card-btn" data-kind="parent">Хат жазу ▶</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal-box" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div class="m-title" id="mTitle">Нәтиже</div>
+        <button class="modal-close" id="mClose" aria-label="Жабу">✕</button>
+      </div>
+      <div class="modal-body" id="mBody"></div>
+      <div class="modal-foot">
+        <button class="tool" id="mCopy">📋 Көшіру</button>
+        <button class="tool" id="mAgain">🔄 Қайта жасау</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STUDENTS = {{ students_by_class | tojson }};
+    const classSel = document.getElementById('classSel');
+    const stuSel = document.getElementById('stuSel');
+    const modal = document.getElementById('modal');
+    const mTitle = document.getElementById('mTitle');
+    const mBody = document.getElementById('mBody');
+    const mCopy = document.getElementById('mCopy');
+    const mAgain = document.getElementById('mAgain');
+
+    let lastMarkdown = '';
+    let lastRun = null; // {kind}
+
+    function fillStudents(){
+      const list = STUDENTS[classSel.value] || [];
+      stuSel.innerHTML = list.length
+        ? list.map(s => `<option value="${s.id}">${s.name}</option>`).join('')
+        : '<option value="">— оқушы жоқ —</option>';
+    }
+    classSel.addEventListener('change', fillStudents);
+    fillStudents();
+
+    const TITLES = {
+      'analytics':   () => `📊 Сынып аналитикасы — ${classSel.value}`,
+      'at-risk':     () => `⚠️ Қауіп тобын болжау — ${classSel.value}`,
+      'lesson-plan': () => `📅 Сабақ жоспары — ${classSel.value}`,
+      'parent':      () => `📝 Ата-анаға хат — ${stuSel.options[stuSel.selectedIndex]?.text || ''}`,
+    };
+    const URLS = {
+      'analytics':   () => `/api/ai/class-analytics?class=${encodeURIComponent(classSel.value)}`,
+      'at-risk':     () => `/api/ai/at-risk?class=${encodeURIComponent(classSel.value)}`,
+      'lesson-plan': () => `/api/ai/lesson-plan?class=${encodeURIComponent(classSel.value)}`,
+      'parent':      () => `/api/ai/parent-report/${stuSel.value}`,
+    };
+
+    function openModal(){ modal.classList.add('show'); document.body.style.overflow='hidden'; }
+    function closeModal(){ modal.classList.remove('show'); document.body.style.overflow=''; }
+    document.getElementById('mClose').addEventListener('click', closeModal);
+    modal.addEventListener('click', e => { if(e.target === modal) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape' && modal.classList.contains('show')) closeModal(); });
+
+    function setFootDisabled(d){ mCopy.disabled=d; mAgain.disabled=d; }
+
+    async function run(kind){
+      if(kind === 'parent' && !stuSel.value){
+        mTitle.textContent = '📝 Ата-анаға хат';
+        mBody.innerHTML = '<p>Алдымен оқушыны таңдаңыз.</p>';
+        setFootDisabled(true); openModal(); return;
+      }
+      lastRun = kind;
+      mTitle.textContent = TITLES[kind]();
+      mBody.innerHTML = '<div class="loader">BilimAI талдап жатыр<span class="dots"><span></span><span></span><span></span></span></div>';
+      setFootDisabled(true);
+      openModal();
+      try{
+        const res = await fetch(URLS[kind]());
+        const data = await res.json();
+        lastMarkdown = data.result || 'Жауап алынбады.';
+        mBody.innerHTML = marked.parse(lastMarkdown);
+        mBody.scrollTop = 0;
+        setFootDisabled(false);
+      }catch(e){
+        mBody.innerHTML = '<p>⚠️ Байланыс қатесі. Кейінірек қайталаңыз.</p>';
+      }
+    }
+
+    mCopy.addEventListener('click', () => {
+      if(!lastMarkdown) return;
+      navigator.clipboard.writeText(lastMarkdown);
+      mCopy.textContent = '✅ Көшірілді';
+      setTimeout(() => mCopy.textContent = '📋 Көшіру', 1500);
+    });
+    mAgain.addEventListener('click', () => { if(lastRun) run(lastRun); });
+
+    document.querySelectorAll('.card-btn').forEach(btn => {
+      btn.addEventListener('click', () => run(btn.dataset.kind));
+    });
+  </script>
+</body>
+</html>

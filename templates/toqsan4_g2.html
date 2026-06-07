@@ -96,7 +96,7 @@ body{background:
 .fb-title{font-weight:900;font-size:14px;margin-bottom:2px}
 .fb-title.good{color:#7dffa0}.fb-title.bad{color:#ff8a8a}
 .fb-text{font-size:13px;line-height:1.45;color:#cdd8f5}
-.snd{flex-shrink:0;width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
+.snd{display:none!important;flex-shrink:0;width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);
   color:#9fdfff;font-size:15px;cursor:pointer}
 .snd:hover{background:rgba(255,255,255,.14)}
 .next-btn{display:none;width:100%;margin-top:13px;padding:14px;border:none;border-radius:13px;cursor:pointer;font-family:inherit;
@@ -183,8 +183,8 @@ body{background:
       <div class="card" id="sceneCard"></div>
     </div>
 
-    <!-- AI chat -->
-    <div class="col-chat">
+    <!-- AI chat (алынып тасталды) -->
+    <div class="col-chat" style="display:none">
       <div class="card">
         <div class="chat-title">🤖 Interactive AI Chatbot</div>
         <div class="help-qs" id="helpQs"></div>
@@ -413,13 +413,7 @@ function confetti(){const cs=['#7dffa0','#46e06a','#6d5dfc','#ffd24a','#37e1ff',
   for(let i=0;i<80;i++){const c=document.createElement('div');c.className='confetti';const sz=6+Math.random()*7,dur=2.2+Math.random()*1.8;
   c.style.cssText=`left:${Math.random()*100}vw;width:${sz}px;height:${sz*1.6}px;background:${cs[i%cs.length]};border-radius:2px;animation-duration:${dur}s;animation-delay:${Math.random()*.5}s`;
   document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}}
-let voices=[];
-function loadVoices(){try{voices=speechSynthesis.getVoices();}catch(e){}}
-if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
-function speak(text){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text.replace(/[🎒☁️🛡️💎✔✅⚠️❌🏆🥈🥉]/g,''));
-  const v=voices.find(x=>/kk|kazakh/i.test(x.lang))||voices.find(x=>/ru/i.test(x.lang));
-  if(v){u.voice=v;u.lang=v.lang;}else u.lang='ru-RU'; u.rate=.98;u.pitch=1.05; speechSynthesis.speak(u);}catch(e){}}
+function speak(){ /* дауыстық озвучка алынып тасталды */ }
 let actx;
 function tone(f1,f2,type,dur,gain){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.type=type;

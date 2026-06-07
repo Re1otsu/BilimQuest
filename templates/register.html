@@ -4,46 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тіркелу</title>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
       <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Тіркелу</h1>
-            {% if error %}
-                <p style="color: red; font-weight: bold;">{{ error }}</p>
-            {% endif %}
-        </header>
-        <main>
-            <form action="/register" method="post">
-            <label for="name">Атыңды жаз:</label>
-            <input type="text" id="name" name="name" placeholder="Мысалы: Айжан" required>
+        <form action="/register" method="post" class="auth-card">
+            <div class="auth-head">
+                <div class="auth-avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="9" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M2 20c0-3.3 3.1-6 7-6 1.4 0 2.7.3 3.8.9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M18 8v6M21 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1>Аккаунт құру</h1>
+                <p class="auth-sub">BilimQuest порталына тіркеліңіз</p>
+                {% if error %}
+                    <p class="auth-error">{{ error }}</p>
+                {% endif %}
+            </div>
 
-            <label for="surname">Тегіңді жаз:</label>
-            <input type="text" id="surname" name="surname" placeholder="Мысалы: Әбілова" required>
+            <label for="name">Атыңды жаз</label>
+            <div class="field">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <input type="text" id="name" name="name" placeholder="Мысалы: Айжан" required>
+            </div>
 
+            <label for="surname">Тегіңді жаз</label>
+            <div class="field">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <input type="text" id="surname" name="surname" placeholder="Мысалы: Әбілова" required>
+            </div>
 
-                <label for="class">Сыныбыңды таңда:</label>
+            <label for="class">Сыныбыңды таңда</label>
+            <div class="field">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-5 9 5-9 5-9-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 11v4c0 1 2.2 2 5 2s5-1 5-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <select id="class" name="class" required>
                     <option value="" disabled selected>Сыныпты таңдаңыз</option>
                     <option value="5А">5А</option>
                     <option value="5Б">5Б</option>
                     <option value="5В">5В</option>
                 </select>
+            </div>
 
-                <label for="password">Құпиясөз ойлап тап:</label>
+            <label for="password">Құпиясөз ойлап тап</label>
+            <div class="field">
+                <svg class="field-icon" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 <input type="password" id="password" name="password" placeholder="Құпиясөз" required>
+            </div>
 
-                <button type="submit" style="margin-top: 1em; border-radius: 0.5em;">Тіркелу</button>
+            <button type="submit" class="auth-btn">Тіркелу</button>
 
-                <!-- Обратная ссылка -->
-                <div class="login-link">
-                    <p>Тіркелгенсіз бе?</p>
-                    <a href="/login" class="login-btn">Кіру</a>
-                </div>
-            </form>
-        </main>
+            <!-- Обратная ссылка -->
+            <div class="login-link">
+                <p>Тіркелгенсіз бе?</p>
+                <a href="/login" class="login-btn">Кіру</a>
+            </div>
+        </form>
     </div>
 </body>
 </html>

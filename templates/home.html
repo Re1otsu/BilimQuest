@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Рөлді Таңдау</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
       <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
@@ -18,20 +18,44 @@
         <img src="{{ url_for('static', filename='img/45.png') }}" alt="School 4" class="school-logo">
     </div>
 </header>
-    <div class="container">
+
+    <main class="container">
         <img src="{{ url_for('static', filename='img/main.png') }}" alt="Картинка" class="main-img">
         <h2 class="subtitle">Порталға қош келдіңіз!</h2>
+        <p class="lead">Жалғастыру үшін рөліңізді таңдаңыз</p>
+
         <div class="btn-group">
             <!-- Кнопка для учителя -->
-            <form method="POST" action="/">
-                <button type="submit" name="role" value="teacher" class="btn">Мұғалім</button>
+            <form method="POST" action="/" class="role-form">
+                <button type="submit" name="role" value="teacher" class="role-card role-card--teacher">
+                    <span class="role-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 3L2 8l10 5 8-4v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 11v4c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span class="role-text">
+                        <span class="role-title">Мұғалім</span>
+                        <span class="role-desc">Сабақтарды басқару және бақылау</span>
+                    </span>
+                </button>
             </form>
 
-        <!-- Кнопка для ученика, которая открывает модалку -->
-            <button type="button" id="studentBtn" class="btn">Оқушы</button>
+            <!-- Кнопка для ученика, которая открывает модалку -->
+            <button type="button" id="studentBtn" class="role-card role-card--student">
+                <span class="role-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span class="role-text">
+                    <span class="role-title">Оқушы</span>
+                    <span class="role-desc">Тапсырмалар мен ойындарға кіру</span>
+                </span>
+            </button>
         </div>
-
-    </div>
+    </main>
 
     <!-- Модальное окно -->
     <div id="modal" class="modal">

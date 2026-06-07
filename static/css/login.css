@@ -1,111 +1,224 @@
-/* Общие стили */
+:root {
+    --accent: #4285f4;
+    --accent-dark: #3367d6;
+    --orange: #f4511e;
+}
+
+* { box-sizing: border-box; }
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #9fd3ff, #a08bff);
+    font-family: 'Open Sans', 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #4f8ef7 0%, #6a5af9 60%, #8b5cf6 100%);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
+    padding: 24px;
+    position: relative;
+    overflow-x: hidden;
 }
 
-/* Форма входа */
-form {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 35px 40px;
-    border-radius: 15px;
-    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-    width: 340px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+/* декоративные пятна */
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.45;
+    z-index: 0;
+    pointer-events: none;
+}
+body::before { width: 380px; height: 380px; background: #7ed0ff; top: -110px; left: -120px; }
+body::after  { width: 420px; height: 420px; background: #b388ff; bottom: -140px; right: -120px; }
+
+/* ===== Карточка формы ===== */
+.auth-card {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.97);
+    padding: 40px 38px 34px;
+    border-radius: 22px;
+    box-shadow: 0 25px 60px rgba(20, 20, 60, 0.35);
+    width: 100%;
+    max-width: 400px;
+    animation: rise 0.5s ease both;
 }
 
-form:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 18px 30px rgba(0,0,0,0.2);
+@keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-h1 {
+/* ===== Шапка карточки ===== */
+.auth-head {
     text-align: center;
-    color: #3367d6;
-    margin-bottom: 30px;
-    font-weight: 700;
-    font-size: 28px;
+    margin-bottom: 26px;
 }
 
-/* Лейблы */
+.auth-avatar {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), #6a5af9);
+    box-shadow: 0 10px 22px rgba(66, 133, 244, 0.45);
+}
+.auth-avatar svg { width: 30px; height: 30px; }
+
+.auth-card h1 {
+    color: var(--accent-dark);
+    margin: 0 0 6px;
+    font-weight: 800;
+    font-size: 26px;
+}
+
+.auth-sub {
+    margin: 0;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.auth-error {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    background: #fde8e8;
+    color: #c0392b;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ===== Лейблы ===== */
 label {
     display: block;
-    margin-bottom: 6px;
-    color: #555;
-    font-weight: 500;
+    margin: 0 0 6px 2px;
+    color: #374151;
+    font-weight: 600;
+    font-size: 14px;
 }
 
-/* Поля ввода и селект */
-input[type="text"],
-input[type="password"],
-select {
+/* ===== Поля с иконкой ===== */
+.field {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.field-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #9aa3b2;
+    pointer-events: none;
+    transition: color 0.25s ease;
+}
+
+.field input,
+.field select {
     width: 100%;
-    padding: 12px 14px;
-    margin-bottom: 20px;
-    border: 1.5px solid #ccc;
-    border-radius: 8px;
+    padding: 13px 14px 13px 44px;
+    border: 1.5px solid #e2e6ee;
+    border-radius: 12px;
     font-size: 15px;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-family: inherit;
+    background: #f7f9fc;
+    color: #1f2937;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    appearance: none;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus,
-select:focus {
+.field select {
+    cursor: pointer;
+    /* стрелка */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239aa3b2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+.field input::placeholder { color: #aab2c0; }
+
+.field input:focus,
+.field select:focus {
     outline: none;
-    border-color: #3367d6;
-    box-shadow: 0 0 8px rgba(51,103,214,0.3);
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(66, 133, 244, 0.15);
 }
 
-/* Кнопка входа */
-button {
+.field:focus-within .field-icon {
+    color: var(--accent);
+}
+
+/* ===== Главная кнопка ===== */
+.auth-btn {
     width: 100%;
     padding: 14px;
-    background-color: #3367d6;
+    margin-top: 6px;
+    background: linear-gradient(135deg, var(--accent), #5b6ef5);
     border: none;
-    border-radius: 10px;
-    color: white;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-button:hover {
-    background-color: #254f9d;
-    transform: scale(1.03);
-}
-
-/* Блок регистрации */
-.register-link {
-    text-align: center;
-    margin-top: 20px;
-}
-
-.register-link p {
-    margin: 0;
-    color: #555;
-    font-size: 14px;
-}
-
-.register-btn {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 10px 22px;
-    background-color: #ff5722;
+    border-radius: 12px;
     color: #fff;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(66, 133, 244, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease;
 }
 
-.register-btn:hover {
-    background-color: #e64a19;
-    transform: scale(1.05);
+.auth-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(66, 133, 244, 0.5);
+    filter: brightness(1.05);
+}
+.auth-btn:active { transform: translateY(0); }
+
+/* ===== Нижняя ссылка ===== */
+.register-link,
+.login-link {
+    text-align: center;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #eef0f5;
+}
+
+.register-link p,
+.login-link p {
+    margin: 0 0 10px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.register-btn,
+.login-btn {
+    display: inline-block;
+    padding: 10px 26px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    background: linear-gradient(135deg, #FF7043, var(--orange));
+    box-shadow: 0 6px 16px rgba(244, 81, 30, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.register-btn:hover,
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(244, 81, 30, 0.45);
+    filter: brightness(1.05);
+}
+
+@media (max-width: 480px) {
+    .auth-card { padding: 30px 24px 26px; }
+    .auth-card h1 { font-size: 22px; }
 }

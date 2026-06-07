@@ -188,12 +188,31 @@ svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshai
 const SVGNS="http://www.w3.org/2000/svg";
 const stage=document.getElementById("stage");
 
-/* ── target core: a circle to be traced (бірнеше деңгей) ── */
-const LEVELS=[ {C:{x:300,y:185},R:110}, {C:{x:300,y:182},R:82}, {C:{x:300,y:178},R:60} ];
+/* ── target core: фигураны жиектеу (деңгей сайын күрделене береді) ── */
+const LEVELS=[
+  {C:{x:300,y:185},R:112,shape:'triangle',rot:-90,tol:56,name:'Үшбұрыш'},
+  {C:{x:300,y:182},R:104,shape:'square',  rot:-45,tol:58,name:'Шаршы'},
+  {C:{x:300,y:180},R:106,shape:'pentagon',rot:-90,tol:62,name:'Бесбұрыш'},
+  {C:{x:300,y:180},R:118,shape:'star5',   rot:-90,inner:0.46,tol:74,name:'Жұлдыз'},
+];
+function regPoly(c,R,n,rot){const v=[];for(let i=0;i<n;i++){const a=rot+i*2*Math.PI/n;v.push({x:c.x+Math.cos(a)*R,y:c.y+Math.sin(a)*R});}return v;}
+function starPoly(c,R,r,n,rot){const v=[];for(let i=0;i<2*n;i++){const a=rot+i*Math.PI/n;const rad=(i%2===0)?R:r;v.push({x:c.x+Math.cos(a)*rad,y:c.y+Math.sin(a)*rad});}return v;}
+function shapeVerts(L){const c=L.C,R=L.R,rot=(L.rot||-90)*Math.PI/180;
+  if(L.shape==='triangle')return regPoly(c,R,3,rot);
+  if(L.shape==='square')  return regPoly(c,R,4,rot);
+  if(L.shape==='pentagon')return regPoly(c,R,5,rot);
+  if(L.shape==='hexagon') return regPoly(c,R,6,rot);
+  if(L.shape==='star5')   return starPoly(c,R,R*(L.inner||0.45),5,rot);
+  return regPoly(c,R,40,rot);
+}
+function outlinePts(verts){const pts=[];for(let i=0;i<verts.length;i++){const a=verts[i],b=verts[(i+1)%verts.length];for(let t=0;t<1;t+=1/22){pts.push({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});}}return pts;}
+function buildTarget(L){const verts=shapeVerts(L);return {verts,pts:outlinePts(verts),tol:L.tol||58};}
+let TARGET=buildTarget(LEVELS[0]);
 let level=0, levelScores=[];
 let C={x:LEVELS[0].C.x,y:LEVELS[0].C.y}, R=LEVELS[0].R;
 function loadLevel(){
   C={x:LEVELS[level].C.x,y:LEVELS[level].C.y}; R=LEVELS[level].R;
+  TARGET=buildTarget(LEVELS[level]);
   nodes=freshNodes(); selIdx=-1; tool="select"; nodeWarned=false; cornerWarned=false;
   document.querySelectorAll(".tool[data-tool]").forEach(x=>x.classList.toggle("active",x.dataset.tool==="select"));
   const cc=document.getElementById("coreCnt"); if(cc) cc.textContent=level+"/"+LEVELS.length;
@@ -255,20 +274,22 @@ function samplePath(list){
   return pts;
 }
 
-/* ── evaluate: how well closed contour hugs the core circle ── */
+/* ── evaluate: контур мақсатты фигура шетіне қаншалықты дәл жатыр ── */
 function evaluate(){
   const list=ordered();
-  if(list.length<3) return {acc:0,energy:1,err:R,worst:null};
+  if(list.length<3) return {acc:0,energy:1,err:R,worst:null,worstE:R};
   const pts=samplePath(list);
+  const tol=(TARGET&&TARGET.tol)||TOL;
   let sum=0, worst=null, worstE=-1;
   pts.forEach(p=>{
-    const e=Math.abs(Math.hypot(p.x-C.x,p.y-C.y)-R);
-    sum+=e; if(e>worstE){worstE=e;worst=p;}
+    let m=1e9;
+    for(const q of TARGET.pts){ const e=Math.hypot(p.x-q.x,p.y-q.y); if(e<m) m=e; }
+    sum+=m; if(m>worstE){worstE=m;worst=p;}
   });
   const err=sum/pts.length;
-  const acc=Math.max(0,Math.min(1,1-err/TOL));
-  const extra=Math.max(0,nodes.length-5);
-  const energy=Math.max(0,1-extra*0.13);
+  const acc=Math.max(0,Math.min(1,1-err/tol));
+  const extra=Math.max(0,nodes.length-8);   // күрделі фигураларға көбірек нүкте керек
+  const energy=Math.max(0,1-extra*0.1);
   return {acc,energy,err,worst,worstE};
 }
 
@@ -286,11 +307,13 @@ function render(){
       </radialGradient>
     </defs>`;
 
-  // ghost target core
-  const ghost=document.createElementNS(SVGNS,"circle");
-  ghost.setAttribute("cx",C.x);ghost.setAttribute("cy",C.y);ghost.setAttribute("r",R);
-  ghost.setAttribute("fill","url(#coreG)");ghost.setAttribute("stroke","rgba(140,110,255,.45)");
-  ghost.setAttribute("stroke-width","2");ghost.setAttribute("stroke-dasharray","7 6");
+  // ghost target core (мақсатты фигураның контуры)
+  const gd="M "+TARGET.verts.map(v=>v.x.toFixed(1)+","+v.y.toFixed(1)).join(" L ")+" Z";
+  const ghost=document.createElementNS(SVGNS,"path");
+  ghost.setAttribute("d",gd);
+  ghost.setAttribute("fill","url(#coreG)");ghost.setAttribute("stroke","rgba(150,120,255,.55)");
+  ghost.setAttribute("stroke-width","2.5");ghost.setAttribute("stroke-dasharray","7 6");
+  ghost.setAttribute("stroke-linejoin","round");
   stage.appendChild(ghost);
   // decorative star core glyph
   const star=document.createElementNS(SVGNS,"text");
@@ -371,8 +394,8 @@ function onNodeDown(e,i){
     nodes[i].type=nodes[i].type==='corner'?'smooth':'corner';
     selIdx=i; render();
     kronos(nodes[i].type==='corner'
-      ? 'Бұл нүкте <b>бұрышты (Corner)</b> болды — сызық осы жерде сынады. Дөңгелек контур үшін <b>тегіс</b> күй қолайлы! 📐'
-      : 'Бұл нүкте <b>тегіс (Smooth)</b> — тұтқаларын созып, ядроны дөңгелетіп қоршай аласың. 🔄');
+      ? 'Бұл нүкте <b>бұрышты (Corner)</b> болды — сызық осы жерде сынады. Үшбұрыш, шаршы, жұлдыз сияқты <b>бұрышты</b> фигураларға дәл осы керек! 📐'
+      : 'Бұл нүкте <b>тегіс (Smooth)</b> — тұтқаларын созып, иілген доға жасайсың. Дөңгелек қырлар үшін қолайлы. 🔄');
     return;
   }
   selIdx=i; drag={kind:'node',i}; render();
@@ -412,17 +435,17 @@ document.querySelectorAll(".tool[data-tool]").forEach(t=>t.onclick=()=>{
 /* ── Kronos ── */
 function kronos(html){ document.getElementById("kronos").innerHTML="<b>ЖИ Кеңесші Кронос:</b> "+html; }
 function checkNodeCount(){
-  if(nodes.length>6 && !nodeWarned){ nodeWarned=true;
-    kronos('Агент, сақ бол! Сен тым көп нүкте қойдың. Безье графикасының ережесі — <b>аз нүкте, ұзын тұтқа</b>. Артық нүктені өшіріп, тұтқаларды созсаң, контур әдемі әрі энергия үнемді болады! ✂️'); }
+  if(nodes.length>12 && !nodeWarned){ nodeWarned=true;
+    kronos('Агент, нүкте саны өте көп болды. Әр бұрышқа — бір нүкте жеткілікті. Артық нүктені өшірсең, контур таза әрі энергия үнемді болады! ✂️'); }
 }
 function liveHints(){
   const now=Date.now(); if(now-lastHint<2500) return;
   const ev=evaluate();
   const corners=nodes.filter(n=>n.type==='corner').length;
-  if(ev.worstE>34 && corners>=nodes.length-1 && !cornerWarned){ cornerWarned=true; lastHint=now;
-    kronos('Сен Безье <b>тұтқаларын тым аз пайдаландың</b> — сызық бұрышты әрі ядро шетіне дәл келмей тұр (❌). Нүктелерді тегіс етіп, тұтқаларды созып, доға жаса! ⚠️'); return; }
+  if(ev.worstE>34 && !cornerWarned){ cornerWarned=true; lastHint=now;
+    kronos('Контур фигура шетіне (көк сызыққа) дәл келмей тұр (❌). Нүктелерді бұрыштарға дәл қойып, керек жерде <b>бұрышты/тегіс</b> күйін ауыстырып көр! ⚠️'); return; }
   if(ev.acc>=0.9){ lastHint=now;
-    kronos('Тамаша! Контур ядроны дәл қоршады. <b>«Аяқтау»</b> батырмасын бас — портал іске қосылады! ✅'); }
+    kronos('Тамаша! Контур фигураны дәл қоршады. <b>«Аяқтау»</b> батырмасын бас — портал іске қосылады! ✅'); }
 }
 
 /* ── reset / finish ── */
@@ -442,7 +465,7 @@ document.getElementById("finishBtn").onclick=()=>{
   levelScores[level]=0.8*ev.acc + 0.2*ev.energy;
   if(level < LEVELS.length-1){
     level++;
-    kronos(`🎉 Ядро ${level}/${LEVELS.length} қалпына келді! Келесі ядро кішірек — дәлдік маңызды!`);
+    kronos(`🎉 Фигура ${level}/${LEVELS.length} қалпына келді! Келесі — «${LEVELS[level].name}», күрделірек. Дәлдік маңызды!`);
     loadLevel();
     return;
   }

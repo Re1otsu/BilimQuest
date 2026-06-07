@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, send_from_directory
+from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
@@ -10,6 +10,16 @@ from datetime import datetime
 import pytz
 from sqlalchemy import text
 from sqlalchemy import func
+import sys
+
+# Консоль Windows по умолчанию cp1251 и не может вывести казахские/кириллические
+# символы в print() — переключаем поток вывода на UTF-8, иначе любой такой print
+# роняет запрос с UnicodeEncodeError.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 app = Flask(__name__)
 
@@ -38,7 +48,14 @@ if db_url and db_url.startswith("postgres://"):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "connect_args": {"sslmode": "require"}
+    # Railway-прокси закрывает простаивающие соединения — эти опции делают пул
+    # устойчивым к разрывам и не дают приложению падать с "connection timed out".
+    "pool_pre_ping": True,   # проверять соединение перед использованием (авто-реконнект)
+    "pool_recycle": 280,     # пересоздавать соединение раньше, чем его закроет сервер
+    "connect_args": {
+        "sslmode": "require",
+        "connect_timeout": 10,  # не зависать надолго, если БД недоступна
+    },
 }
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
@@ -322,8 +339,6 @@ def login_teacher():
         email = request.form["email"]
 
         teacher = Teacher.query.filter_by(email=email).first()
-        print("Кірген email:", email)
-        print("Табылған:", teacher)
 
         if teacher and check_password_hash(teacher.password, password):
             session["user_id"] = teacher.id
@@ -451,7 +466,7 @@ GAME_CHAPTERS = {
         "kind": "star", "back": "/1module",
         "games": ["Сәйкестік", "Көпір", "Қағып ал", "Лабиринт", "Ғарыш хабаршысы",
                   "Хабаршы", "Қамал", "Шифр", "Агент", "Робот",
-                  "Сиқырлы шарлар", "Блоктар", "Пазл"],
+                  "Сиқырлы шарлар", "Блоктар"],
     },
     "graphics": {
         "kind": "puzzle", "back": "/toqsan_2",
@@ -472,7 +487,7 @@ GAME_TO_CHAPTER = {g: ck for ck, info in GAME_CHAPTERS.items() for g in info["ga
 MAX_SCORE = {
     "Сәйкестік": 0.4, "Көпір": 0.3, "Қағып ал": 0.3, "Лабиринт": 0.3,
     "Ғарыш хабаршысы": 0.3, "Хабаршы": 0.3, "Қамал": 0.6, "Шифр": 0.7,
-    "Агент": 0.7, "Робот": 1.2, "Сиқырлы шарлар": 1.4, "Блоктар": 1.4, "Пазл": 2,
+    "Агент": 0.7, "Робот": 1.2, "Сиқырлы шарлар": 1.4, "Блоктар": 1.4,
     "Робот орны": 0.3, "Робот тарихы": 0.5, "Гироскоп": 0.3, "Лабиринт ойыны": 0.5,
     "Сызық робот": 0.5, "Сумо": 0.5,
     "Эргономика": 0.1, "Цифрлық детектив": 0.2, "Кибер-бекініс": 0.3,
@@ -488,7 +503,7 @@ GAME_BLOOM = {
     "Қағып ал": "Білу", "Көпір": "Білу", "Сәйкестік": "Білу",
     "Лабиринт": "Түсіну", "Ғарыш хабаршысы": "Түсіну", "Хабаршы": "Түсіну",
     "Қамал": "Қолдану", "Шифр": "Қолдану", "Агент": "Қолдану",
-    "Робот": "Талдау", "Сиқырлы шарлар": "Бағалау", "Блоктар": "Жасау", "Пазл": "Жасау",
+    "Робот": "Талдау", "Сиқырлы шарлар": "Бағалау", "Блоктар": "Жасау",
     # Компьютерлік графика
     "Пиксель шебері": "Қолдану", "Фотолаб": "Қолдану",
     "Вектор ядро": "Жасау", "Лазер жолы": "Жасау", "Графика текетірес": "Бағалау",
@@ -783,65 +798,62 @@ def teacher_panel():
             chapter_to_games[chapter].append(game)
 
     # ---- ПРОГРЕСС ПО ВЫБРАННОМУ КЛАССУ ----
+    # Среднее усвоение НА УЧЕНИКА: сумму баллов класса делим на
+    # (макс. главы × число учеников), иначе % завышается и упирается в 100.
+    num_students = len(students)
     chapter_scores = {}
     for chapter, games_in_ch in chapter_to_games.items():
-        total_score = 0
-        for gp in all_progress:
-            if gp.game_name in games_in_ch:
-                total_score += gp.score
-        chapter_scores[chapter] = total_score / CHAPTER_MAX_SCORE[chapter] * 100
-        if chapter_scores[chapter] > 100:
-            chapter_scores[chapter] = 100
+        total_score = sum(gp.score for gp in all_progress if gp.game_name in games_in_ch)
+        denom = CHAPTER_MAX_SCORE[chapter] * num_students
+        pct = (total_score / denom * 100) if denom > 0 else 0
+        chapter_scores[chapter] = min(round(pct, 2), 100)
 
     labels = list(chapter_scores.keys())
     scores = [round(chapter_scores[ch], 2) for ch in labels]
 
-    GAME_TO_CHAPTER_NAME = {
-        "Қағып ал": ["Айналамыздағы ақпарат"],
-        "Көпір": ["Айналамыздағы ақпарат"],
-        "Сәйкестік": ["Айналамыздағы ақпарат"],
-        "Лабиринт": ["Ақпаратты беру"],
-        "Ғарыш хабаршысы": ["Ақпаратты беру"],
-        "Хабаршы": ["Ақпаратты беру"],
-        "Қамал": ["Ақпаратты шифрлау"],
-        "Шифр": ["Ақпаратты шифрлау"],
-        "Агент": ["Ақпаратты шифрлау"],
-        "Робот": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
-        "Сиқырлы шарлар": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
-        "Блоктар": ["Екілік ақпаратты көрсету", "Екілік ақпаратты көрсету. Практикум"],  # две главы
-    }
-    CHAPTER_NAME_MAX_SCORE = {
-        "Айналамыздағы ақпарат": 1,
-        "Ақпаратты беру": 1,
-        "Ақпаратты шифрлау": 2,
-        "Екілік ақпаратты көрсету": 4,
-        "Екілік ақпаратты көрсету. Практикум": 4,
-    }
-    # ---- ПРОГРЕСС ПО ВСЕМ КЛАССАМ ----
+    # ---- ГРАФИК "Тақырып бойынша" С ФИЛЬТРОМ ПО ЧЕТВЕРТЯМ ----
+    # Четверть = тарау (info/graphics/robotics/security). Тема = игра четверти.
+    QUARTER_ORDER = ["info", "graphics", "robotics", "security"]
+    QUARTER_PREFIX = {"info": "1-тоқсан", "graphics": "2-тоқсан",
+                      "robotics": "3-тоқсан", "security": "4-тоқсан"}
+    quarters = [
+        {"key": k, "label": f"{QUARTER_PREFIX[k]} · {CHAPTER_LABELS.get(k, k)}"}
+        for k in QUARTER_ORDER if k in GAME_CHAPTERS
+    ]
+    selected_quarter = request.args.get("quarter", "info")
+    if selected_quarter not in GAME_CHAPTERS:
+        selected_quarter = "info"
+    quarter_label = next((q["label"] for q in quarters if q["key"] == selected_quarter), "")
+
+    # 1-я четверть: игры объединяются в 4 темы (главы). Остальные: тема = игра.
+    QUARTER1_TOPICS = [
+        ("Айналамыздағы ақпарат", ["Қағып ал", "Көпір", "Сәйкестік"]),
+        ("Ақпаратты беру", ["Лабиринт", "Ғарыш хабаршысы", "Хабаршы"]),
+        ("Ақпаратты шифрлау", ["Қамал", "Шифр", "Агент"]),
+        ("Екілік ақпаратты көрсету", ["Робот", "Сиқырлы шарлар", "Блоктар"]),
+    ]
+
+    # Среднее усвоение на ученика (по всем классам).
     all_progress_all = GameProgress.query.filter(GameProgress.completed == True).all()
+    total_students = Student.query.count()
+    score_by_game = defaultdict(float)
+    for gp in all_progress_all:
+        score_by_game[gp.game_name] += gp.score
 
-    from collections import defaultdict
+    labels_all = []
+    scores_all = []
+    if selected_quarter == "info":
+        groups = QUARTER1_TOPICS
+    else:
+        groups = [(g, [g]) for g in GAME_CHAPTERS[selected_quarter]["games"]]
+    for topic, games in groups:
+        gmax = sum(MAX_SCORE.get(g, 0) for g in games)
+        denom = gmax * total_students
+        total = sum(score_by_game.get(g, 0) for g in games)
+        pct = (total / denom * 100) if denom > 0 else 0
+        labels_all.append(topic)
+        scores_all.append(min(round(pct, 2), 100))
 
-    chapter_to_games_name = defaultdict(list)
-    for game, chapters in GAME_TO_CHAPTER_NAME.items():
-        for ch in chapters:
-            chapter_to_games_name[ch].append(game)
-
-    chapter_scores_all = {}
-    for chapter, games_in_ch in chapter_to_games_name.items():
-        total_score = 0
-        total_max = 0
-        for gp in all_progress_all:
-            if gp.game_name in games_in_ch:
-                total_score += gp.score
-                total_max += getattr(gp, 'max_score', 1)  # берём реальный макс балл игры
-        if total_max > 0:
-            chapter_scores_all[chapter] = min(total_score / CHAPTER_NAME_MAX_SCORE[chapter] * 100, 100)
-        else:
-            chapter_scores_all[chapter] = 0
-
-    labels_all = list(chapter_scores_all.keys())
-    scores_all = [round(chapter_scores_all[ch], 2) for ch in labels_all]
     class_list = [row[0] for row in db.session.query(Student.student_class).distinct().all()]
     return render_template(
         "teacher_panel.html",
@@ -851,7 +863,10 @@ def teacher_panel():
         labels_all=labels_all,
         scores_all=scores_all,
         selected_class=selected_class,
-        class_list=class_list
+        class_list=class_list,
+        quarters=quarters,
+        selected_quarter=selected_quarter,
+        quarter_label=quarter_label,
     )
 
 
@@ -1181,11 +1196,6 @@ def game8():
 def game9():
     return render_game_or_gate("Сиқырлы шарлар", "game9.html", "/1module")
 
-@app.route("/game10")
-@login_required("student")
-def game10():
-    return render_game_or_gate("Пазл", "game10.html", "/1module")
-
 @app.route("/module1")
 @login_required("student")
 def module1():
@@ -1416,6 +1426,703 @@ def quest3_m5():
 @login_required("student")
 def quest3_m6():
     return render_game_or_gate("Сумо", "quest3_m6.html", "/toqsan_3")
+
+
+# ===================== BilimAI чат-ассистент =====================
+import anthropic as _anthropic
+
+# Фича-флаг ИИ-чата. По умолчанию ВЫКЛЮЧЕН — в проде ИИ не появляется,
+# пока явно не задана переменная окружения AI_CHAT_ENABLED=true.
+AI_CHAT_ENABLED = os.getenv("AI_CHAT_ENABLED", "false").strip().lower() in ("1", "true", "yes", "on")
+
+CHAT_SYSTEM_PROMPTS = {
+    "student": (
+        "Сен — BilimAI, BilimQuest білім беру платформасының достық көмекшісісің. "
+        "Қолданушы — 5-сынып оқушысы. Әрқашан қазақ тілінде, қарапайым әрі қысқа жауап бер. "
+        "Сенің екі негізгі міндетің бар:\n"
+        "1) ОЙЫНДАРҒА КӨМЕК: Информатика тақырыптарын (ақпарат, кодтау, екілік жүйе, "
+        "компьютерлік графика, робототехника, қауіпсіздік) түсіндір. Ойындар мен тапсырмаларға "
+        "ТЕК КЕҢЕС пен бағыттаушы сұрақтар бер, бірақ ЕШҚАШАН дайын жауапты толық берме — "
+        "оқушы өзі ойлансын. Қадам-қадаммен ойлауға бағытта.\n"
+        "2) ӨЗІН-ӨЗІ ДАМЫТУ КЕҢЕСТЕРІ: Оқушыға қалай жақсы оқуға болатынын үйрет — "
+        "зейінді шоғырландыру, уақытты дұрыс бөлу, демалыс пен оқуды кезектестіру, "
+        "қателерден қорықпау, мақсат қою және өзіне сенімді болу туралы қарапайым, "
+        "практикалық кеңестер бер. Оқушыны қолда, мотивация бер.\n"
+        "Әрқашан мейірімді бол, мадақта. Сұрақ оқуға не өзін дамытуға қатысы болмаса, "
+        "жұмсақ түрде тақырыпқа қайтар. Жауаптарды қысқа абзацтармен жаз."
+    ),
+    "teacher": (
+        "Сен — BilimQuest платформасындағы мұғалімнің көмекшісісің. Оқушылардың үлгерімін талдауға, "
+        "хабарландыру мәтінін жазуға және әдістемелік кеңес беруге көмектесесің. Қазақ тілінде "
+        "(немесе сұрақ тілінде), нақты әрі құрылымды жауап бер. Деректер жоқ жерде болжам жасама."
+    ),
+}
+
+
+def _claude_reply(role, message, history, page, page_text=""):
+    """Call Claude API via Anthropic SDK. Returns reply text or a graceful fallback."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    system = CHAT_SYSTEM_PROMPTS.get(role, CHAT_SYSTEM_PROMPTS["student"])
+
+    name = session.get("user_name", "")
+    ctx = f"Қолданушы: {name or 'белгісіз'}."
+    if role == "student":
+        ctx += f" Сынып: {session.get('student_class', '?')}."
+    if page:
+        ctx += f" Ағымдағы бет: {page}."
+    # Егер оқушы ойын бетінде болса — ойын контекстін қосамыз
+    if role == "student" and _game_from_path(page):
+        ctx += "\n" + _game_context(page, page_text)
+    system = system + "\n\n[Контекст] " + ctx
+
+    if not api_key:
+        return ("⚙️ BilimAI әзірге толық қосылмаған: серверде ANTHROPIC_API_KEY орнатылмаған. "
+                "Кілт қосылғаннан кейін мен сұрақтарыңа толық жауап беремін.")
+
+    messages = []
+    for turn in (history or [])[-10:]:
+        r = "user" if turn.get("role") == "user" else "assistant"
+        t = (turn.get("text") or "").strip()
+        if t:
+            messages.append({"role": r, "content": t})
+    if not messages or messages[-1]["role"] != "user":
+        messages.append({"role": "user", "content": message})
+
+    try:
+        client = _anthropic.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=700,
+            system=system,
+            messages=messages,
+        )
+        return resp.content[0].text.strip()
+    except Exception as e:
+        print("Claude chat error:", e)
+        return "Кешіріңіз, байланыс қатесі. Кейінірек қайталап көр."
+
+
+@app.route("/api/ai-progress/<int:student_id>")
+def api_ai_progress(student_id):
+    """Return an AI-generated analysis of a student's game progress."""
+    if not AI_CHAT_ENABLED:
+        return jsonify({"error": "disabled"}), 404
+    role = session.get("role")
+    # студент может смотреть только свой прогресс; учитель — любой
+    if role == "student" and session.get("user_id") != student_id:
+        return jsonify({"error": "unauthorized"}), 401
+    if role not in ("student", "teacher"):
+        return jsonify({"error": "unauthorized"}), 401
+
+    student = Student.query.get_or_404(student_id)
+    games = (GameProgress.query
+             .filter_by(student_id=student_id)
+             .order_by(GameProgress.game_name)
+             .all())
+
+    # Формируем текст прогресса для промпта
+    if not games:
+        lines = ["Оқушы әлі бірде-бір ойын ойнамаған."]
+    else:
+        best = {}
+        for g in games:
+            prev = best.get(g.game_name)
+            if prev is None or g.score > prev["score"]:
+                best[g.game_name] = {"score": g.score, "stars": g.stars, "completed": g.completed}
+        lines = []
+        for gname, d in best.items():
+            chapter = GAME_TO_CHAPTER.get(gname, "?")
+            label = CHAPTER_LABELS.get(chapter, chapter)
+            max_s = MAX_SCORE.get(gname, 1)
+            pct = round(d["score"] / max_s * 100) if max_s else 0
+            stars = "★" * d["stars"] + "☆" * (3 - d["stars"])
+            status = "✅" if d["completed"] else "⏳"
+            lines.append(f"{status} {gname} ({label}): {d['score']:.2f}/{max_s} ұпай ({pct}%) {stars}")
+
+    progress_text = "\n".join(lines)
+    prompt = (
+        f"Оқушы: {student.name} {student.surname}, {student.student_class} сынып.\n"
+        f"Ойын нәтижелері:\n{progress_text}\n\n"
+        "Оқушының күшті тұстарын атап өт, қандай ойындарда қиындық бар екенін анықта, "
+        "мотивациялық кеңес бер. Қазақ тілінде, 4 сөйлем."
+    )
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        return jsonify({"analysis": "⚙️ ANTHROPIC_API_KEY орнатылмаған."})
+
+    try:
+        client = _anthropic.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=1024,
+            system=CHAT_SYSTEM_PROMPTS["teacher"],
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return jsonify({"analysis": resp.content[0].text.strip()})
+    except Exception as e:
+        print("ai-progress error:", e)
+        return jsonify({"analysis": "Байланыс қатесі. Кейінірек қайталаңыз."})
+
+
+# ============== ИИ-Орталық: панель учителя ==============
+
+def _claude_text(system, prompt, max_tokens=1200, model="claude-sonnet-4-6"):
+    """Generic Claude call. Returns (text, error_message). One of them is None."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        return None, "⚙️ ANTHROPIC_API_KEY орнатылмаған."
+    try:
+        client = _anthropic.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model=model, max_tokens=max_tokens, system=system,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return resp.content[0].text.strip(), None
+    except Exception as e:
+        print("Claude error:", e)
+        return None, "Байланыс қатесі. Кейінірек қайталаңыз."
+
+
+def _collect_class_data(class_name):
+    """Сыныптың толық прогресс деректерін жинайды (промпт үшін)."""
+    students = Student.query.filter_by(student_class=class_name).all()
+    max_total = sum(MAX_SCORE.values())
+    chapter_totals = {ck: {"earned": 0.0, "max": 0.0} for ck in GAME_CHAPTERS}
+    student_rows = []
+
+    for s in students:
+        progress = GameProgress.query.filter_by(student_id=s.id).all()
+        best = {}
+        for p in progress:
+            if p.game_name not in best or p.score > best[p.game_name].score:
+                best[p.game_name] = p
+        earned = sum(min(best[g].score, MAX_SCORE.get(g, 0)) for g in best if g in MAX_SCORE)
+        stars = sum(int(best[g].stars or 0) for g in best)
+        pct = round(earned / max_total * 100, 1) if max_total else 0
+        student_rows.append({
+            "id": s.id, "name": f"{s.name} {s.surname}",
+            "played": len(best), "total_games": len(MAX_SCORE),
+            "stars": stars, "earned": round(earned, 2), "percent": pct,
+        })
+        for ck, info in GAME_CHAPTERS.items():
+            for g in info["games"]:
+                chapter_totals[ck]["max"] += MAX_SCORE.get(g, 0)
+                if g in best:
+                    chapter_totals[ck]["earned"] += min(best[g].score, MAX_SCORE.get(g, 0))
+
+    chapters = {}
+    for ck, d in chapter_totals.items():
+        label = CHAPTER_LABELS.get(ck, ck)
+        chapters[label] = round(d["earned"] / d["max"] * 100, 1) if d["max"] > 0 else 0
+
+    return {
+        "class_name": class_name,
+        "num_students": len(students),
+        "students": student_rows,
+        "chapters": chapters,
+    }
+
+
+def _class_data_to_text(data):
+    """Сынып деректерін промпт үшін мәтінге айналдырады."""
+    if data["num_students"] == 0:
+        return "Бұл сыныпта тіркелген оқушы жоқ."
+    lines = [f"Сынып: {data['class_name']}, оқушылар саны: {data['num_students']}.", ""]
+    lines.append("Тараулар бойынша орташа игеру (%):")
+    for label, pct in data["chapters"].items():
+        lines.append(f"  • {label}: {pct}%")
+    lines.append("")
+    lines.append("Оқушылар (ойналған/барлығы, жұлдыз, жалпы үлгерім %):")
+    for r in sorted(data["students"], key=lambda x: x["percent"], reverse=True):
+        lines.append(f"  • {r['name']}: {r['played']}/{r['total_games']} ойын, "
+                     f"{r['stars']} ⭐, {r['percent']}%")
+    return "\n".join(lines)
+
+
+AI_PANEL_PROMPTS = {
+    "analytics": (
+        "Сен — мектеп мұғаліміне арналған білім беру аналитигісің. Сынып деректерін талда. "
+        "Қай тарау жақсы игерілген, қайсысы әлсіз екенін нақты сандармен көрсет. "
+        "Жалпы қорытынды жаса және мұғалімге 2-3 практикалық ұсыныс бер. "
+        "Қазақ тілінде, тақырыпшалармен құрылымдап жаз. Маркдаун қолдан (**қалың**, тізімдер)."
+    ),
+    "at_risk": (
+        "Сен — оқушылардың үлгерімін бақылайтын ИИ-кеңесшісің. Берілген сынып деректерінен "
+        "АРТТА ҚАЛУ ҚАУПІ бар оқушыларды анықта (аз ойын ойнаған немесе үлгерімі төмен). "
+        "Әр оқушы үшін: есімі, қандай белгі бойынша қауіпте, нақты көмек шарасы. "
+        "Егер қауіп тобы жоқ болса — соны айт. Қазақ тілінде, маркдаунмен."
+    ),
+    "lesson_plan": (
+        "Сен — информатика пәнінің тәжірибелі әдіскерісің. Сынып деректеріне сүйеніп, "
+        "КЕЛЕСІ САБАҚҚА нақты жоспар ұсын: қай тақырыпты қайталау керек, қандай "
+        "тапсырмалар мен белсенділіктер беру керек, уақыт бөлінісі. "
+        "Қазақ тілінде, нөмірленген қадамдармен, маркдаунмен."
+    ),
+    "parent_report": (
+        "Сен — мұғалімнің атынан ата-анаға хабарлама жазатын көмекшісің. Оқушының нәтижелері "
+        "бойынша СЫПАЙЫ әрі жылы хат жаз: баланың жетістіктері, нені жақсартуға болады, "
+        "үйде қалай қолдау көрсетуге болады. Айыптамай, ынталандыра жаз. "
+        "Қазақ тілінде, ата-анаға түсінікті тілмен, 1-2 абзац."
+    ),
+}
+
+
+def _teacher_only_json():
+    """Returns an error response tuple if caller is not a teacher, else None."""
+    if not AI_CHAT_ENABLED:
+        return jsonify({"error": "disabled"}), 404
+    if session.get("role") != "teacher":
+        return jsonify({"error": "unauthorized"}), 401
+    return None
+
+
+@app.route("/teacher/ai-panel")
+@login_required("teacher")
+def teacher_ai_panel():
+    # ИИ мұғалім рөлінен алынып тасталды — басты бетке қайтарамыз
+    return redirect("/teacher")
+
+
+@app.route("/api/ai/class-analytics")
+def api_ai_class_analytics():
+    err = _teacher_only_json()
+    if err:
+        return err
+    class_name = request.args.get("class", "").strip()
+    data = _collect_class_data(class_name)
+    if data["num_students"] == 0:
+        return jsonify({"result": "Бұл сыныпта оқушы жоқ немесе сынып таңдалмаған."})
+    text, error = _claude_text(AI_PANEL_PROMPTS["analytics"], _class_data_to_text(data), max_tokens=2800)
+    return jsonify({"result": text or error})
+
+
+@app.route("/api/ai/at-risk")
+def api_ai_at_risk():
+    err = _teacher_only_json()
+    if err:
+        return err
+    class_name = request.args.get("class", "").strip()
+    data = _collect_class_data(class_name)
+    if data["num_students"] == 0:
+        return jsonify({"result": "Бұл сыныпта оқушы жоқ немесе сынып таңдалмаған."})
+    prompt = (_class_data_to_text(data) +
+              "\n\nАртта қалу қаупі бар оқушыларды анықтап, көмек шараларын ұсын.")
+    text, error = _claude_text(AI_PANEL_PROMPTS["at_risk"], prompt, max_tokens=2800)
+    return jsonify({"result": text or error})
+
+
+@app.route("/api/ai/lesson-plan")
+def api_ai_lesson_plan():
+    err = _teacher_only_json()
+    if err:
+        return err
+    class_name = request.args.get("class", "").strip()
+    data = _collect_class_data(class_name)
+    if data["num_students"] == 0:
+        return jsonify({"result": "Бұл сыныпта оқушы жоқ немесе сынып таңдалмаған."})
+    prompt = (_class_data_to_text(data) +
+              "\n\nОсы деректерге сүйеніп, келесі сабаққа жоспар құр.")
+    text, error = _claude_text(AI_PANEL_PROMPTS["lesson_plan"], prompt, max_tokens=3500)
+    return jsonify({"result": text or error})
+
+
+@app.route("/api/ai/parent-report/<int:student_id>")
+def api_ai_parent_report(student_id):
+    err = _teacher_only_json()
+    if err:
+        return err
+    student = Student.query.get_or_404(student_id)
+    games = GameProgress.query.filter_by(student_id=student_id).all()
+    best = {}
+    for g in games:
+        if g.game_name not in best or g.score > best[g.game_name].score:
+            best[g.game_name] = g
+    if not best:
+        lines = ["Оқушы әлі ойын ойнамаған."]
+    else:
+        lines = []
+        for gname, p in best.items():
+            label = CHAPTER_LABELS.get(GAME_TO_CHAPTER.get(gname, "?"), "?")
+            max_s = MAX_SCORE.get(gname, 1)
+            pct = round(p.score / max_s * 100) if max_s else 0
+            lines.append(f"  • {gname} ({label}): {pct}%, {int(p.stars or 0)} ⭐")
+    prompt = (f"Оқушы: {student.name} {student.surname}, {student.student_class} сынып.\n"
+              f"Нәтижелері:\n" + "\n".join(lines) +
+              "\n\nАта-анаға арналған хат жаз.")
+    text, error = _claude_text(AI_PANEL_PROMPTS["parent_report"], prompt)
+    return jsonify({"result": text or error})
+
+# ============== /ИИ-Орталық ==============
+
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    if not AI_CHAT_ENABLED:
+        return jsonify({"error": "disabled"}), 404
+    role = session.get("role")
+    if role not in ("student", "teacher"):
+        return jsonify({"error": "unauthorized"}), 401
+    body = request.get_json(silent=True) or {}
+    message = (body.get("message") or "").strip()
+    if not message:
+        return jsonify({"error": "empty"}), 400
+    if len(message) > 2000:
+        message = message[:2000]
+    reply = _claude_reply(role, message, body.get("history"), body.get("page"), body.get("page_text", ""))
+    return jsonify({"reply": reply})
+
+
+# ====== Ойын ішіндегі көмек: подсказка + разбор ошибок ======
+
+# Бет адресі → ойын атауы (контекст үшін)
+PATH_TO_GAME = {
+    "/game1": "Қағып ал", "/game2": "Көпір", "/game3": "Ғарыш хабаршысы",
+    "/game4": "Хабаршы", "/game5": "Қамал", "/game6": "Шифр",
+    "/game7": "Агент", "/game8": "Робот", "/game9": "Сиқырлы шарлар",
+    "/module1": "Сәйкестік", "/module2": "Лабиринт", "/module4": "Блоктар",
+    "/toqsan2/g1": "Пиксель шебері", "/toqsan2/g2": "Фотолаб", "/toqsan2/g3": "Лазер жолы",
+    "/toqsan2/g4": "Вектор ядро", "/toqsan2/g5": "Графика текетірес",
+    "/toqsan4/g1": "Эргономика", "/toqsan4/g2": "Цифрлық детектив",
+    "/toqsan4/g3": "Желілік жүгіруші", "/toqsan4/g4": "Кибер-бекініс", "/toqsan4/g5": "Файл әлемі",
+    "/quest3/m1": "Робот орны", "/quest3/m2": "Робот тарихы", "/quest3/m3": "Гироскоп",
+    "/quest3/m4": "Лабиринт ойыны", "/quest3/m5": "Сызық робот", "/quest3/m6": "Сумо",
+}
+
+
+def _game_from_path(page):
+    """Бет адресінен ойын атауын анықтайды (?play=1 сияқты параметрлерсіз)."""
+    if not page:
+        return None
+    path = page.split("?", 1)[0].rstrip("/")
+    return PATH_TO_GAME.get(path) or PATH_TO_GAME.get(page.split("?", 1)[0])
+
+
+# Ойындардың қысқаша сипаттамасы (ИИ ойын мазмұнын түсінуі үшін).
+# Canvas-та салынатын ойындарда экран мәтіні аз болады — осы сипаттама көмектеседі.
+GAME_INFO = {
+    "Сәйкестік": "Суреттерді/ұғымдарды дұрыс анықтамасына сүйреп апарып сәйкестендіру ойыны. Мақсат — ұғымдарды тану.",
+    "Көпір": "Дұрыс жауаптарды таңдау арқылы көпір/жол құрастыру ойыны. Ақпаратты тану тақырыбы.",
+    "Қағып ал": "Дұрыс нысандарды (жауаптарды) себетпен қағып алу ойыны, қателерден қашу керек.",
+    "Лабиринт": "Кейіпкерді лабиринт ішінде дұрыс бағытпен жүргізу. Алгоритм мен бағдарды түсіну.",
+    "Ғарыш хабаршысы": "Хабарды ғарыш арқылы дұрыс жеткізу ойыны. Ақпаратты беру/жіберу тақырыбы.",
+    "Хабаршы": "Ақпаратты дұрыс кодпен немесе жолмен жеткізу ойыны. Ақпаратты беру тақырыбы.",
+    "Қамал": "Сұрақтарға жауап беріп қамалды қорғау/салу ойыны. Ақпаратты қолдану.",
+    "Шифр": "Қазақ сөздерін кодтау кестесі арқылы сандарға айналдырып шифрлау. Ақпаратты сандармен кодтау.",
+    "Агент": "Шифрланған хабарды ашатын құпия агент тапсырмалары. Кодтау мен шешуді қолдану.",
+    "Робот": "Роботқа командалар/екілік код беру арқылы тапсырманы орындату. Талдау деңгейі.",
+    "Сиқырлы шарлар": "Шарлар арқылы екілік (бинарлық) санды құрастыру/бағалау ойыны.",
+    "Блоктар": "Блоктардан екілік ақпаратты немесе суретті құрастыру. Жасау деңгейі.",
+    "Пиксель шебері": "Пиксельдерді бояп сурет салу. Растрлық (пиксельдік) графиканы түсіну.",
+    "Фотолаб": "Фотосуретті өңдеу (жарық, түс, фильтр). Графиканы өңдеуді қолдану.",
+    "Лазер жолы": "Айналар арқылы лазер сәулесінің жолын дұрыс бағыттау басқатырғышы.",
+    "Вектор ядро": "Векторлық фигуралардан сурет құрастыру. Векторлық графиканы жасау.",
+    "Графика текетірес": "Компьютерлік графика бойынша сұрақ-жауап жарысы (викторина).",
+    "Робот орны": "Роботтың дұрыс орнын/позициясын анықтау. Робототехника негіздері.",
+    "Робот тарихы": "Робототехника тарихы бойынша сұрақ-жауап ойыны.",
+    "Гироскоп": "Гироскоп пен сенсорлар жұмысын түсіну тапсырмасы.",
+    "Лабиринт ойыны": "Роботты лабиринттен алгоритм/командалармен өткізу.",
+    "Сызық робот": "Сызықпен жүретін роботты бағдарламалау/бағыттау. Талдау деңгейі.",
+    "Сумо": "Сумо-робот жарысы: роботты дұрыс басқару стратегиясы.",
+    "Эргономика": "Компьютерде дұрыс, қауіпсіз отыру ережелерін үйрену.",
+    "Цифрлық детектив": "Цифрлық іздерден жұмбақты шешетін детектив тапсырмалары.",
+    "Кибер-бекініс": "Кибер-қорғаныс ойыны: базаны хакер шабуылынан қорғау, энергия мен жұлдыз жинау. Киберқауіпсіздік негіздері.",
+    "Файл әлемі": "Файлдар мен қалталарды дұрыс реттеу/орналастыру. Файлдық жүйені түсіну.",
+    "Желілік жүгіруші": "Желі (интернет) арқылы деректі дұрыс жеткізу ойыны. Желі негіздері.",
+}
+
+
+def _game_context(page, page_text):
+    """Ойын контекстін құрайды: атауы, тарауы, сипаттамасы + экрандағы нақты мәтін."""
+    parts = []
+    game = _game_from_path(page)
+    if game:
+        bloom = GAME_BLOOM.get(game, "")
+        chapter = CHAPTER_LABELS.get(GAME_TO_CHAPTER.get(game, ""), "")
+        line = f"Оқушы қазір «{game}» ойынында ойнап жатыр."
+        if chapter:
+            line += f" Тарау: {chapter}."
+        if bloom:
+            line += f" Танымдық деңгей: {bloom}."
+        parts.append(line)
+        if game in GAME_INFO:
+            parts.append("Ойын туралы: " + GAME_INFO[game])
+    if page_text:
+        snippet = " ".join(str(page_text).split())[:900]
+        if snippet:
+            parts.append("Оқушының экранында көрініп тұрған мәтін: «" + snippet + "»")
+    return "\n".join(parts) if parts else "Оқушы ойын бетінде."
+
+
+# Ойынның өзінде нұсқаулық терезесі бар — оларға қоспаймыз (қосарланбау үшін)
+GAMES_WITH_OWN_INTRO = {"Желілік жүгіруші"}
+
+# Ойын алдындағы нұсқаулық: icon + тарих (subtitle) + басқару ережелері + мақсат.
+# rules: (эмодзи, қалың жазу, түсіндірме). Қалың жазу бос болса — тек мәтін.
+GAME_GUIDES = {
+    "Қағып ал": {"icon": "🧺", "subtitle": "Ақпарат көздерін аңда! Экраннан қалқып шығатын суреттерден дұрысын тап.",
+        "rules": [("👆", "БАС", "ақпарат көзі болатын суретті көрсең, басып ұста"),
+                  ("📚", "Ақпарат көздері", "кітап, телефон, газет, компьютер, теледидар"),
+                  ("🍎", "Артық зат", "алма, доп, орындық — оларды БАСПА"),
+                  ("⚠️", "Абайла", "ақпарат көзін жіберіп алсаң — ұпай нөлденеді")],
+        "goal": "Барлық ақпарат көзін жинап, ұпайыңды сақта!"},
+    "Көпір": {"icon": "🌉", "subtitle": "Заттарды түріне қарай сұрыптап, өзеннен өтетін көпір сал!",
+        "rules": [("🖐️", "СҮЙРЕ", "затты дұрыс тақтайға апар"),
+                  ("📜", "Мәтін", "газет, кітап"), ("🎵", "Дыбыс", "ән, радио"),
+                  ("🎬", "Бейне", "фильм, теледидар")],
+        "goal": "Барлық затты дұрыс түрге қойып, арғы бетке өт!"},
+    "Ғарыш хабаршысы": {"icon": "🚀", "subtitle": "Хабарды жеткізудің дұрыс түрін таңдап, зымыранды Марсқа ұшыр!",
+        "rules": [("▶️", "Бастау", "ойынды бастау батырмасын бас"),
+                  ("📞", "Дыбыс", "дауыстық хабар"), ("📜", "Мәтін", "жазбаша хабар"),
+                  ("📺", "Бейне", "видео хабар")],
+        "goal": "Зымыранды Жерден Марсқа жеткіз!"},
+    "Хабаршы": {"icon": "🕵️", "subtitle": "Әр кейіпкерге жақында да, хабарды жеткізудің дұрыс тәсілін тап!",
+        "rules": [("🚶", "Жақында", "кейіпкерге барсаң тапсырма ашылады"),
+                  ("📖", "Оқы", "тапсырманы мұқият оқы"),
+                  ("☎️", "Тәсіл", "Телефон / Жазбаша / Бейне / Ауызша — дұрысын таңда")],
+        "goal": "Барлық кейіпкерге дұрыс тәсілмен жауап бер!"},
+    "Қамал": {"icon": "🏰", "subtitle": "Құпия кодты тауып, қамалдың үш құлпын аш!",
+        "rules": [("🔢", "Код", "шифрды тауып өріске жаз"),
+                  ("🔓", "Аш", "«OK» басып құлыпты аш"), ("3️⃣", "Үш құлып", "барлығын дұрыс кодпен аш")],
+        "goal": "Қамалдың 3 құлпын да аш!"},
+    "Шифр": {"icon": "🔐", "subtitle": "Кодтау кестесімен сөзді сандарға айналдыр!",
+        "rules": [("🔎", "Кесте", "әр әріптің санын кестеден тап"),
+                  ("⌨️", "Жаз", "сандарды ретімен өріске тер"),
+                  ("✅", "Тексер", "«Check» басып тексер"), ("⏱️", "Уақыт", "уақытты бақыла")],
+        "goal": "Сөзді дұрыс шифрла!"},
+    "Агент": {"icon": "🕶️", "subtitle": "Сен — құпия агентсің! Шифрланған тапсырмаларды шеш.",
+        "rules": [("🖱️", "Бас", "хат / компьютер / сейфке бас — тапсырма ашылады"),
+                  ("🧩", "Шеш", "шифрды шешіп жауапты жаз"),
+                  ("✅", "Тексеру", "жауапты тексер"), ("⏱️", "Уақыт", "1 минут — асықпай, бірақ тез")],
+        "goal": "Барлық шифрды ашып, миссияны орында!"},
+    "Робот": {"icon": "🤖", "subtitle": "Бинарлық кодпен команда беріп, роботты батарейкаға жеткіз!",
+        "rules": [("🔼", "0001 / 0010", "жоғары / төмен"),
+                  ("▶️", "0011 / 0100", "оңға / солға"),
+                  ("⌨️", "Жаз", "код пен қадам санын тер (мысалы: 0010 3)"),
+                  ("📨", "Жіберу", "робот қабырғаға соқпай батареяға жетсін")],
+        "goal": "Роботты батарейкаға дұрыс жеткіз!"},
+    "Сиқырлы шарлар": {"icon": "🔢", "subtitle": "Символдарды дұрыс ондық (decimal) санымен сәйкестендір!",
+        "rules": [("👀", "Қара", "әр символға назар аудар"),
+                  ("🔢", "Тап", "оның ондық санын анықта"),
+                  ("🔗", "Сәйкестендір", "дұрыс жұптарды қос"), ("⏱️", "Уақыт", "2 минут")],
+        "goal": "Барлық символды дұрыс санмен қос!"},
+    "Сәйкестік": {"icon": "👁️", "subtitle": "Сезім мүшелерін олардың қызметімен сәйкестендір!",
+        "rules": [("🖐️", "Сүйре", "суретті мағынасы жазылған шаршыға апар"),
+                  ("🧩", "Барлығын қой", "әр суретке дұрыс орын тап"),
+                  ("✅", "Тексеру", "«Тексеру» батырмасын бас")],
+        "goal": "Барлық мүшені дұрыс қызметпен сәйкестендір!"},
+    "Лабиринт": {"icon": "🗝️", "subtitle": "Лабиринт ішінде жүріп, барлық кілттерді жина!",
+        "rules": [("👆", "Қозғал", "жанындағы ұяшыққа басып жүр"),
+                  ("🗝️", "Жина", "жолдағы барлық кілтті ал"),
+                  ("🚪", "Шық", "кілттерді жинап шығуға жет")],
+        "goal": "Барлық кілтті жинап лабиринттен шық!"},
+    "Блоктар": {"icon": "🧱", "subtitle": "Блоктарды тақтаға дұрыс орналастыр!",
+        "rules": [("👀", "Қара", "тапсырма мен үлгіні оқы"),
+                  ("🖐️", "Қой", "блокты дұрыс орынға апар"),
+                  ("✅", "Аяқта", "барлығын дұрыс жина")],
+        "goal": "Барлық блокты дұрыс орналастыр!"},
+    "Пиксель шебері": {"icon": "🎨", "subtitle": "Бүлінген цифрлық суретті пиксельдеп қалпына келтір!",
+        "rules": [("🖼️", "Үлгі", "үлгі суретке қара"),
+                  ("🖌️", "Боя", "әр пиксельді дұрыс түспен боя"),
+                  ("✨", "Қалпына келтір", "суретті толық жаса")],
+        "goal": "Суретті пиксельмен толық қалпына келтір!"},
+    "Фотолаб": {"icon": "🎚️", "subtitle": "Түстер зертханасында фотоны дұрыс түске келтір!",
+        "rules": [("📋", "Тапсырма", "нені өзгерту керегін оқы"),
+                  ("🎚️", "Бапта", "RGB / жарық параметрлерін реттеп"),
+                  ("🎯", "Сәйкестендір", "нәтижені үлгіге жеткіз")],
+        "goal": "Фотоны үлгідегі түске келтір!"},
+    "Лазер жолы": {"icon": "🔦", "subtitle": "Лазер сәулесін айналармен нысанаға бағытта!",
+        "rules": [("🪞", "Айна", "айналарды орналастыр / бұр"),
+                  ("➡️", "Жол", "сәуленің жолын дұрыс құр"),
+                  ("🎯", "Нысана", "лазерді нысанаға жеткіз")],
+        "goal": "Лазерді нысанаға дәл бағытта!"},
+    "Вектор ядро": {"icon": "✏️", "subtitle": "Нүктелерді жылжытып, үлгідегі векторлық суретті құр!",
+        "rules": [("🟢", "Нүкте", "нүктелерді сүйреп орналастыр (кемінде 3)"),
+                  ("📐", "Фигура", "үлгіге ұқсат"), ("✅", "Тексер", "дайын болғанда тексер")],
+        "goal": "Векторлық суретті үлгідей жаса!"},
+    "Графика текетірес": {"icon": "⚔️", "subtitle": "Растр vs Вектор: салыстыру дуэлінде жең!",
+        "rules": [("❓", "Сұрақ", "бұл растрға ма, әлде векторға ма қатысты?"),
+                  ("👆", "Жауап", "дұрысын таңда"), ("🏆", "Оз", "қарсыластан көп ұпай жина")],
+        "goal": "Дуэльді жеңіп шық!"},
+    "Робот орны": {"icon": "🦾", "subtitle": "Зертхана дабыл берді! Роботтарды дұрыс секторға сұрыпта.",
+        "rules": [("📋", "Паспорт", "робот паспортын оқы"),
+                  ("🖐️", "Сүйре", "роботты дұрыс шлюзге апар"),
+                  ("🏭", "Секторлар", "Зауыт / Аурухана / Мектеп / Үй"),
+                  ("⏱️", "Уақыт", "тек 90 секунд!")],
+        "goal": "Барлық роботты дұрыс секторға жібер!"},
+    "Робот тарихы": {"icon": "⏳", "subtitle": "Уақыт порталын ашу үшін робот тарихын ретке келтір!",
+        "rules": [("🖐️", "Сүйре", "карточканы уақыт сызығына қой"),
+                  ("📅", "Ретте", "ежелгіден болашаққа қарай"),
+                  ("🔬", "Талдау", "әр кезеңнің сұрағына жауап бер")],
+        "goal": "5 кезеңді дұрыс ретпен қойып порталды аш!"},
+    "Гироскоп": {"icon": "⚙️", "subtitle": "Роботты тік ұстау үшін PID параметрлерін бапта!",
+        "rules": [("🎚️", "Kp / Ki / Kd", "сырғытпалармен мәндерін өзгерт"),
+                  ("📈", "Тұрақтылық", "робот құламасын — %-ды арттыр"),
+                  ("💡", "Кеңес", "экрандағы кеңестерге қара"), ("3️⃣", "Кезең", "3 кезеңді өт")],
+        "goal": "Роботты 3 кезеңде де тік ұста!"},
+    "Лабиринт ойыны": {"icon": "🧭", "subtitle": "Роботқа командалар жазып, лабиринттен өткіз!",
+        "rules": [("🧩", "Командалар", "қозғалысты ретімен қос"),
+                  ("🔁", "×N", "қайталау санын қой"),
+                  ("▶️", "Іске қос", "программаны жіберіп көр"),
+                  ("🏁", "3 деңгей", "бірінен соң бірін өт")],
+        "goal": "3 деңгейде де роботты финишке жеткіз!"},
+    "Сызық робот": {"icon": "➰", "subtitle": "Роботты қара сызық бойымен жүргіз!",
+        "rules": [("🎚️", "Бапта", "жылдамдық / сенсор параметрлерін реттеп"),
+                  ("▶️", "Қос", "роботты іске қос"),
+                  ("➰", "Сызық", "робот трассадан шықпасын")],
+        "goal": "Роботты сызықпен дұрыс өткіз!"},
+    "Сумо": {"icon": "🥊", "subtitle": "Сумо-аренада қарсыласты шеңберден шығар!",
+        "rules": [("🃏", "Стратегия", "соққы / итеру картасын таңда"),
+                  ("⚡", "Энергия", "шабуыл энергия жұмсайды — бақыла"),
+                  ("⚔️", "ЖҮРУ", "«ЖҮРУ!» басып әрекет жаса"),
+                  ("🏆", "Жең", "қарсыласты шеңберден ит")],
+        "goal": "Қарсыласты жеңіп, чемпион бол!"},
+    "Эргономика": {"icon": "💺", "subtitle": "Компьютерде дұрыс әрі қауіпсіз отырудың ережелерін біл!",
+        "rules": [("❓", "Сұрақ", "эргономика туралы сұрақты оқы"),
+                  ("👆", "Жауап", "дұрысын таңда"), ("❤️", "Денсаулық", "деңгейді 100%-ға жеткіз")],
+        "goal": "Көмекшінің денсаулығын 100%-ға толтыр!"},
+    "Цифрлық детектив": {"icon": "🕵️", "subtitle": "Ақпарат тасымалдаушылар туралы құпияны аш!",
+        "rules": [("🎬", "Сахна", "сұрақты оқы (3 сахна)"),
+                  ("💾", "Таңда", "дұрыс құрылғыны / жауапты тап (флешка, бұлт…)"),
+                  ("💎", "Кристалл", "қателеспей кристалл жина")],
+        "goal": "3 сахнаны өтіп, барлық кристалды жина!"},
+    "Кибер-бекініс": {"icon": "🛡️", "subtitle": "Базаны хакер шабуылынан қорға!",
+        "rules": [("🖱️", "Орналастыр", "қорғаныс / қалқанды тақтаға қой"),
+                  ("🚀", "Тойтар", "келе жатқан шабуылды тоқтат"),
+                  ("📊", "Шкала", "қорғаныс шкаласы нөлге түспесін")],
+        "goal": "Базаны аман сақтап, шабуылды тойтар!"},
+    "Файл әлемі": {"icon": "🗂️", "subtitle": "Файлдарды ретке келтіріп, бөлісуді үйрен!",
+        "rules": [("📁", "Сұрыпта", "6 файлды дұрыс папкаға сүйре"),
+                  ("✏️", "Түзет", "презентацияны (.pptx) аш та қатені түзе"),
+                  ("👥", "Бөліс", "файлды дұрыс құқықпен бөліс (Share)")],
+        "goal": "Барлық тапсырманы орындап, файл әлемін ретте!"},
+}
+
+
+def _game_guide(page):
+    """Бет адресіне қарай ойын нұсқаулығын қайтарады (жоқ болса — None)."""
+    name = _game_from_path(page)
+    if not name or name in GAMES_WITH_OWN_INTRO:
+        return None
+    g = GAME_GUIDES.get(name)
+    if not g:
+        info = GAME_INFO.get(name)
+        if not info:
+            return None
+        g = {"icon": "🎮", "subtitle": info,
+             "rules": [("📖", "Оқы", "тапсырманы мұқият оқы"),
+                       ("✅", "Орында", "дұрыс жауапты тауып орында"),
+                       ("⭐", "Ұпай", "тапсырманы аяқтап ұпай жина")],
+             "goal": "Тапсырманы сәтті аяқта!"}
+    rules = [{"ic": ic, "b": b, "t": t} for (ic, b, t) in g["rules"]]
+    chapter = CHAPTER_LABELS.get(GAME_TO_CHAPTER.get(name, ""), "")
+    return {"title": name, "icon": g.get("icon", "🎮"),
+            "subtitle": g.get("subtitle", ""), "rules": rules,
+            "goal": g["goal"], "chapter": chapter}
+
+
+GAME_HELP_PROMPTS = {
+    "hint": (
+        "Сен — BilimAI, 5-сынып оқушысының достық көмекшісісің. Оқушы қазір ойын ойнап жатыр "
+        "және көмек сұрап тұр. Қазақ тілінде, ҚЫСҚА (2-3 сөйлем), қарапайым тілмен жауап бер. "
+        "МАҢЫЗДЫ: дайын жауапты ЕШҚАШАН берме! Тек бағыттаушы кеңес, ой салатын сұрақ немесе "
+        "бірінші қадамды ғана айт — оқушы өзі шешсін. Жылы әрі мадақтаушы бол."
+    ),
+    "mistake": (
+        "Сен — BilimAI, 5-сынып оқушысының достық көмекшісісің. Оқушы ойында қателесті немесе "
+        "бірдеңе түсінбеді. Қазақ тілінде, ҚЫСҚА, мейірімді тілмен түсіндір: қате неден болуы "
+        "мүмкін екенін жұмсақ айт, ҚАЛАЙ түзетуге болатынын қадаммен көрсет. Айыптама, "
+        "ынталандыр — «қателесу — үйренудің бөлігі» деген көңіл-күй сыйла. Дайын жауап берме."
+    ),
+}
+
+
+@app.route("/api/game-help", methods=["POST"])
+def api_game_help():
+    if not AI_CHAT_ENABLED:
+        return jsonify({"error": "disabled"}), 404
+    if session.get("role") != "student":
+        return jsonify({"error": "unauthorized"}), 401
+
+    body = request.get_json(silent=True) or {}
+    mode = body.get("mode", "hint")
+    if mode not in GAME_HELP_PROMPTS:
+        mode = "hint"
+    user_msg = (body.get("message") or "").strip()[:1000]
+
+    ctx = _game_context(body.get("page", ""), body.get("page_text", ""))
+    name = session.get("user_name", "")
+    if name:
+        ctx += f"\nОқушының есімі: {name}."
+
+    system = GAME_HELP_PROMPTS[mode] + "\n\n[Контекст]\n" + ctx
+
+    if mode == "hint":
+        prompt = user_msg or "Маған осы ойынды шешуге бағыттаушы кеңес бер."
+    else:
+        prompt = user_msg or "Мен осы ойында қателесіп жатырмын, маған түсінуге көмектес."
+
+    text, error = _claude_text(system, prompt, model="claude-haiku-4-5", max_tokens=500)
+    return jsonify({"reply": text or error})
+
+# ====== /Ойын ішіндегі көмек ======
+
+
+@app.after_request
+def inject_bilimai_widget(response):
+    """Inject the BilimAI chat widget into logged-in HTML pages (no per-template edits)."""
+    if not AI_CHAT_ENABLED:
+        return response
+    try:
+        role = session.get("role")
+        ctype = response.content_type or ""
+        # ИИ-чат тек ОҚУШЫҒА көрсетіледі (мұғалімде ИИ жоқ)
+        if (role == "student"
+                and ctype.startswith("text/html")
+                and not response.direct_passthrough):
+            html = response.get_data(as_text=True)
+            if "</body>" in html and 'id="bq-chat"' not in html:
+                snippet = render_template(
+                    "_chat_widget.html", chat_role=role,
+                    chat_name=session.get("user_name", ""),
+                )
+                html = html.replace("</body>", snippet + "\n</body>", 1)
+                response.set_data(html)
+    except Exception as e:
+        print("widget inject skipped:", e)
+    return response
+# =================== /BilimAI чат-ассистент ===================
+
+
+@app.after_request
+def inject_game_intro(response):
+    """Ойын беттеріне нұсқаулық терезесін автоматты қосады (барлық ойындар үшін)."""
+    try:
+        ctype = response.content_type or ""
+        if not ctype.startswith("text/html") or response.direct_passthrough:
+            return response
+        guide = _game_guide(request.path)
+        if not guide:
+            return response
+        html = response.get_data(as_text=True)
+        if "<body" not in html or 'id="bqGameIntro"' in html:
+            return response
+        snippet = render_template(
+            "_game_intro.html",
+            game_title=guide["title"], icon=guide["icon"],
+            subtitle=guide["subtitle"], rules=guide["rules"],
+            goal=guide["goal"], chapter=guide["chapter"],
+        )
+        # <body> ашылғаннан кейін бірден қоямыз — кідірту скрипті ойын
+        # скриптерінен бұрын іске қосылуы үшін.
+        import re
+        new_html, n = re.subn(r"(<body[^>]*>)", lambda m: m.group(1) + snippet,
+                              html, count=1, flags=re.IGNORECASE)
+        if n:
+            response.set_data(new_html)
+    except Exception as e:
+        print("game intro inject skipped:", e)
+    return response
 
 
 if __name__ == "__main__":

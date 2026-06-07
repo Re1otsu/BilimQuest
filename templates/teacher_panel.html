@@ -2,152 +2,208 @@
 <html lang="kk">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BilimQuest - Геймификация</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_panel.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <header class="header">
     <div class="logo">BilimQuest Аналитикасы</div>
 
     <div class="user">
-      <i class="icon"><img src="static/img/user2.png"></i>
+      <i class="icon"><img src="{{ url_for('static', filename='img/user2.png') }}" alt=""></i>
         Нұсқаулық
     </div>
   </header>
 
   <main>
-      <nav class="nav-panel">
+      <nav class="nav-panel" aria-label="Аналитика сүзгілері">
+        <label for="classSelect" class="sr-only">Сыныпты таңдаңыз</label>
         <select id="classSelect">
             {% for cls in class_list %}
               <option value="{{ cls }}" {% if selected_class == cls %}selected{% endif %}>Сынып-{{ cls }}</option>
             {% endfor %}
         </select>
-        <a href="#">Класс бойынша</a>
+        <a href="#" class="is-active" aria-current="true">Класс бойынша</a>
         <a href="#">Тақырып бойынша</a>
         <a href="#">Студенттер бойынша</a>
-          <a href="/teacher" class="back-btn">Басты бетке</a>
+        <a href="/teacher" class="back-btn">← Басты бетке</a>
       </nav>
 
-        <script>
-          document.getElementById("classSelect").addEventListener("change", function() {
-            const cls = this.value;
-            window.location.href = "/teacher_panel?student_class=" + cls;
-          });
-        </script>
+      <script>
+        document.getElementById("classSelect").addEventListener("change", function() {
+          const cls = encodeURIComponent(this.value);
+          window.location.href = "/teacher_panel?student_class=" + cls + "&quarter={{ selected_quarter }}";
+        });
+      </script>
 
+      <!-- KPI cards -->
+      {% set _scores = scores if scores else [] %}
+      {% set _avg = ((_scores|sum) / (_scores|length)) if _scores|length > 0 else 0 %}
+      {% set _max = (_scores|max) if _scores|length > 0 else 0 %}
+      <section class="kpi-row" aria-label="Негізгі көрсеткіштер">
+        <div class="kpi-card">
+          <span class="kpi-label">Орташа меңгеру</span>
+          <span class="kpi-value">{{ _avg|round(0)|int }}<span class="unit">%</span></span>
+          <span class="kpi-sub">барлық тараулар бойынша</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Ең жоғары нәтиже</span>
+          <span class="kpi-value">{{ _max|round(0)|int }}<span class="unit">%</span></span>
+          <span class="kpi-sub">үздік тарау</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Тараулар саны</span>
+          <span class="kpi-value">{{ labels|length if labels else 0 }}</span>
+          <span class="kpi-sub">талданған бөлім</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Таңдалған сынып</span>
+          <span class="kpi-value">{{ selected_class if selected_class else '—' }}</span>
+          <span class="kpi-sub">ағымдағы көрініс</span>
+        </div>
+      </section>
 
       <section class="dashboard">
 
         <div class="line1">
             <div class="diagram1">
-                <h3>Класс бойынша</h3>
-                <canvas id="classChart"></canvas>
+                <h3>Класс бойынша меңгеру (%)</h3>
+                {% if labels and scores %}
+                <div class="chart-wrap">
+                  <canvas id="classChart" role="img"
+                          aria-label="Тараулар бойынша сәтті меңгеру пайызын көрсететін бағаналы диаграмма"></canvas>
+                </div>
+                <p class="sr-only">
+                  {% for l in labels %}{{ l }}: {{ scores[loop.index0] }}%{% if not loop.last %}, {% endif %}{% endfor %}
+                </p>
                 <script>
-                  // Диаграмма "по классам" → делаем столбчатую по главам
+                  Chart.register(ChartDataLabels);
+                  const REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                   new Chart(document.getElementById('classChart'), {
                     type: 'bar',
                     data: {
                       labels: {{ labels|tojson }},
                       datasets: [{
-                        label: 'Cәтті менгеру',
+                        label: 'Сәтті меңгеру',
                         data: {{ scores|tojson }},
-                        backgroundColor: 'rgba(30, 79, 168, 0.7)'
+                        backgroundColor: 'rgba(30, 64, 175, 0.85)',
+                        hoverBackgroundColor: 'rgba(30, 64, 175, 1)',
+                        borderRadius: 6,
+                        maxBarThickness: 56
                       }]
                     },
                     options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      animation: REDUCE ? false : { duration: 600 },
                       scales: {
                           y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                              font: { size: 14, family: 'Arial', weight: 'bold' } // шрифт оси Y
-                            }
+                            beginAtZero: true, max: 100,
+                            ticks: { font: { size: 12, weight: 'bold' }, callback: v => v + '%' },
+                            grid: { color: '#EEF2F8' }
                           },
                           x: {
-                            ticks: {
-                              font: { size: 14, family: 'Arial', weight: 'bold' } // шрифт оси X
-                            }
+                            ticks: { font: { size: 12, weight: 'bold' } },
+                            grid: { display: false }
                           }
                       },
                       plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: c => ' ' + c.parsed.y + '%' } },
+                        datalabels: {
+                          anchor: 'end', align: 'end', offset: 2,
+                          color: '#1E3A8A', font: { weight: 'bold', size: 11 },
+                          formatter: v => v + '%'
+                        }
                       }
                     }
                   });
                 </script>
+                {% else %}
+                <div class="chart-empty">Әзірге деректер жоқ.<br>Оқушылар тапсырмаларды орындағанда осы жерде көрсетіледі.</div>
+                {% endif %}
             </div>
 
             <div class="diagram2">
-              <h3>Тақырып бойынша</h3>
-              <canvas id="allStudentsChart"></canvas>
+              <div class="card-head-row">
+                <h3>Тақырып бойынша · {{ quarter_label }}</h3>
+                <label for="quarterSelect" class="sr-only">Тоқсанды таңдаңыз</label>
+                <select id="quarterSelect" class="chart-filter">
+                  {% for q in quarters %}
+                    <option value="{{ q.key }}" {% if selected_quarter == q.key %}selected{% endif %}>{{ q.label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <script>
+                document.getElementById("quarterSelect").addEventListener("change", function() {
+                  const q = encodeURIComponent(this.value);
+                  window.location.href = "/teacher_panel?student_class={{ selected_class|urlencode }}&quarter=" + q;
+                });
+              </script>
+              {% if labels_all and scores_all %}
+              <div class="chart-wrap">
+                <canvas id="allStudentsChart" role="img"
+                        aria-label="Тараулар бойынша орташа балды көрсететін көлденең бағаналы диаграмма"></canvas>
+              </div>
+              <p class="sr-only">
+                {% for l in labels_all %}{{ l }}: {{ scores_all[loop.index0] }}%{% if not loop.last %}, {% endif %}{% endfor %}
+              </p>
               <script>
                 new Chart(document.getElementById('allStudentsChart'), {
                   type: 'bar',
                   data: {
                     labels: {{ labels_all|tojson }},
                     datasets: [{
-                      label: 'Средний балл по главам (все ученики)',
+                      label: 'Орташа балл',
                       data: {{ scores_all|tojson }},
-                      backgroundColor: 'rgba(70,130,180,0.7)',
-                      borderRadius: 6,      // закругление углов
-                      barPercentage: 0.2,   // толщина полоски
+                      backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                      hoverBackgroundColor: 'rgba(59, 130, 246, 1)',
+                      borderRadius: 6,
+                      barPercentage: 0.7,
                       categoryPercentage: 0.8
                     }]
                   },
                   options: {
-                    indexAxis: 'y',         // горизонтальная
+                    indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: (window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? false : { duration: 600 },
                     scales: {
-                      x: {
-                        beginAtZero: true,
-                        display: false,
-                        max: 100,
-                        ticks: {
-                          font: { size: 12, weight: 'bold' },
-                        },
-                        grid: { drawTicks: false, drawBorder: false }
-                      },
-                      y: {
-                        ticks: {
-                          font: { size: 12, weight: 'bold' }
-                        },
-                        grid: { drawTicks: false, drawBorder: false }
-                      }
+                      x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: '#EEF2F8' } },
+                      y: { ticks: { font: { size: 12, weight: 'bold' } }, grid: { display: false } }
                     },
                     plugins: {
                       legend: { display: false },
-                      tooltip: {
-                        callbacks: {
-                          label: function(context) {
-                            return context.parsed.x + '%';
-                          }
-                        }
-                      }
+                      datalabels: { display: false },
+                      tooltip: { callbacks: { label: c => ' ' + c.parsed.x + '%' } }
                     }
                   }
                 });
               </script>
+              {% else %}
+              <div class="chart-empty">Әзірге деректер жоқ.</div>
+              {% endif %}
             </div>
         </div>
 
         <div class="line2">
-                <a href="/rating" class="diagram-link">
+                <a href="/rating" class="diagram-link" aria-label="Студенттер рейтингіне өту">
                     <div class="diagram3">
-                        <h3>Студенттер бойынша</h3>
-                        <img src="static/img/rating2.png">
+                        <h3>Студенттер бойынша рейтинг</h3>
+                        <div class="rating-body">
+                          <p>Оқушылардың жалпы рейтингі мен үздіктерін толық көру үшін басыңыз.</p>
+                          <img src="{{ url_for('static', filename='img/rating2.png') }}" alt="">
+                        </div>
                     </div>
                 </a>
         </div>
       </section>
   </main>
-
-
 
 </body>
 </html>

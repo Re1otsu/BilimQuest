@@ -94,7 +94,7 @@ body{background:
 .fb-title{font-weight:900;font-size:15px;margin-bottom:3px}
 .fb-title.good{color:#7dffa0}.fb-title.bad{color:#ff8a8a}.fb-title.soft{color:#fde68a}
 .fb-text{font-size:13.5px;line-height:1.5;color:#cdd8f5}
-.snd{flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+.snd{display:none!important;flex-shrink:0;width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
   background:rgba(255,255,255,.06);color:#9fdfff;font-size:16px;cursor:pointer;transition:background .2s}
 .snd:hover{background:rgba(255,255,255,.14)}
 
@@ -195,8 +195,8 @@ body{background:
     </div>
   </div>
 
-  <!-- chat -->
-  <div class="card">
+  <!-- chat (алынып тасталды) -->
+  <div class="card" style="display:none">
     <div class="chat-title">💬 ЖИ Көмекшісімен диалог</div>
     <div class="help-qs" id="helpQs"></div>
     <div class="chat-log" id="chatLog"></div>
@@ -417,21 +417,8 @@ function confetti(){
     document.body.appendChild(c);setTimeout(()=>c.remove(),(dur+.7)*1000);}
 }
 
-/* ── audio: TTS speech + cues ── */
-let voices=[];
-function loadVoices(){ try{voices=speechSynthesis.getVoices();}catch(e){} }
-if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
-function speak(text){
-  if(!('speechSynthesis' in window)) return;
-  try{
-    speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(text.replace(/[🎉🏃👁️📐💪✅🚨⚠️🔐]/g,''));
-    const v=voices.find(x=>/kk|kazakh/i.test(x.lang))||voices.find(x=>/ru/i.test(x.lang));
-    if(v){ u.voice=v; u.lang=v.lang; } else u.lang='ru-RU';
-    u.rate=.98; u.pitch=1.05;
-    speechSynthesis.speak(u);
-  }catch(e){}
-}
+/* ── audio: дауыстық озвучка өшірілген ── */
+function speak(){ /* TTS алынып тасталды */ }
 let actx;
 function tone(f1,f2,type,dur,gain){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
   const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);

@@ -33,57 +33,62 @@
     </header>
 
     <!-- 4 CARDS -->
-    <section class="portal-cards">
-      <a href="/articles" class="portal-card-link">
+    <p class="portal-section-label">Бөлімдер</p>
+    <section class="portal-cards" aria-label="Мұғалім бөлімдері">
+      <a href="/articles" class="portal-card-link" aria-label="Геймификация бойынша ғылыми еңбектер бөліміне өту">
         <div class="portal-card portal-card-clickable">
           <div class="portal-card-head">
             <img class="portal-card-icon"
                 src="{{ url_for('static', filename='img/book2.png') }}"
-                alt="book">
+                alt="">
             <div>
-              <div class="portal-card-title">Геймификация бойынша ғылыми еңбектер</div>
+              <div class="portal-card-title">Ғылыми еңбектер</div>
+              <div class="portal-card-sub">Геймификация бойынша зерттеулер мен мақалалар</div>
             </div>
           </div>
         </div>
       </a>
 
 
-      <a href="/theory" class="portal-card-link">
+      <a href="/theory" class="portal-card-link" aria-label="Теориялық білім бөліміне өту">
         <div class="portal-card portal-card-clickable">
           <div class="portal-card-head">
             <img class="portal-card-icon"
                 src="{{ url_for('static', filename='img/question2.png') }}"
-                alt="help">
+                alt="">
             <div>
               <div class="portal-card-title">Теориялық білім</div>
+              <div class="portal-card-sub">Әдістеме мен теориялық материалдар</div>
             </div>
           </div>
         </div>
       </a>
 
 
-      <a href="/practice" class="portal-card-link">
+      <a href="/practice" class="portal-card-link" aria-label="Практикалық білім бөліміне өту">
         <div class="portal-card portal-card-clickable">
           <div class="portal-card-head">
             <img class="portal-card-icon"
                 src="{{ url_for('static', filename='img/training.png') }}"
-                alt="flask">
+                alt="">
             <div>
               <div class="portal-card-title">Практикалық білім</div>
+              <div class="portal-card-sub">Сабаққа арналған тапсырмалар мен жаттығулар</div>
             </div>
           </div>
         </div>
       </a>
 
 
-      <a href="/teacher_panel" class="portal-card-link">
+      <a href="/teacher_panel" class="portal-card-link" aria-label="Аналитика панеліне өту">
         <div class="portal-card portal-card-clickable">
           <div class="portal-card-head">
             <img class="portal-card-icon"
                 src="{{ url_for('static', filename='img/donut-chart.png') }}"
-                alt="analytics">
+                alt="">
             <div>
               <div class="portal-card-title">Аналитика</div>
+              <div class="portal-card-sub">Оқушылар прогресі мен сынып статистикасы</div>
             </div>
           </div>
         </div>

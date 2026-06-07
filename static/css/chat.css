@@ -1,0 +1,244 @@
+/* ===== BilimAI chat widget ===== */
+#bq-chat{
+  --bq-grad: linear-gradient(135deg,#4f8ef7,#6a5af9);   /* student (default) */
+  --bq-primary:#4f8ef7;
+  --bq-ink:#1c2b45;
+  --bq-muted:#64748b;
+  --bq-surface:#ffffff;
+  --bq-bot-bubble:#f1f5fb;
+  --bq-user-bubble:#4f8ef7;
+  font-family:"Open Sans", system-ui, -apple-system, Arial, sans-serif;
+}
+#bq-chat[data-role="teacher"]{
+  --bq-grad: linear-gradient(135deg,#1E40AF,#3B82F6);
+  --bq-primary:#1E40AF;
+  --bq-user-bubble:#1E40AF;
+}
+
+#bq-chat *{ box-sizing:border-box; }
+
+/* ===== Floating button ===== */
+.bq-fab{
+  position:fixed;
+  right:24px; bottom:24px;
+  width:60px; height:60px;
+  border:none; border-radius:50%;
+  background:var(--bq-grad);
+  color:#fff;
+  cursor:pointer;
+  box-shadow:0 10px 26px rgba(20,20,60,0.32);
+  display:flex; align-items:center; justify-content:center;
+  z-index:9998;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.bq-fab:hover{ transform:translateY(-3px) scale(1.04); box-shadow:0 16px 34px rgba(20,20,60,0.4); }
+.bq-fab:focus-visible{ outline:3px solid #fff; outline-offset:3px; }
+.bq-fab svg{ width:30px; height:30px; }
+.bq-fab .bq-fab-close{ display:none; }
+#bq-chat.bq-open .bq-fab .bq-fab-open{ display:none; }
+#bq-chat.bq-open .bq-fab .bq-fab-close{ display:block; }
+
+/* unread/attention dot */
+.bq-fab-badge{
+  position:absolute; top:-2px; right:-2px;
+  width:14px; height:14px; border-radius:50%;
+  background:#22c55e; border:2px solid #fff;
+}
+
+/* ===== Panel ===== */
+.bq-panel{
+  position:fixed;
+  right:24px; bottom:96px;
+  width:370px; max-width:calc(100vw - 32px);
+  height:540px; max-height:calc(100vh - 130px);
+  background:var(--bq-surface);
+  border-radius:20px;
+  box-shadow:0 24px 60px rgba(20,20,60,0.38);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  z-index:9999;
+  opacity:0; transform:translateY(16px) scale(.98);
+  pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease;
+}
+#bq-chat.bq-open .bq-panel{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+
+/* header */
+.bq-head{
+  display:flex; align-items:center; gap:12px;
+  padding:14px 16px;
+  background:var(--bq-grad);
+  color:#fff;
+}
+.bq-avatar{
+  width:40px; height:40px; border-radius:50%;
+  background:rgba(255,255,255,.95);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.bq-avatar svg{ width:24px; height:24px; }
+.bq-head-meta{ flex:1; min-width:0; line-height:1.2; }
+.bq-head-title{ font-weight:800; font-size:16px; }
+.bq-head-sub{ font-size:12px; opacity:.9; display:flex; align-items:center; gap:6px; }
+.bq-head-sub::before{ content:""; width:7px; height:7px; border-radius:50%; background:#22c55e; display:inline-block; }
+.bq-close{
+  width:34px; height:34px; border:none; border-radius:10px;
+  background:rgba(255,255,255,.16); color:#fff; cursor:pointer;
+  font-size:20px; line-height:1; display:flex; align-items:center; justify-content:center;
+  transition:background .2s ease;
+}
+.bq-close:hover{ background:rgba(255,255,255,.3); }
+.bq-close:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+
+/* messages */
+.bq-msgs{
+  flex:1; overflow-y:auto;
+  padding:16px;
+  display:flex; flex-direction:column; gap:10px;
+  background:#fafcff;
+}
+.bq-msg{
+  max-width:84%;
+  padding:10px 13px;
+  border-radius:14px;
+  font-size:14px; line-height:1.45;
+  white-space:pre-wrap; word-wrap:break-word;
+}
+.bq-msg.bot{
+  align-self:flex-start;
+  background:var(--bq-bot-bubble);
+  color:var(--bq-ink);
+  border-bottom-left-radius:4px;
+}
+.bq-msg.user{
+  align-self:flex-end;
+  background:var(--bq-user-bubble);
+  color:#fff;
+  border-bottom-right-radius:4px;
+}
+.bq-msg b{ font-weight:700; }
+.bq-msg code{ background:rgba(0,0,0,.07); padding:1px 5px; border-radius:5px; font-size:13px; }
+
+/* typing indicator */
+.bq-typing{ align-self:flex-start; display:flex; gap:4px; padding:12px 14px; background:var(--bq-bot-bubble); border-radius:14px; border-bottom-left-radius:4px; }
+.bq-typing span{ width:7px; height:7px; border-radius:50%; background:#9aa3b2; animation:bq-bounce 1.2s infinite ease-in-out; }
+.bq-typing span:nth-child(2){ animation-delay:.15s; }
+.bq-typing span:nth-child(3){ animation-delay:.3s; }
+@keyframes bq-bounce{ 0%,80%,100%{ transform:translateY(0); opacity:.5; } 40%{ transform:translateY(-5px); opacity:1; } }
+
+/* quick chips */
+.bq-chips{
+  display:flex; flex-wrap:wrap; gap:8px;
+  padding:0 16px 10px;
+  background:#fafcff;
+}
+.bq-chip{
+  border:1px solid var(--bq-primary);
+  color:var(--bq-primary);
+  background:#fff;
+  border-radius:50px;
+  padding:7px 13px;
+  font-size:13px; font-weight:600;
+  cursor:pointer;
+  transition:background .15s ease, color .15s ease;
+}
+.bq-chip:hover{ background:var(--bq-primary); color:#fff; }
+.bq-chip:focus-visible{ outline:2px solid var(--bq-primary); outline-offset:2px; }
+
+/* input */
+.bq-input{
+  display:flex; align-items:flex-end; gap:8px;
+  padding:12px;
+  border-top:1px solid #eef1f7;
+  background:#fff;
+}
+.bq-input textarea{
+  flex:1;
+  resize:none;
+  border:1.5px solid #e2e6ee;
+  border-radius:12px;
+  padding:10px 12px;
+  font-family:inherit; font-size:14px; line-height:1.4;
+  max-height:96px; min-height:44px;
+  color:var(--bq-ink);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.bq-input textarea:focus{ outline:none; border-color:var(--bq-primary); box-shadow:0 0 0 3px rgba(79,142,247,.18); }
+.bq-send{
+  width:44px; height:44px; flex-shrink:0;
+  border:none; border-radius:12px;
+  background:var(--bq-grad); color:#fff; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:filter .2s ease, transform .2s ease;
+}
+.bq-send:hover{ filter:brightness(1.07); transform:translateY(-1px); }
+.bq-send:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+.bq-send:focus-visible{ outline:2px solid var(--bq-primary); outline-offset:2px; }
+.bq-send svg{ width:20px; height:20px; }
+
+/* ===== питомец (анимация маскота) ===== */
+.bq-pet{ animation:bq-pet-bob 3s ease-in-out infinite; transform-origin:50% 60%; }
+@keyframes bq-pet-bob{
+  0%,100%{ transform:translateY(0) rotate(0deg); }
+  25%{ transform:translateY(-2px) rotate(-4deg); }
+  75%{ transform:translateY(-2px) rotate(4deg); }
+}
+.bq-fab:hover .bq-pet{ animation-duration:1s; }
+
+/* всплывающая реплика питомца */
+.bq-pet-bubble{
+  position:fixed;
+  right:24px; bottom:96px;
+  max-width:230px;
+  background:#fff; color:var(--bq-ink);
+  border:1.5px solid #e2e6ee;
+  border-radius:16px 16px 4px 16px;
+  padding:11px 14px;
+  font-size:13.5px; font-weight:600; line-height:1.4;
+  box-shadow:0 12px 30px rgba(20,20,60,.22);
+  z-index:9997; cursor:pointer;
+  opacity:0; transform:translateY(8px) scale(.96);
+  transition:opacity .25s ease, transform .25s ease;
+}
+.bq-pet-bubble.show{ opacity:1; transform:translateY(0) scale(1); }
+.bq-pet-bubble::after{
+  content:""; position:absolute; right:18px; bottom:-8px;
+  width:14px; height:14px; background:#fff;
+  border-right:1.5px solid #e2e6ee; border-bottom:1.5px solid #e2e6ee;
+  transform:rotate(45deg);
+}
+
+/* игровые действия: подсказка / разбор ошибок */
+.bq-actions{
+  display:none; gap:8px;
+  padding:10px 16px 0;
+  background:#fafcff;
+}
+.bq-actions.show{ display:flex; flex-wrap:wrap; }
+.bq-action{
+  flex:1; min-width:140px;
+  border:none; border-radius:12px;
+  background:var(--bq-grad); color:#fff;
+  padding:10px 12px;
+  font-size:13px; font-weight:700;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(79,142,247,.28);
+  transition:filter .15s ease, transform .15s ease;
+}
+.bq-action:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+.bq-action:focus-visible{ outline:2px solid var(--bq-primary); outline-offset:2px; }
+
+/* ===== responsive ===== */
+@media (max-width: 480px){
+  .bq-panel{
+    right:8px; left:8px; bottom:84px;
+    width:auto; height:calc(100vh - 100px);
+  }
+  .bq-fab{ right:16px; bottom:16px; }
+  .bq-pet-bubble{ right:16px; bottom:86px; max-width:200px; }
+}
+
+/* ===== reduced motion ===== */
+@media (prefers-reduced-motion: reduce){
+  #bq-chat *{ transition:none !important; animation:none !important; }
+}

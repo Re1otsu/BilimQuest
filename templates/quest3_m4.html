@@ -727,12 +727,9 @@ function showLevelResult(won, stars) {
     row.appendChild(fin);
   }
 
-  // Submit only at meaningful milestones to stay within backend attempt limit:
-  // first level completed (partial save) and all levels mastered (full score).
-  if (won) {
-    const completedCount = levelStars.filter(s=>s>0).length;
-    if (allWon || completedCount === 1) submitResult();
-  }
+  // Ойынды АЯҚТАУ (финал терезесін көрсету) тек соңғы деңгей өткенде немесе
+  // барлық деңгей жиналғанда. Әйтпесе 1-деңгейден кейін ойын бітіп қалатын.
+  if (won && (isLast || allWon)) submitResult();
   ov.classList.add('show');
 }
 

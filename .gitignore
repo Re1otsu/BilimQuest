@@ -40,3 +40,8 @@ migrations/versions/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Tooling / generated — не для деплоя
+graphify-out/
+ui-ux-pro-max-skill/
+graphify/

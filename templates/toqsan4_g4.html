@@ -136,7 +136,7 @@ body{background:
   <div class="board-wrap">
     <canvas id="board" width="620" height="500"></canvas>
   </div>
-  <div class="kronos">
+  <div class="kronos" style="display:none">
     <div class="kr-head"><div class="ico">🤖</div><div><b>ЖИ Кеңесші Кронос</b><div>Стратегиялық талдау</div></div></div>
     <div class="kr-log" id="krLog"></div>
   </div>
@@ -234,33 +234,36 @@ function distToPaths(x,y){
 }
 function snap(x,y){ return { x:Math.floor(x/CELL)*CELL+CELL/2, y:Math.floor(y/CELL)*CELL+CELL/2 }; }
 function buildable(x,y){
-  if(x<CELL/2||x>W-CELL/2||y<CELL/2||y>H-CELL/2) return false;
-  if(Math.hypot(x-SERVER.x,y-SERVER.y)<58) return false;
-  if(distToPaths(x,y)<26) return false;           // not ON the path
-  if(towers.some(t=>Math.hypot(t.x-x,t.y-y)<CELL*0.8)) return false; // not occupied
+  if(x<20||x>W-20||y<20||y>H-20) return false;       // в пределах поля (по радиусу башни)
+  if(Math.hypot(x-SERVER.x,y-SERVER.y)<SERVER.r+22) return false; // не на сервере
+  if(distToPaths(x,y)<22) return false;              // не на пути (визуальная ширина пути ~17)
+  if(towers.some(t=>Math.hypot(t.x-x,t.y-y)<40)) return false;    // не поверх другой башни
   return true;
 }
 
 /* ── pointer placement ── */
 function evtXY(e){ const r=cv.getBoundingClientRect(); const t=e.touches?e.touches[0]:e;
   return { x:(t.clientX-r.left)*(W/r.width), y:(t.clientY-r.top)*(H/r.height) }; }
-cv.addEventListener('mousemove',e=>{ if(!armed){ghost=null;return;} const p=evtXY(e); ghost=snap(p.x,p.y); });
+cv.addEventListener('mousemove',e=>{ if(!armed){ghost=null;return;} const p=evtXY(e); ghost={x:p.x,y:p.y}; });
 cv.addEventListener('mouseleave',()=>ghost=null);
 cv.addEventListener('click',e=>{ const p=evtXY(e); place(p.x,p.y); });
-cv.addEventListener('touchstart',e=>{ if(!armed)return; e.preventDefault(); const p=evtXY(e); ghost=snap(p.x,p.y); place(p.x,p.y); },{passive:false});
+cv.addEventListener('touchstart',e=>{ if(!armed)return; e.preventDefault(); const p=evtXY(e); ghost={x:p.x,y:p.y}; place(p.x,p.y); },{passive:false});
 
+const TR=20;  // радиус башни для проверок размещения
 function place(x,y){
   if(!armed||gameOver) return;
-  const s=snap(x,y), t=TOWERS[armed];
-  if(!buildable(s.x,s.y)){ kron('warn','⚠️ Мұнда қою мүмкін емес — жолдан немесе серверден алыс, бос ұяшыққа қой.'); return; }
+  const t=TOWERS[armed];
+  // ставим ровно туда, куда нажали (только подправляем, чтобы башня не вылезала за поле)
+  const px=Math.max(TR,Math.min(W-TR,x)), py=Math.max(TR,Math.min(H-TR,y));
+  if(!buildable(px,py)){ kron('warn','⚠️ Мұнда қою мүмкін емес — жол не серверге тым жақын, немесе орын бос емес. Жанындағы бос жерге қойып көр.'); return; }
   if(energy<t.cost){ kron('alert','⚡ Энергия жеткіліксіз!'); return; }
   energy-=t.cost;
-  const tw={type:armed,x:s.x,y:s.y,cd:0,...t};
+  const tw={type:armed,x:px,y:py,cd:0,...t};
   towers.push(tw);
   updateEnergy(); refreshShop();
   placeFeedback(tw);
   ghost=null;
-   bink(s.x,s.y,t.color);
+  bink(px,py,t.color);
   if(energy<TOWERS[armed].cost){ armed=null; document.querySelectorAll('.tower-btn').forEach(el=>el.classList.remove('armed')); }
 }
 

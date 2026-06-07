@@ -1,0 +1,4 @@
+<!-- BilimAI chat widget (injected on logged-in pages) -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+<div id="bq-chat" data-role="{{ chat_role|e }}" data-name="{{ chat_name|e }}"></div>
+<script src="{{ url_for('static', filename='js/chat.js') }}" defer></script>
