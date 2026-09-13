@@ -70,7 +70,7 @@ submitBtn.addEventListener('click', () => {
   const code = answerInput.value.trim().toLowerCase();
   if (code === puzzles[currentLock.id].answer.toLowerCase()) {
     score += 0.2;
-    currentLock.src = "static/img/lock2.png";
+    currentLock.src = "static/img/lock2.webp";
     currentLock.classList.add('unlock');
   } else {
     mistakes++;

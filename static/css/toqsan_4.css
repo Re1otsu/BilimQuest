@@ -16,7 +16,7 @@ html, body {
 body {
   background: #060d2e;
   background-image:
-    url('/static/img/BG_ai.png');
+    url('/static/img/BG_ai.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

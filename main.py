@@ -11,6 +11,12 @@ import pytz
 from sqlalchemy import text
 from sqlalchemy import func
 import sys
+import mimetypes
+
+# На части систем (Windows-реестр без записи, минимальные Linux-образы) .webp
+# не зарегистрирован в mimetypes, и Flask отдаёт картинки как
+# application/octet-stream — некоторые браузеры их тогда не отрисовывают.
+mimetypes.add_type("image/webp", ".webp")
 
 # Консоль Windows по умолчанию cp1251 и не может вывести казахские/кириллические
 # символы в print() — переключаем поток вывода на UTF-8, иначе любой такой print

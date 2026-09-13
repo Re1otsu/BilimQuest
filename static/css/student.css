@@ -17,7 +17,7 @@ body::before{
   content:"";
   position: fixed;
   inset: 0;
-  background-image: url("/static/img/BG_s.png");
+  background-image: url("/static/img/BG_s.webp");
   background-repeat: repeat;
   background-size: 320px;
   opacity: 0.3;          /* ОЧЕНЬ важно */
@@ -495,19 +495,19 @@ body{
 
 /* 1 карточка */
 .s-c5{
-  background-image: url("/static/img/module_1.png");
+  background-image: url("/static/img/module_1.webp");
 }
 
 .s-c6{
-  background-image: url("/static/img/module_2.png");
+  background-image: url("/static/img/module_2.webp");
 }
 
 .s-c7{
-  background-image: url("/static/img/module_3.png");
+  background-image: url("/static/img/module_3.webp");
 }
 
 .s-c8{
-  background-image: url("/static/img/module_4.png");
+  background-image: url("/static/img/module_4.webp");
 }
 
 .s-class-card{
