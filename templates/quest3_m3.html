@@ -820,84 +820,215 @@ function drawRobot() {
   rCtx.translate(wX, baseY);
   rCtx.rotate(theta);
 
-  /* ── left wheel ── */
+  /* ══════════════════════════════════════════════════════════════
+     BQ-3 «BALANCE UNIT» — өнеркәсіптік дизайн принциптерімен
+     • Пішін DNA : барлық бөлік — бірдей жұмсақтықтағы squircle
+     • Материал  : жылтыр қаптама / матау графит қаңқа / эмиссивті экран
+     • Жарық     : жоғары-солдан; оң жиекте rim-light; түйіскен жерде AO
+     • Құрастыру : панель жіктері, топса, бұрандалар, желдеткіш
+  ══════════════════════════════════════════════════════════════ */
+  const P = danger ? {
+    hi:'#ffe2e2', mid:'#f87171', lo:'#9f1239', rim:'#ffd0d0',
+    frame:'#2b1419', frameHi:'#47232c', glass:'#160609',
+    emis:'#ff6b6b', emisRGB:'255,107,107'
+  } : {
+    hi:'#f4feff', mid:'#7fd9f2', lo:'#0d6b92', rim:'#ddf8ff',
+    frame:'#141e2b', frameHi:'#26374a', glass:'#050d18',
+    emis:'#5ef0ff', emisRGB:'94,240,255'
+  };
+  const now     = performance.now();
+  const headTop = -poleLen - bodyH;
+
+  /* ── 1. ЖҮРІС БӨЛІГІ: шина + диск + күпшек ── */
+  const WR = 22, WX = 21, spin = theta * 3;
   for (const side of [-1, 1]) {
-    const wx = side * 14;
-    rCtx.fillStyle = danger ? '#450a0a' : '#0c2a50';
-    rCtx.strokeStyle = danger ? '#ef4444' : '#22d3ee';
-    rCtx.lineWidth = 2;
-    rCtx.beginPath(); rCtx.arc(wx, 0, 12, 0, Math.PI * 2); rCtx.fill(); rCtx.stroke();
-    // hub
-    rCtx.fillStyle = danger ? '#ef4444' : '#00e5ff';
-    rCtx.beginPath(); rCtx.arc(wx, 0, 4, 0, Math.PI * 2); rCtx.fill();
-    // spoke
-    const spk = theta * 12; // rotate spoke with motion
-    rCtx.strokeStyle = danger ? '#f87171' : '#7dd3fc'; rCtx.lineWidth = 1.5;
-    rCtx.beginPath();
-    rCtx.moveTo(wx + Math.cos(spk)*5, Math.sin(spk)*5);
-    rCtx.lineTo(wx + Math.cos(spk+Math.PI)*5, Math.sin(spk+Math.PI)*5);
-    rCtx.stroke();
+    const wx = side * WX;
+    // шина — матау графит
+    rCtx.fillStyle = P.frame;
+    rCtx.beginPath(); rCtx.arc(wx, 0, WR, 0, Math.PI*2); rCtx.fill();
+    // протектор ойықтары (айналыммен бірге жүреді)
+    rCtx.strokeStyle = 'rgba(0,0,0,.5)'; rCtx.lineWidth = 2.6; rCtx.lineCap = 'butt';
+    for (let i = 0; i < 10; i++) {
+      const a = spin + i*Math.PI/5;
+      rCtx.beginPath();
+      rCtx.moveTo(wx + Math.cos(a)*(WR-1), Math.sin(a)*(WR-1));
+      rCtx.lineTo(wx + Math.cos(a)*(WR-5.5), Math.sin(a)*(WR-5.5));
+      rCtx.stroke();
+    }
+    // диск — жылтыр қаптама, жарық жоғары-солдан
+    const rimG = rCtx.createLinearGradient(wx-WR*.7, -WR*.7, wx+WR*.7, WR*.7);
+    rimG.addColorStop(0, P.hi); rimG.addColorStop(.5, P.mid); rimG.addColorStop(1, P.lo);
+    rCtx.fillStyle = rimG;
+    rCtx.beginPath(); rCtx.arc(wx, 0, WR-6, 0, Math.PI*2); rCtx.fill();
+    // дискідегі жеңілдету саңылаулары
+    rCtx.fillStyle = P.frame;
+    for (let i = 0; i < 3; i++) {
+      const a = spin + i*Math.PI*2/3;
+      rCtx.beginPath();
+      rCtx.ellipse(wx + Math.cos(a)*(WR-11.5), Math.sin(a)*(WR-11.5), 3.6, 2.3, a, 0, Math.PI*2);
+      rCtx.fill();
+    }
+    // күпшек + эмиссивті өзек
+    rCtx.fillStyle = P.frameHi;
+    rCtx.beginPath(); rCtx.arc(wx, 0, 6, 0, Math.PI*2); rCtx.fill();
+    rCtx.fillStyle = P.emis;
+    rCtx.beginPath(); rCtx.arc(wx, 0, 2.3, 0, Math.PI*2); rCtx.fill();
+    // AO — шина мен дискінің түйіскен жері
+    rCtx.strokeStyle = 'rgba(0,0,0,.4)'; rCtx.lineWidth = 2;
+    rCtx.beginPath(); rCtx.arc(wx, 0, WR-5, 0, Math.PI*2); rCtx.stroke();
   }
 
-  /* ── axle ── */
-  rCtx.strokeStyle = danger ? '#ef4444' : '#38bdf8'; rCtx.lineWidth = 4;
-  rCtx.beginPath(); rCtx.moveTo(-14, 0); rCtx.lineTo(14, 0); rCtx.stroke();
+  /* ── 2. МОТОР БЛОГЫ (жамбас) — доңғалақтар осында «отырады» ── */
+  const hipW = 56, hipH = 30;
+  rCtx.fillStyle = P.frame;
+  roundRect(rCtx, -hipW/2, -hipH+6, hipW, hipH, 11); rCtx.fill();
+  rCtx.strokeStyle = P.frameHi; rCtx.lineWidth = 1.3;
+  roundRect(rCtx, -hipW/2, -hipH+6, hipW, hipH, 11); rCtx.stroke();
+  // желдеткіш саңылаулары
+  rCtx.fillStyle = 'rgba(0,0,0,.45)';
+  for (let i = 0; i < 3; i++) roundRect(rCtx, -13, -hipH+12+i*6, 26, 2.6, 1.3), rCtx.fill();
+  // мотор күй-индикаторы
+  rCtx.fillStyle = P.emis;
+  rCtx.beginPath(); rCtx.arc(hipW/2-8, -hipH+11, 1.9, 0, Math.PI*2); rCtx.fill();
 
-  /* ── pole ── */
-  const poleGrad = rCtx.createLinearGradient(0, 0, 0, -poleLen);
-  poleGrad.addColorStop(0, danger ? 'rgba(239,68,68,.6)' : 'rgba(56,189,248,.5)');
-  poleGrad.addColorStop(1, danger ? 'rgba(239,68,68,.15)' : 'rgba(0,229,255,.15)');
-  rCtx.strokeStyle = poleGrad; rCtx.lineWidth = 7;
-  rCtx.beginPath(); rCtx.moveTo(0, -4); rCtx.lineTo(0, -poleLen); rCtx.stroke();
-  // pole center line
-  rCtx.strokeStyle = danger ? '#ef4444' : '#38bdf8'; rCtx.lineWidth = 2;
-  rCtx.beginPath(); rCtx.moveTo(0, -4); rCtx.lineTo(0, -poleLen); rCtx.stroke();
+  /* ── 3. ТОРС — конус қаптама, панель жігі мен арқа арнасы ── */
+  const torsoBotY = -hipH+10, torsoTopY = -poleLen+8, botW = 46, topW = 32;
+  const torsoPts = [
+    {x:-topW/2, y:torsoTopY}, {x:topW/2, y:torsoTopY},
+    {x: botW/2, y:torsoBotY}, {x:-botW/2, y:torsoBotY}
+  ];
+  const torsoG = rCtx.createLinearGradient(-botW/2, 0, botW/2, 0);
+  torsoG.addColorStop(0, P.hi); torsoG.addColorStop(.42, P.mid); torsoG.addColorStop(1, P.lo);
+  rCtx.fillStyle = torsoG;
+  roundPoly(rCtx, torsoPts, 9); rCtx.fill();
+  // rim-light — оң жиек
+  const torsoRim = rCtx.createLinearGradient(-botW/2, 0, botW/2, 0);
+  torsoRim.addColorStop(0, 'rgba(0,0,0,.25)'); torsoRim.addColorStop(.65, 'rgba(0,0,0,0)');
+  torsoRim.addColorStop(1, P.rim);
+  rCtx.strokeStyle = torsoRim; rCtx.lineWidth = 1.6;
+  roundPoly(rCtx, torsoPts, 9); rCtx.stroke();
+  // арқа арнасы — ойық (қара сызық + астында жарық сызық = көлем)
+  rCtx.strokeStyle = 'rgba(0,0,0,.35)'; rCtx.lineWidth = 3.5;
+  rCtx.beginPath(); rCtx.moveTo(0, torsoBotY-4); rCtx.lineTo(0, torsoTopY+4); rCtx.stroke();
+  rCtx.strokeStyle = `rgba(${P.emisRGB},.5)`; rCtx.lineWidth = 1.2;
+  rCtx.beginPath(); rCtx.moveTo(0, torsoBotY-7); rCtx.lineTo(0, torsoTopY+7); rCtx.stroke();
+  // көлденең панель жігі
+  const seamY = torsoBotY - (torsoBotY-torsoTopY)*0.38;
+  rCtx.strokeStyle = 'rgba(0,0,0,.3)'; rCtx.lineWidth = 1.4;
+  rCtx.beginPath(); rCtx.moveTo(-botW*0.36, seamY); rCtx.lineTo(botW*0.36, seamY); rCtx.stroke();
+  rCtx.strokeStyle = 'rgba(255,255,255,.22)'; rCtx.lineWidth = 1;
+  rCtx.beginPath(); rCtx.moveTo(-botW*0.36, seamY+1.4); rCtx.lineTo(botW*0.36, seamY+1.4); rCtx.stroke();
 
-  /* ── body (robot head) ── */
-  const bgrd = rCtx.createLinearGradient(0, -poleLen - bodyH, 0, -poleLen);
-  bgrd.addColorStop(0, danger ? '#ef4444' : '#22d3ee');
-  bgrd.addColorStop(0.5, danger ? '#b91c1c' : '#0891b2');
-  bgrd.addColorStop(1, danger ? '#7f1d1d' : '#0e7490');
-  rCtx.fillStyle = bgrd;
-  rCtx.strokeStyle = danger ? '#fca5a5' : '#67e8f9'; rCtx.lineWidth = 2;
-  roundRect(rCtx, -bodyW/2, -poleLen-bodyH, bodyW, bodyH, 9);
-  rCtx.fill(); rCtx.stroke();
+  /* ── 4. МОЙЫН ТОПСАСЫ — нақты бұралатын буын ── */
+  const neckY = torsoTopY - 6;
+  rCtx.fillStyle = P.frame;
+  roundRect(rCtx, -16, neckY-7, 32, 15, 7); rCtx.fill();
+  rCtx.strokeStyle = P.frameHi; rCtx.lineWidth = 1.2;
+  roundRect(rCtx, -16, neckY-7, 32, 15, 7); rCtx.stroke();
+  // топса білігі (екі жақтағы штифт)
+  for (const sx of [-11, 11]) {
+    rCtx.fillStyle = P.frameHi;
+    rCtx.beginPath(); rCtx.arc(sx, neckY+0.5, 3.4, 0, Math.PI*2); rCtx.fill();
+    rCtx.fillStyle = 'rgba(0,0,0,.5)';
+    rCtx.beginPath(); rCtx.arc(sx, neckY+0.5, 1.3, 0, Math.PI*2); rCtx.fill();
+  }
 
-  /* ── antenna ── */
-  rCtx.strokeStyle = danger ? '#f87171' : '#7dd3fc'; rCtx.lineWidth = 1.5;
-  rCtx.beginPath(); rCtx.moveTo(0, -poleLen-bodyH); rCtx.lineTo(0, -poleLen-bodyH-12); rCtx.stroke();
-  rCtx.fillStyle = danger ? '#ef4444' : '#00e5ff';
-  rCtx.beginPath(); rCtx.arc(0, -poleLen-bodyH-14, 3.5, 0, Math.PI*2); rCtx.fill();
+  /* ── 5. БАС ҚАПТАМАСЫ — екі бөліктен құрастырылған, жігі көрінеді ── */
+  rCtx.save();
+  rCtx.shadowColor = `rgba(${P.emisRGB},.35)`; rCtx.shadowBlur = 18; rCtx.shadowOffsetY = 2;
+  const headG = rCtx.createLinearGradient(-bodyW*.45, headTop, bodyW*.45, -poleLen);
+  headG.addColorStop(0, P.hi); headG.addColorStop(.45, P.mid); headG.addColorStop(1, P.lo);
+  rCtx.fillStyle = headG;
+  roundRect(rCtx, -bodyW/2, headTop, bodyW, bodyH, bodyW*0.3); rCtx.fill();
+  rCtx.restore();
+  // rim-light — оң жиек жарық, сол жиек көлеңке
+  const headRim = rCtx.createLinearGradient(-bodyW/2, 0, bodyW/2, 0);
+  headRim.addColorStop(0, 'rgba(255,255,255,.35)'); headRim.addColorStop(.55, 'rgba(0,0,0,.18)');
+  headRim.addColorStop(1, P.rim);
+  rCtx.strokeStyle = headRim; rCtx.lineWidth = 1.8;
+  roundRect(rCtx, -bodyW/2, headTop, bodyW, bodyH, bodyW*0.3); rCtx.stroke();
 
-  /* ── eyes ── */
-  const eyeY = -poleLen - bodyH * 0.62;
-  const eyeOpen = Math.abs(theta) < 0.3; // eyes wide when stable
-  const blink = danger ? 0.3 : 1;
-  // eye whites
-  rCtx.fillStyle = '#fff';
-  rCtx.beginPath();
-  rCtx.ellipse(-bodyW*0.19, eyeY, 5, eyeOpen?5:2, 0, 0, Math.PI*2);
-  rCtx.ellipse( bodyW*0.19, eyeY, 5, eyeOpen?5:2, 0, 0, Math.PI*2);
-  rCtx.fill();
-  // pupils (look in direction of tilt)
-  const px = Math.sin(theta) * 2;
-  rCtx.fillStyle = danger ? '#ef4444' : '#0a1230';
-  rCtx.beginPath();
-  rCtx.arc(-bodyW*0.19+px, eyeY, 2.5, 0, Math.PI*2);
-  rCtx.arc( bodyW*0.19+px, eyeY, 2.5, 0, Math.PI*2);
-  rCtx.fill();
+  // жылтыр беттің шағылысуы (қаптаманың ішіне ғана)
+  rCtx.save();
+  roundRect(rCtx, -bodyW/2, headTop, bodyW, bodyH, bodyW*0.3); rCtx.clip();
+  const spec = rCtx.createLinearGradient(-bodyW*.5, headTop, bodyW*.1, headTop+bodyH*.55);
+  spec.addColorStop(0, 'rgba(255,255,255,.45)'); spec.addColorStop(.55, 'rgba(255,255,255,.10)');
+  spec.addColorStop(1, 'rgba(255,255,255,0)');
+  rCtx.fillStyle = spec;
+  rCtx.fillRect(-bodyW/2, headTop, bodyW, bodyH*0.62);
+  // төменгі қаптаманың панель жігі
+  const hSeam = headTop + bodyH*0.72;
+  rCtx.strokeStyle = 'rgba(0,0,0,.28)'; rCtx.lineWidth = 1.4;
+  rCtx.beginPath(); rCtx.moveTo(-bodyW/2, hSeam); rCtx.lineTo(bodyW/2, hSeam); rCtx.stroke();
+  rCtx.strokeStyle = 'rgba(255,255,255,.2)'; rCtx.lineWidth = 1;
+  rCtx.beginPath(); rCtx.moveTo(-bodyW/2, hSeam+1.4); rCtx.lineTo(bodyW/2, hSeam+1.4); rCtx.stroke();
+  rCtx.restore();
 
-  /* ── mouth (smile/frown) ── */
-  const mouthY = -poleLen - bodyH * 0.3;
-  rCtx.strokeStyle = danger ? '#fca5a5' : '#67e8f9'; rCtx.lineWidth = 2;
-  rCtx.beginPath();
+  // бұрандалар (құрастыру белгісі) + асимметриялық фирмалық чип
+  rCtx.fillStyle = 'rgba(0,0,0,.35)';
+  for (const sx of [-bodyW*0.38, bodyW*0.38]) {
+    rCtx.beginPath(); rCtx.arc(sx, headTop+bodyH*0.85, 2, 0, Math.PI*2); rCtx.fill();
+  }
+  rCtx.fillStyle = `rgba(${P.emisRGB},.75)`;
+  roundRect(rCtx, bodyW*0.20, headTop+bodyH*0.80, 12, 4.5, 2.2); rCtx.fill();
+
+  /* ── 6. ВИЗОР — қаптамаға батырылған әйнек панель (жиегі қалыңдығы көрінеді) ── */
+  const vX=-bodyW*0.37, vY=headTop+bodyH*0.17, vW=bodyW*0.74, vH=bodyH*0.47, vR=bodyW*0.15;
+  // жиек (бевел) — ашық жолақ, панельдің қалыңдығын көрсетеді
+  rCtx.fillStyle = P.lo;
+  roundRect(rCtx, vX-2, vY-2, vW+4, vH+4, vR+2); rCtx.fill();
+  // әйнектің өзі
+  const glassG = rCtx.createLinearGradient(0, vY, 0, vY+vH);
+  glassG.addColorStop(0, P.glass); glassG.addColorStop(1, danger ? '#2a0d12' : '#0b1b2c');
+  rCtx.fillStyle = glassG;
+  roundRect(rCtx, vX, vY, vW, vH, vR); rCtx.fill();
+  // ішкі AO — батырылған сезім
+  rCtx.strokeStyle = 'rgba(0,0,0,.55)'; rCtx.lineWidth = 2;
+  roundRect(rCtx, vX+1, vY+1, vW-2, vH-2, vR-1); rCtx.stroke();
+
+  /* ── 7. БЕТ ДИСПЛЕЙІ — жалғыз эмиссивті акцент ── */
+  const eyeY  = vY + vH*0.46, eyeDX = bodyW*0.165;
+  const calm  = Math.abs(theta) < 0.3;
+  const eyeH  = danger ? 3.2 : (calm ? 9 : 6);
+  const gaze  = Math.max(-2.6, Math.min(2.6, Math.sin(theta)*4));
+  rCtx.save();
+  rCtx.shadowColor = P.emis; rCtx.shadowBlur = 12;
+  rCtx.fillStyle = P.emis;
+  roundRect(rCtx, -eyeDX-6.5+gaze, eyeY-eyeH/2, 13, eyeH, 3.2); rCtx.fill();
+  roundRect(rCtx,  eyeDX-6.5+gaze, eyeY-eyeH/2, 13, eyeH, 3.2); rCtx.fill();
+  rCtx.restore();
+  // қабақтар — тек қауіп кезінде шығады (қалыпта бет таза: тек көз жанады)
   if (danger) {
-    // frown
-    rCtx.arc(0, mouthY+4, 7, Math.PI*0.1, Math.PI*0.9); rCtx.stroke();
-  } else {
-    // smile
-    rCtx.arc(0, mouthY-4, 7, Math.PI*0.1, Math.PI*0.9, true); rCtx.stroke();
+    rCtx.strokeStyle = P.emis; rCtx.lineWidth = 2.2; rCtx.lineCap = 'round';
+    rCtx.globalAlpha = 0.85;
+    for (const side of [-1, 1]) {
+      const bx = side*eyeDX, baseY = eyeY - eyeH/2 - 5;
+      rCtx.beginPath();
+      rCtx.moveTo(bx - side*6.5, baseY);        // сыртқы ұшы жоғары
+      rCtx.lineTo(bx + side*6.5, baseY + 3.2);  // ішкі ұшы төмен → шиеленіс
+      rCtx.stroke();
+    }
+    rCtx.globalAlpha = 1;
   }
+  // тұрақтылық индикаторы — дисплейдің төменгі жолағы (функционалды, «күлкі» емес)
+  const segs = 5, stable = Math.max(0, 1 - Math.abs(theta)/0.6);
+  const lit  = Math.round(stable*segs);
+  for (let i = 0; i < segs; i++) {
+    rCtx.fillStyle = i < lit ? `rgba(${P.emisRGB},.9)` : `rgba(${P.emisRGB},.16)`;
+    roundRect(rCtx, -14 + i*6, vY+vH*0.80, 4, 3, 1.4); rCtx.fill();
+  }
+
+  /* ── 8. СЕНСОР МАЧТАСЫ — жіңішке шток + линза күмбезі ── */
+  rCtx.strokeStyle = P.frameHi; rCtx.lineWidth = 2.4; rCtx.lineCap = 'round';
+  rCtx.beginPath(); rCtx.moveTo(0, headTop+2); rCtx.lineTo(0, headTop-13); rCtx.stroke();
+  const pulse = 0.5 + 0.5*Math.sin(now/520);
+  rCtx.save();
+  rCtx.shadowColor = P.emis; rCtx.shadowBlur = 5 + 7*pulse;
+  const domeG = rCtx.createRadialGradient(-1.4, headTop-18, .5, 0, headTop-16.5, 5);
+  domeG.addColorStop(0, '#ffffff'); domeG.addColorStop(.45, P.emis); domeG.addColorStop(1, P.lo);
+  rCtx.fillStyle = domeG;
+  rCtx.beginPath(); rCtx.arc(0, headTop-16.5, 4.6, 0, Math.PI*2); rCtx.fill();
+  rCtx.restore();
 
   rCtx.restore();
 
@@ -909,16 +1040,29 @@ function drawRobot() {
 
   /* ── bias arrow on canvas ── */
   if (phase >= 1 && PH.bias[phase] > 0) {
-    const bx = cx + Math.sign(PH.bias[phase]) * (w * 0.3);
     rCtx.font = 'bold 11px Exo 2,sans-serif';
     rCtx.fillStyle = 'rgba(251,191,36,.55)';
-    rCtx.fillText('⇒ Bias', cx + (PH.bias[phase]>0?20:-60), baseY - poleLen * 0.5);
+    rCtx.textAlign = PH.bias[phase] > 0 ? 'left' : 'right';
+    rCtx.fillText('⇒ Bias', cx + Math.sign(PH.bias[phase]) * (w*0.16), baseY - poleLen * 0.5);
+    rCtx.textAlign = 'left';
   }
 }
 
 function roundRect(c, x, y, w, h, r) {
   c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r);
   c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+/* Кез келген көпбұрышты бірдей жұмсақтықпен дөңгелектеу —
+   «пішін DNA» бүкіл роботта бір болуы үшін. */
+function roundPoly(c, pts, r) {
+  const n = pts.length, mid = (a,b) => ({x:(a.x+b.x)/2, y:(a.y+b.y)/2});
+  const m0 = mid(pts[n-1], pts[0]);
+  c.beginPath(); c.moveTo(m0.x, m0.y);
+  for (let i=0; i<n; i++) {
+    const cur = pts[i], nxt = pts[(i+1)%n], m = mid(cur, nxt);
+    c.arcTo(cur.x, cur.y, m.x, m.y, r); c.lineTo(m.x, m.y);
+  }
+  c.closePath();
 }
 
 /* ════ DRAW GRAPH ════ */

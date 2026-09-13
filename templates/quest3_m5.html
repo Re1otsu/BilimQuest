@@ -146,7 +146,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
   <!-- LEFT: track + sensors -->
   <div class="panel left">
-    <div class="panel-header">🛣️ ТРАССА</div>
+    <div class="panel-header" id="trackHeader">ТРАССА</div>
     <div class="panel-body">
       <div class="track-center">
         <canvas id="trackCanvas" width="330" height="400"></canvas>
@@ -163,7 +163,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
   <!-- RIGHT: controls -->
   <div class="panel right">
-    <div class="panel-header">⚙️ БАПТАУ</div>
+    <div class="panel-header" id="tuneHeader">БАПТАУ</div>
     <div class="panel-body">
 
       <!-- Kp -->
@@ -356,45 +356,148 @@ function drawTrack(trail){
   ctx.strokeStyle='rgba(0,229,255,.035)'; ctx.lineWidth=1;
   for(let x=0;x<W;x+=22){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let y=0;y<H;y+=22){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  // line glow
-  ctx.beginPath(); ctx.moveTo(pathPoints[0].x,pathPoints[0].y);
-  for(const p of pathPoints) ctx.lineTo(p.x,p.y);
-  ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=13; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke();
-  // line
-  ctx.beginPath(); ctx.moveTo(pathPoints[0].x,pathPoints[0].y);
-  for(const p of pathPoints) ctx.lineTo(p.x,p.y);
-  ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.lineWidth=3; ctx.stroke();
-  // start / finish
-  ctx.fillStyle='#10b981'; ctx.beginPath(); ctx.arc(pathPoints[0].x,pathPoints[0].y,7,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#0a2a1a'; ctx.font='bold 9px "Exo 2"'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('S',pathPoints[0].x,pathPoints[0].y);
-  const fp=pathPoints[pathPoints.length-1];
-  const pulse=0.5+Math.abs(Math.sin(performance.now()/350))*0.5;
-  ctx.fillStyle='#f59e0b'; ctx.globalAlpha=pulse; ctx.beginPath(); ctx.arc(fp.x,fp.y,7,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1;
-  ctx.fillStyle='#3a2606'; ctx.fillText('F',fp.x,fp.y);
-  // trail
+  const tracePath=()=>{ ctx.beginPath(); ctx.moveTo(pathPoints[0].x,pathPoints[0].y);
+    for(const p of pathPoints) ctx.lineTo(p.x,p.y); };
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  // ТРАССА — жабысқақ таспа: астында көлеңке, шеті жұмсақ, беті матау
+  tracePath(); ctx.strokeStyle='rgba(0,0,0,.5)';        ctx.lineWidth=11; ctx.stroke();
+  tracePath(); ctx.strokeStyle='rgba(255,255,255,.10)'; ctx.lineWidth=9;  ctx.stroke();
+  tracePath(); ctx.strokeStyle='rgba(236,245,255,.9)';  ctx.lineWidth=4;  ctx.stroke();
+  tracePath(); ctx.strokeStyle='rgba(255,255,255,.55)'; ctx.lineWidth=1.4; ctx.stroke();
+
+  // Жол бағытын есептеу (белгілерді дұрыс бұру үшін)
+  const angAt=(a,b)=>Math.atan2(b.y-a.y,b.x-a.x);
+  const sp=pathPoints[0], sAng=angAt(pathPoints[0],pathPoints[Math.min(6,pathPoints.length-1)]);
+  const fp=pathPoints[pathPoints.length-1], fAng=angAt(pathPoints[Math.max(0,pathPoints.length-7)],fp);
+
+  // СТАРТ — ұшыру алаңы: екі тірек + жарық аймақ
+  ctx.save(); ctx.translate(sp.x,sp.y); ctx.rotate(sAng);
+  const sg=ctx.createRadialGradient(0,0,1,0,0,15);
+  sg.addColorStop(0,'rgba(16,185,129,.35)'); sg.addColorStop(1,'rgba(16,185,129,0)');
+  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(52,211,153,.8)'; ctx.lineWidth=2.4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(0,-11); ctx.lineTo(0,-6); ctx.moveTo(0,6); ctx.lineTo(0,11); ctx.stroke();
+  ctx.fillStyle='#34d399';
+  ctx.beginPath(); ctx.arc(0,-11,2.6,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 11,2.6,0,Math.PI*2); ctx.fill();
+  // алға бағыттаушы шеврондар
+  ctx.strokeStyle='rgba(52,211,153,.55)'; ctx.lineWidth=1.8;
+  for(let i=0;i<2;i++){ ctx.beginPath();
+    ctx.moveTo(2+i*4,-4); ctx.lineTo(6+i*4,0); ctx.lineTo(2+i*4,4); ctx.stroke(); }
+  ctx.restore();
+
+  // ФИНИШ — шахмат таспасы (жарыс тілі) + соғатын жарық
+  ctx.save(); ctx.translate(fp.x,fp.y); ctx.rotate(fAng);
+  const pulse=0.45+Math.abs(Math.sin(performance.now()/420))*0.55;
+  const fg=ctx.createRadialGradient(0,0,1,0,0,17);
+  fg.addColorStop(0,`rgba(245,158,11,${0.4*pulse})`); fg.addColorStop(1,'rgba(245,158,11,0)');
+  ctx.fillStyle=fg; ctx.beginPath(); ctx.arc(0,0,17,0,Math.PI*2); ctx.fill();
+  const cw=3.4, cols=2, rows=8;
+  for(let r=0;r<rows;r++) for(let q=0;q<cols;q++){
+    ctx.fillStyle=((r+q)%2===0)?'#f8fafc':'#1e293b';
+    ctx.fillRect(-cw*cols/2+q*cw, -rows*cw/2+r*cw, cw, cw);
+  }
+  ctx.strokeStyle=`rgba(245,158,11,${0.55+0.45*pulse})`; ctx.lineWidth=1.6;
+  ctx.strokeRect(-cw*cols/2, -rows*cw/2, cw*cols, cw*rows);
+  ctx.restore();
+
+  // өткен жол — ізі
   if(trail && trail.length>1){
     ctx.beginPath(); ctx.moveTo(trail[0].x,trail[0].y);
     for(const p of trail) ctx.lineTo(p.x,p.y);
-    ctx.strokeStyle='rgba(99,102,241,.55)'; ctx.lineWidth=2.5; ctx.stroke();
+    ctx.strokeStyle='rgba(129,140,248,.28)'; ctx.lineWidth=5; ctx.stroke();
+    ctx.strokeStyle='rgba(165,180,252,.8)'; ctx.lineWidth=1.6; ctx.stroke();
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   LF-5 «LINE SCOUT» — үстінен көрініс, дифференциалды жетек
+   • Пішін DNA : барлық бөлік — бір жұмсақтықтағы squircle
+   • Материал  : матау графит шасси / жылтыр индиго қаптама / эмиссивті сенсор
+   • Шынайылық : әр доңғалақ өз жылдамдығымен айналады (steer-ге сай)
+══════════════════════════════════════════════════════════════ */
 function drawRobot(){
+  const t=performance.now();
+  // жерге түсетін көлеңке (айналмайды)
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.35)';
+  ctx.beginPath(); ctx.ellipse(robot.x+1.5,robot.y+2,13,10,0,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
   ctx.save();
   ctx.translate(robot.x,robot.y);
   ctx.rotate(robot.h);
-  // body
-  ctx.shadowColor='rgba(99,102,241,.7)'; ctx.shadowBlur=12;
-  ctx.fillStyle='#6366f1';
-  ctx.beginPath(); ctx.roundRect(-9,-7,18,14,4); ctx.fill();
-  ctx.shadowBlur=0;
-  // direction arrow (forward = +x after rotate)
-  ctx.fillStyle='#c7d2fe'; ctx.beginPath(); ctx.moveTo(9,0); ctx.lineTo(3,-4); ctx.lineTo(3,4); ctx.closePath(); ctx.fill();
-  // sensor bar (front of robot, perpendicular = y axis after rotate)
+
+  /* 1. ЖЕТЕК ДОҢҒАЛАҚТАРЫ — протекторы өз фазасымен жүреді */
+  for(const side of [-1,1]){
+    const wy=side*8.6, ph=(side<0? (robot.wl||0) : (robot.wr||0));
+    ctx.fillStyle='#0b1226';
+    ctx.beginPath(); ctx.roundRect(-6,wy-2.6,11,5.2,2.2); ctx.fill();
+    // сыртқы жиегі жарық — шассиден ажырап тұруы үшін
+    const wg=ctx.createLinearGradient(0,wy-2.6,0,wy+2.6);
+    wg.addColorStop(side<0?0:1,'rgba(190,205,255,.75)');
+    wg.addColorStop(side<0?1:0,'rgba(0,0,0,.5)');
+    ctx.strokeStyle=wg; ctx.lineWidth=1.1;
+    ctx.beginPath(); ctx.roundRect(-6,wy-2.6,11,5.2,2.2); ctx.stroke();
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(-6,wy-2.6,11,5.2,2.2); ctx.clip();
+    ctx.strokeStyle='rgba(150,170,230,.45)'; ctx.lineWidth=1.1;
+    for(let k=0;k<5;k++){
+      const x=-6+(((ph*0.55)%3.2)+k*3.2)%13-1;
+      ctx.beginPath(); ctx.moveTo(x,wy-2.6); ctx.lineTo(x,wy+2.6); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  /* 2. АРТҚЫ ТІРЕК ДОҢҒАЛАҒЫ (caster) */
+  ctx.fillStyle='#1b2547';
+  ctx.beginPath(); ctx.arc(-8.5,0,2.6,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(140,160,220,.3)'; ctx.lineWidth=.8; ctx.stroke();
+
+  /* 3. СЕНСОР ШТАНГАСЫ — алдыға шығып тұрған тіреуіш */
+  ctx.fillStyle='#1b2547';
+  ctx.beginPath(); ctx.roundRect(4,-1.8,SENS_LOOKAHEAD-2,3.6,1.6); ctx.fill();
+  const barH=SENS_SPACING*4+7;
+  ctx.fillStyle='#16203f';
+  ctx.beginPath(); ctx.roundRect(SENS_LOOKAHEAD-3,-barH/2,6,barH,2.6); ctx.fill();
+  ctx.strokeStyle='rgba(130,150,210,.4)'; ctx.lineWidth=.9;
+  ctx.beginPath(); ctx.roundRect(SENS_LOOKAHEAD-3,-barH/2,6,barH,2.6); ctx.stroke();
+
+  /* 4. ШАССИ ҚАПТАМАСЫ — градиент + жіктер */
+  const g=ctx.createLinearGradient(-11,-8,7,8);
+  g.addColorStop(0,'#c7d2fe'); g.addColorStop(.22,'#6366f1'); g.addColorStop(1,'#1e1b4b');
+  ctx.save(); ctx.shadowColor='rgba(99,102,241,.55)'; ctx.shadowBlur=10;
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.roundRect(-10,-7.5,17,15,4.5); ctx.fill();
+  ctx.restore();
+  // rim-light: оң жиек жарық, сол жиек көлеңке
+  const rim=ctx.createLinearGradient(0,-7.5,0,7.5);
+  rim.addColorStop(0,'rgba(255,255,255,.5)'); rim.addColorStop(.55,'rgba(0,0,0,.25)'); rim.addColorStop(1,'rgba(199,210,254,.5)');
+  ctx.strokeStyle=rim; ctx.lineWidth=1.3;
+  ctx.beginPath(); ctx.roundRect(-10,-7.5,17,15,4.5); ctx.stroke();
+  // панель жігі (гравюра әсері)
+  ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(-2,-7.5); ctx.lineTo(-2,7.5); ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.2)'; ctx.lineWidth=.8;
+  ctx.beginPath(); ctx.moveTo(-1,-7.5); ctx.lineTo(-1,7.5); ctx.stroke();
+  // бұрандалар
+  ctx.fillStyle='rgba(0,0,0,.35)';
+  for(const sy of [-5,5]){ ctx.beginPath(); ctx.arc(-7.5,sy,1.1,0,Math.PI*2); ctx.fill(); }
+
+  /* 5. КҮЙ ИНДИКАТОРЫ — жүріп тұрғанда соғады */
+  const blink=running?(0.45+0.55*Math.sin(t/160)):0.35;
+  ctx.save(); ctx.shadowColor='#67e8f9'; ctx.shadowBlur=7*blink;
+  ctx.globalAlpha=0.45+0.55*blink; ctx.fillStyle='#67e8f9';
+  ctx.beginPath(); ctx.roundRect(1.5,-2,4,4,1.4); ctx.fill(); ctx.restore();
+
+  /* 6. СЕНСОРЛАР — сызықты көргенде жасыл жанады */
   for(let i=0;i<N_SENS;i++){
-    const off=SENS_WEIGHT[i]*SENS_SPACING;
-    ctx.fillStyle = lastReadings[i] > 0.25 ? '#10b981' : '#475569';
-    ctx.beginPath(); ctx.arc(SENS_LOOKAHEAD, off, 2.4, 0, Math.PI*2); ctx.fill();
+    const off=SENS_WEIGHT[i]*SENS_SPACING, on=lastReadings[i]>0.25, lvl=Math.min(1,lastReadings[i]);
+    if(on){ ctx.save(); ctx.shadowColor='#34d399'; ctx.shadowBlur=8*lvl; }
+    ctx.fillStyle=on?'#34d399':'#3d4a63';
+    ctx.beginPath(); ctx.arc(SENS_LOOKAHEAD, off, on?2.6:2, 0, Math.PI*2); ctx.fill();
+    if(on){ ctx.restore();
+      ctx.fillStyle='rgba(255,255,255,.75)';
+      ctx.beginPath(); ctx.arc(SENS_LOOKAHEAD, off, 1, 0, Math.PI*2); ctx.fill(); }
   }
   ctx.restore();
 }
@@ -453,6 +556,12 @@ function simStep(){
     robot.h += steer*TURN/SUBSTEPS;
     robot.x += Math.cos(robot.h)*speedPx()/SUBSTEPS;
     robot.y += Math.sin(robot.h)*speedPx()/SUBSTEPS;
+    // дифференциалды жетек: әр доңғалақтың өз айналу фазасы
+    // (steer оңға бұрса — оң доңғалақ баяу, сол жақ жылдам)
+    const v=speedPx()/SUBSTEPS, dv=steer*1.6;
+    robot.wl=(robot.wl||0)+v*(1-dv);
+    robot.wr=(robot.wr||0)+v*(1+dv);
+    robot.steer=steer;
   }
   const centerDist=updateNearIdx();
   totalFrames++; sumDev+=centerDist;
@@ -698,6 +807,20 @@ function playClick(ok){try{const a=getAudio(),o=a.createOscillator(),g=a.createG
   if(!running){ drawTrack(); drawRobot(); }
   requestAnimationFrame(idleLoop);
 })();
+
+/* ── Панель тақырыптарының иконкалары (emoji емес, vector) ── */
+document.getElementById('trackHeader').innerHTML=
+  `<svg width="18" height="18" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 5px rgba(0,229,255,.6))">
+     <path d="M6 21 C6 13 18 11 18 3" fill="none" stroke="#7dd3fc" stroke-width="2.4" stroke-linecap="round"/>
+     <path d="M6 21 C6 13 18 11 18 3" fill="none" stroke="#00e5ff" stroke-width="1" stroke-dasharray="2 3" stroke-linecap="round"/>
+     <circle cx="6" cy="21" r="2.2" fill="#34d399"/><rect x="15.8" y="1.4" width="4.4" height="3.2" fill="#f59e0b"/>
+   </svg> ТРАССА`;
+document.getElementById('tuneHeader').innerHTML=
+  `<svg width="18" height="18" viewBox="0 0 24 24" style="filter:drop-shadow(0 0 5px rgba(99,102,241,.6))">
+     <path d="M4 8h16M4 16h16" stroke="#a5b4fc" stroke-width="2" stroke-linecap="round"/>
+     <circle cx="9" cy="8" r="3.1" fill="#0b1224" stroke="#00e5ff" stroke-width="2"/>
+     <circle cx="16" cy="16" r="3.1" fill="#0b1224" stroke="#00e5ff" stroke-width="2"/>
+   </svg> БАПТАУ`;
 
 /* ── Init ── */
 robot.x=pathPoints[0].x; robot.y=pathPoints[0].y;
