@@ -2,191 +2,302 @@
 <html lang="kk">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Жеке парақша</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/opensans-local.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-
-  </style>
 </head>
 <body>
+  {# ── Дәреже: жалпы үлгерімнен шығады ── #}
+  {% set pct = summary.earned_percent if summary else 0 %}
+  {% if   pct >= 90 %}{% set rank = 'Чемпион' %}
+  {% elif pct >= 70 %}{% set rank = 'Шебер' %}
+  {% elif pct >= 45 %}{% set rank = 'Білгір' %}
+  {% elif pct >= 20 %}{% set rank = 'Зерттеуші' %}
+  {% else %}            {% set rank = 'Жаңа агент' %}{% endif %}
+
+  {# ── Тарау түстері: басты беттегі модуль карталарымен бірдей ── #}
+  {% set chapter_colors = {
+      'Ақпаратты ұсыну':'#2dbd66',
+      'Компьютерлік графика':'#2f79ff',
+      'Робототехника':'#ff8a2a',
+      'Компьютер және қауіпсіздік':'#8e6bff'
+  } %}
+  {% set badge_colors = {'info':'#2dbd66','graphics':'#2f79ff','robotics':'#ff8a2a','security':'#8e6bff'} %}
+  {% set is_owner = session.get('user_id') == student.id and session.get('role') == 'student' %}
+
+  <!-- ═══ ТОПБАР — басты беттегімен бірдей ═══ -->
+  <header class="d-topbar">
+    <a href="{{ '/student' if is_owner else 'javascript:history.back()' }}" class="d-logo">BilimQuest</a>
+    <div class="d-actions">
+      <span class="d-score">
+        <svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 16.8 6.62 19.6l1.03-6L3.3 9.4l6-.9L12 3z" fill="#1c2b45"/></svg>
+        {{ "%.3f"|format(student.score) }}
+      </span>
+      <a href="{{ '/student' if is_owner else 'javascript:history.back()' }}" class="d-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Артқа
+      </a>
+    </div>
+  </header>
+
+  <main class="d-page">
   <div class="dashboard-container">
+
+    <!-- ═══ ОЙЫНШЫ КАРТАСЫ ═══ -->
     <div class="header">
       <div class="avatar">
-        <img src="{{ url_for('static', filename='img/user.png') }}">
+        <img src="{{ url_for('static', filename='img/user.png') }}" alt="">
       </div>
       <div class="user-info">
         <h2>{{ student.name }} {{ student.surname }}</h2>
-        <p>Сынып: {{ student.student_class }}</p>
+        <div class="user-meta">
+          <span class="chip">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-5 9 5-9 5-9-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M7 11v4c0 1 2.2 2 5 2s5-1 5-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            {{ student.student_class }} сынып
+          </span>
+          <span class="chip rank">
+            <svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.2l5.9-.9L12 3z" fill="currentColor"/></svg>
+            {{ rank }}
+          </span>
+        </div>
       </div>
+      {% if summary %}
+      {% set circ = 264 %}
+      <div class="hero-ring">
+        <svg width="96" height="96" viewBox="0 0 96 96">
+          <circle cx="48" cy="48" r="42" fill="none" stroke="rgba(47,121,255,.14)" stroke-width="8"/>
+          <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#2f79ff"/><stop offset="1" stop-color="#1e4fa8"/>
+          </linearGradient></defs>
+          <circle cx="48" cy="48" r="42" fill="none" stroke="url(#ringGrad)" stroke-width="8"
+                  stroke-linecap="round" stroke-dasharray="{{ circ }}"
+                  stroke-dashoffset="{{ circ - (circ * pct / 100) }}"/>
+        </svg>
+        <div class="hr-txt">
+          <span class="hr-val">{{ pct }}%</span>
+          <span class="hr-lab">үлгерім</span>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
+    <!-- ═══ СТАТИСТИКА ═══ -->
     {% if summary %}
     <div class="summary-cards">
-      <div class="sc-card"><div class="sc-ic">🎮</div><div class="sc-val">{{ summary.played }}/{{ summary.total_games }}</div><div class="sc-lab">Ойналған ойын</div></div>
-      <div class="sc-card"><div class="sc-ic">✅</div><div class="sc-val">{{ summary.completed }}</div><div class="sc-lab">Аяқталды</div></div>
-      <div class="sc-card"><div class="sc-ic">📊</div><div class="sc-val">{{ summary.earned_percent }}%</div><div class="sc-lab">Жалпы үлгерім</div></div>
-      <div class="sc-card"><div class="sc-ic">🏅</div><div class="sc-val">{{ summary.badges }}/{{ summary.badges_max }}</div><div class="sc-lab">Белгішелер</div></div>
-      <div class="sc-card"><div class="sc-ic">⭐</div><div class="sc-val">{{ summary.score }}</div><div class="sc-lab">Жалпы ұпай</div></div>
+      <div class="sc-card" style="--acc:#2f79ff">
+        <div class="sc-ic"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="11" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 11v3M5.5 12.5h3M15.5 12h.01M18 14h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="sc-val">{{ summary.played }}<small>/{{ summary.total_games }}</small></div>
+        <div class="sc-lab">Ойналған ойын</div>
+      </div>
+      <div class="sc-card" style="--acc:#2dbd66">
+        <div class="sc-ic"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M8 12.4l2.6 2.6L16 9.6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="sc-val">{{ summary.completed }}</div>
+        <div class="sc-lab">Аяқталды</div>
+      </div>
+      <div class="sc-card" style="--acc:#8e6bff">
+        <div class="sc-ic"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><path d="M4 19V10M10 19V5M16 19v-6M22 19H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="sc-val">{{ summary.earned_percent }}%</div>
+        <div class="sc-lab">Жалпы үлгерім</div>
+      </div>
+      <div class="sc-card" style="--acc:#ff8a2a">
+        <div class="sc-ic"><svg width="23" height="23" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="14.5" r="6" stroke="currentColor" stroke-width="2"/><path d="M9 3h6l-1.6 5.2M9 3l1.9 5.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="sc-val">{{ summary.badges }}<small>/{{ summary.badges_max }}</small></div>
+        <div class="sc-lab">Белгішелер</div>
+      </div>
+      <div class="sc-card" style="--acc:#ffb400">
+        <div class="sc-ic"><svg width="23" height="23" viewBox="0 0 24 24"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 16.8 6.62 19.6l1.03-6L3.3 9.4l6-.9L12 3z" fill="currentColor"/></svg></div>
+        <div class="sc-val">{{ summary.score }}</div>
+        <div class="sc-lab">Жалпы ұпай</div>
+      </div>
     </div>
-    <style>
-      .summary-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:16px 0}
-      @media(max-width:640px){.summary-cards{grid-template-columns:repeat(2,1fr)}}
-      .sc-card{background:linear-gradient(180deg,#fff,#f4f1fb);border:1.5px solid #e7e1f6;border-radius:16px;
-        padding:14px 10px;text-align:center;box-shadow:0 4px 12px rgba(80,40,160,.06)}
-      .sc-ic{font-size:26px;line-height:1}
-      .sc-val{font-size:23px;font-weight:900;color:#6d28d9;margin-top:4px}
-      .sc-lab{font-size:12px;font-weight:700;color:#6b6890;margin-top:2px}
-    </style>
     {% endif %}
 
+    <!-- ═══ ГРАФИКТЕР ═══ -->
     <div class="progress-section">
-      <div class="bloom-container">
-        <h2>Bloom таксаномиясы</h2>
-        <canvas id="bloomRadar"></canvas>
-        <script>
-          const ctx = document.getElementById('bloomRadar').getContext('2d');
-          const bloomRadar = new Chart(ctx, {
-            type: 'radar',
-            data: {
-              labels: [{% for chapter in chapters_progress.keys() %}'{{ chapter }}',{% endfor %}],
-              datasets: [{
-                label: '{{ student.name }}',
-                data: [
-                  {% for chapter, data in chapters_progress.items() %}
-                    {{ data.percent }},
-                  {% endfor %}
-                ],
-                fill: true,
-                backgroundColor: 'rgba(70,130,180,0.2)',
-                borderColor: 'rgba(70,130,180,1)',
-                pointBackgroundColor: 'rgba(70,130,180,1)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgba(70,130,180,1)'
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: true,
-              scales: {
-                r: {
-                  angleLines: { color: '#ccc' },
-                  suggestedMin: 0,
-                  suggestedMax: 100,
-                  ticks: {
-                    stepSize: 20,
-                    callback: function(value) { return value + '%'; },
-                    font: { size: 10 }
-                  },
-                  pointLabels: { font: { size: 10 } }
-                }
-              },
-              plugins: { legend: { display: false } }
-            }
-          });
-        </script>
-      </div>
-        <div class="games-progress-container">
-          <h2>Тарау бойынша прогресс</h2>
-          <canvas id="gamesProgress"></canvas>
-            <script>
-            const ctx2 = document.getElementById('gamesProgress').getContext('2d');
-            const gamesProgress = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: [{% for chapter in chapters_progress_display.keys() %}'{{ chapter }}',{% endfor %}],
-                    datasets: [{
-                        label: 'Қамтыды %',
-                        data: [
-                          {% for chapter, data in chapters_progress_display.items() %}
-                            {{ data.percent }},
-                          {% endfor %}
-                        ],
-                        backgroundColor: 'rgba(70,130,180,0.6)',
-                        borderColor: 'rgba(70,130,180,1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    indexAxis: 'y', // горизонтальные столбцы
-                    scales: {
-                        x: {
-                            min: 0,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) { return value + '%'; }
-                            }
-                        }
-                    },
-                    plugins: { legend: { display: false } },
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-            </script>
+      <div class="pcard">
+        <div class="pcard-h">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 2l8.5 5v10L12 22 3.5 17V7L12 2z" stroke="#2f79ff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="#2f79ff"/></svg>
+          Bloom таксономиясы
         </div>
+        <div class="chart-box"><canvas id="bloomRadar"></canvas></div>
+      </div>
+      <div class="pcard">
+        <div class="pcard-h">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 6h11M4 12h16M4 18h8" stroke="#1e4fa8" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Тарау бойынша прогресс
+        </div>
+        <div class="chart-box"><canvas id="gamesProgress"></canvas></div>
+      </div>
     </div>
 
+    <!-- ═══ ЖЕТОНДАР + ТАРИХ ═══ -->
     <div class="games-section">
-      <div class="stars-summary">
-        <h3>Вейджер — Белгіше</h3>
+      <div class="pcard stars-summary">
+        <div class="pcard-h">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="14.5" r="6" stroke="#ff8a2a" stroke-width="1.8"/><path d="M9 3h6l-1.6 5.2M9 3l1.9 5.3" stroke="#ff8a2a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Жетондар
+        </div>
         <div class="badge-grid">
           {% for b in chapter_badges %}
-            <div class="badge-cell{% if b.done %} done{% endif %}" title="{{ b.label }}">
-              <div class="badge-ic">{{ b.icon }}{% if b.done %}<span class="badge-trophy">🏆</span>{% endif %}</div>
+            <div class="badge-cell{% if b.done %} done{% endif %}" title="{{ b.label }}"
+                 style="--bc:{{ badge_colors.get(b.kind,'#2f79ff') }}">
+              <div class="badge-ic">
+                {% if b.kind == 'info' %}
+                  <svg width="29" height="29" viewBox="0 0 24 24"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 16.8 6.62 19.6l1.03-6L3.3 9.4l6-.9L12 3z" fill="currentColor"/></svg>
+                {% elif b.kind == 'graphics' %}
+                  <svg width="29" height="29" viewBox="0 0 24 24"><path d="M10 3h4v2.2a1.8 1.8 0 103.6 0H20v3.4a1.8 1.8 0 100 3.6V17h-3.4a1.8 1.8 0 10-3.6 0H9.6a1.8 1.8 0 10-3.6 0H3v-4.2a1.8 1.8 0 100-3.6V5.2h3a1.8 1.8 0 103.6 0V3z" fill="currentColor"/></svg>
+                {% elif b.kind == 'robotics' %}
+                  <svg width="29" height="29" viewBox="0 0 24 24" fill="none"><path d="M9 4.5L4 6.3v13.2l5-1.8 6 1.8 5-1.8V4.3l-5 1.8-6-1.6z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M9 4.5v13.2M15 6.1v13.2" stroke="currentColor" stroke-width="1.4" opacity=".55"/><circle cx="12" cy="11" r="2" fill="currentColor"/></svg>
+                {% else %}
+                  <svg width="29" height="29" viewBox="0 0 24 24" fill="none"><rect x="7" y="7" width="10" height="10" rx="2.2" stroke="currentColor" stroke-width="2"/><path d="M10 4v3M14 4v3M10 17v3M14 17v3M4 10h3M4 14h3M17 10h3M17 14h3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+                {% endif %}
+              </div>
               <div class="badge-cnt">{{ b.count }}<span class="badge-max">/{{ b.max }}</span></div>
               <div class="badge-lab">{{ b.label }}</div>
+              <div class="badge-bar"><i style="width:{{ (b.count / b.max * 100) if b.max else 0 }}%"></i></div>
             </div>
           {% endfor %}
         </div>
-        <div class="badge-total">Барлығы: <b>{{ badges_total }}</b> белгіше</div>
+        <div class="badge-total">Барлығы жиналған: <b>{{ badges_total }}</b> жетон</div>
       </div>
-      <style>
-        .stars-summary .badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}
-        @media(max-width:520px){.stars-summary .badge-grid{grid-template-columns:repeat(2,1fr)}}
-        .badge-cell{position:relative;text-align:center;padding:12px 6px;border-radius:14px;
-          background:rgba(124,58,237,.06);border:1.5px solid rgba(124,58,237,.18)}
-        .badge-cell.done{background:rgba(255,193,45,.12);border-color:rgba(255,193,45,.5);box-shadow:0 0 14px rgba(255,193,45,.25)}
-        .badge-ic{font-size:30px;line-height:1;position:relative;display:inline-block}
-        .badge-trophy{position:absolute;right:-14px;bottom:-4px;font-size:15px}
-        .badge-cnt{font-size:22px;font-weight:900;color:#5b21b6;margin-top:4px}
-        .badge-cnt .badge-max{font-size:13px;font-weight:700;color:#9b8cce}
-        .badge-lab{font-size:12.5px;font-weight:700;color:#6b6890;margin-top:2px}
-        .badge-total{font-size:14px;color:#444;margin-top:4px}
-        .badge-total b{color:#7c3aed;font-size:16px}
-      </style>
-      <div class="games-history">
-        <h3>Ойын нәтижелері</h3>
+
+      <div class="pcard games-history">
+        <div class="pcard-h">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="#2f79ff" stroke-width="1.8"/><path d="M12 7.2V12l3.1 2.1" stroke="#2f79ff" stroke-width="2" stroke-linecap="round"/></svg>
+          Ойын нәтижелері
+        </div>
         {% if games %}
           <ul>
             {% for game in games %}
               <li class="game-item">
                 <span class="game-name">{{ game.game_name }}</span>
-                <span class="game-chapter">{{ game.chapter }} · 🧠 {{ game.bloom }}</span>
-                <span class="game-score">{{ "%.2f"|format(game.score) }} балл{% if game.stars %} · {{ '★' * game.stars }}{% endif %}</span>
+                <span class="game-score">
+                  {{ "%.2f"|format(game.score) }}
+                  <span class="gs-unit">ұпай</span>
+                </span>
+                <span class="game-tags">
+                  <span class="tag" style="--tc:{{ chapter_colors.get(game.chapter,'#2f79ff') }}">{{ game.chapter }}</span>
+                  <span class="tag bloom">{{ game.bloom }}</span>
+                  {% if game.stars %}
+                    <span class="game-stars">
+                      {% for _ in range(game.stars) %}
+                        <svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 16.8 6.62 19.6l1.03-6L3.3 9.4l6-.9L12 3z" fill="#ffb400"/></svg>
+                      {% endfor %}
+                    </span>
+                  {% endif %}
+                </span>
               </li>
             {% endfor %}
           </ul>
         {% else %}
-          <p>Әзірге ойын нәтижелері жоқ.</p>
+          <p class="empty-note">Әзірге ойын нәтижелері жоқ — бірінші ойынды бастап көр!</p>
         {% endif %}
       </div>
-  </div>
+    </div>
 
-  <div class="actions">
-    {% if session.get('user_id') == student.id and session.get('role') == 'student' %}
-      <!-- Если это сам ученик -->
-      <a href="/student" class="back-btn">Басты бетке</a>
-      <form action="/logout" method="POST" class="logout-form">
-        <button type="submit">Шығу</button>
-      </form>
-    {% else %}
-      <!-- Если кто-то другой зашёл -->
-      <a href="javascript:history.back()" class="back-btn">⬅ Артқа</a>
-    {% endif %}
+    <!-- ═══ БАТЫРМАЛАР ═══ -->
+    <div class="actions">
+      {% if is_owner %}
+        <a href="/student" class="back-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          Басты бетке
+        </a>
+        <form action="/logout" method="POST" class="logout-form">
+          <button type="submit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M10 8l-4 4 4 4M6 12h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Шығу
+          </button>
+        </form>
+      {% else %}
+        <a href="javascript:history.back()" class="back-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Артқа
+        </a>
+      {% endif %}
+    </div>
   </div>
+  </main>
 
+<script>
+/* ── Chart.js — басты беттің ашық стиліне келтіру ── */
+Chart.defaults.color = '#66758c';
+Chart.defaults.font.family = "'Open Sans', sans-serif";
+Chart.defaults.font.weight = '700';
+
+/* Ұзын тарау атауларын екі жолға бөлу — әйтпесе жиектен қиылып қалады */
+function wrapLabel(s, max){
+  const words = String(s).split(' ');
+  const lines = []; let cur = '';
+  for (const w of words){
+    if ((cur + ' ' + w).trim().length > max && cur){ lines.push(cur); cur = w; }
+    else cur = (cur ? cur + ' ' : '') + w;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+/* ═══ Bloom — радар ═══ */
+const rctx = document.getElementById('bloomRadar').getContext('2d');
+new Chart(rctx, {
+  type:'radar',
+  data:{
+    labels:[{% for chapter in chapters_progress.keys() %}'{{ chapter }}',{% endfor %}],
+    datasets:[{
+      data:[{% for chapter, data in chapters_progress.items() %}{{ data.percent }},{% endfor %}],
+      fill:true, backgroundColor:'rgba(47,121,255,.18)',
+      borderColor:'#2f79ff', borderWidth:2,
+      pointBackgroundColor:'#2f79ff', pointBorderColor:'#fff',
+      pointBorderWidth:2, pointRadius:4, pointHoverRadius:6
+    }]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    scales:{ r:{
+      suggestedMin:0, suggestedMax:100,
+      angleLines:{ color:'rgba(30,79,168,.12)' },
+      grid:{ color:'rgba(30,79,168,.12)' },
+      ticks:{ stepSize:25, backdropColor:'transparent', color:'#9aa7bd',
+              font:{size:9.5}, callback:v=>v+'%' },
+      pointLabels:{ color:'#1c2b45', font:{size:11, weight:'700'} }
+    }},
+    plugins:{ legend:{display:false},
+      tooltip:{ backgroundColor:'#1c2b45', padding:10, displayColors:false,
+                callbacks:{ label:c=>c.parsed.r + '%' } } }
+  }
+});
+
+/* ═══ Тарау прогрессі — түстері басты беттегі модуль карталарымен бірдей ═══ */
+const bctx = document.getElementById('gamesProgress').getContext('2d');
+new Chart(bctx, {
+  type:'bar',
+  data:{
+    labels:[{% for chapter in chapters_progress_display.keys() %}wrapLabel('{{ chapter }}', 11),{% endfor %}],
+    datasets:[{
+      data:[{% for chapter, data in chapters_progress_display.items() %}{{ data.percent }},{% endfor %}],
+      backgroundColor:[{% for chapter in chapters_progress_display.keys() %}'{{ chapter_colors.get(chapter,'#2f79ff') }}',{% endfor %}],
+      borderRadius:7, borderSkipped:false, barPercentage:.62, categoryPercentage:.8
+    }]
+  },
+  options:{
+    indexAxis:'y', responsive:true, maintainAspectRatio:false,
+    /* сол жақта қор қалдырамыз: «Робототехника» сияқты ұзын бір сөзді
+       белгі тым тығыз отырады да, басқа шрифтте қиылып қалуы мүмкін */
+    layout:{ padding:{ right:22, left:8 } },
+    scales:{
+      x:{ min:0, max:100, border:{display:false},
+          grid:{ color:'rgba(30,79,168,.08)' },
+          ticks:{ color:'#9aa7bd', font:{size:10}, callback:v=>v+'%' } },
+      y:{ border:{display:false}, grid:{display:false},
+          ticks:{ color:'#1c2b45', font:{size:10.5, weight:'700'}, autoSkip:false } }
+    },
+    plugins:{ legend:{display:false},
+      tooltip:{ backgroundColor:'#1c2b45', padding:10, displayColors:false,
+                callbacks:{ label:c=>c.parsed.x + '%' } } }
+  }
+});
+</script>
 </body>
 </html>

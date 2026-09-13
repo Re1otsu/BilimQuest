@@ -1,208 +1,208 @@
-body {
-  margin: 0;
-  font-family: 'Open Sans', sans-serif;
-  background: #e0e0e0;
-  display: flex;
-  justify-content: center;
-  padding: 3vh 0;
-  min-height: 100vh;
+/* ══════════════════════════════════════════════════════════════
+   BilimQuest — Жеке парақша
+   Стиль оқушының басты бетінен (student.css) мұра етіп алынған:
+   • Фон      : жұмсақ көгілдір градиент + BG_s текстурасы
+   • Топбар   : көк градиентті дөңгелек карта (#2f79ff → #1e4fa8)
+   • Карта    : ақ, radius 14px, жұмсақ көлеңке
+   • Акцент   : алтын (#ffd700→#ffb400), сия түсі #1c2b45
+   • Тарау түстері басты беттегі модуль карталарымен БІРДЕЙ
+══════════════════════════════════════════════════════════════ */
+:root{
+  --blue:#2f79ff; --blue-dk:#1e4fa8;
+  --ink:#1c2b45; --muted:#66758c; --muted-2:#7a879c;
+  --gold-a:#ffd700; --gold-b:#ffb400;
+  --line:rgba(30,79,168,.10);
+  --shadow:0 10px 22px rgba(0,0,0,.08);
+  /* басты беттегі 4 модуль картасының түстері */
+  --c-info:#2dbd66; --c-graphics:#2f79ff; --c-robotics:#ff8a2a; --c-security:#8e6bff;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Open Sans','Segoe UI',Roboto,Arial,sans-serif;
+  color:var(--ink);
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 10% 20%, rgba(47,121,255,.12), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255,200,60,.12), transparent 45%),
+    linear-gradient(180deg,#eaf6ff 0%,#f4faff 100%);
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:url("/static/img/BG_s.webp");
+  background-repeat:repeat;background-size:320px;opacity:.3;
 }
 
-.dashboard-container {
-  display: flex;
-  flex-direction: column;
-  min-height: 90vh; /* высота контейнера */
-  background: #fff;
-  border-radius: 1em;
-  padding: 3vh 2vw;
-  width: 90%;
-  max-width: 60vw;
-  box-shadow: 0 6px 25px rgba(0,0,0,0.15);
+/* ═══ ТОПБАР — басты беттегімен бірдей ═══ */
+.d-topbar{
+  width:min(1100px,92vw);margin:26px auto 0;
+  border-radius:14px;padding:14px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  color:#fff;background:linear-gradient(90deg,#2f79ff,#1e4fa8);
+  box-shadow:0 12px 34px rgba(0,0,0,.12);
+}
+.d-logo{font-size:26px;font-weight:800;letter-spacing:.2px;text-decoration:none;color:#fff}
+.d-actions{display:flex;align-items:center;gap:10px}
+.d-score{
+  height:38px;padding:0 15px;border-radius:999px;
+  display:flex;align-items:center;gap:7px;text-decoration:none;
+  font-weight:700;font-size:14px;color:#1c2b45;
+  background:linear-gradient(45deg,var(--gold-a),var(--gold-b));
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+.d-back{
+  height:38px;padding:0 15px;border-radius:999px;
+  display:flex;align-items:center;gap:7px;text-decoration:none;
+  font-weight:700;font-size:14px;color:#fff;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);
+  transition:background .16s ease;
+}
+.d-back:hover{background:rgba(255,255,255,.28)}
+
+/* ═══ БЕТ ҚАБЫҒЫ ═══ */
+.d-page{width:min(1100px,92vw);margin:14px auto 30px}
+.dashboard-container{
+  border-radius:14px;background:rgba(255,255,255,.85);
+  box-shadow:0 12px 34px rgba(0,0,0,.10);
+  padding:18px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;gap:14px;
+}
+.dashboard-container::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 10% 30%, rgba(47,121,255,.14), transparent 45%),
+    radial-gradient(circle at 90% 70%, rgba(30,79,168,.12), transparent 45%);
+}
+.dashboard-container > *{position:relative;z-index:1}
+
+/* ═══ Карта негізі ═══ */
+.pcard{
+  background:#fff;border:1px solid var(--line);
+  border-radius:14px;box-shadow:var(--shadow);
+}
+.pcard-h{
+  display:flex;align-items:center;gap:9px;
+  font-weight:800;font-size:14px;color:var(--ink);
+  padding:13px 16px;border-bottom:1px solid var(--line);
 }
 
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 1vw;
-      margin-bottom: 35px;
-    }
-
-    .avatar img {
-      width: 5vw;
-      border-radius: 50%;
-      border: 2px solid #4682B4;
-    }
-
-    .user-info h2 {
-      margin: 0;
-      font-size: 2vw;
-      color: #333;
-    }
-
-    .user-info p {
-      margin: 0.2em 0 0;
-      color: #555;
-      font-size: 1vw;
-    }
-
-    .progress-section {
-      display: flex;
-      align-items: flex-start;
-      gap: 30px;
-      margin-bottom: 30px;
-    }
-
-    .bloom-container {
-      flex-shrink: 0;
-      width: 20vw;
-      min-width: 300px;
-      background: #f7f9fc;
-      border-radius: 1em;
-      padding: 1vw;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-      text-align: center;
-    }
-
-    .bloom-container h2 {
-      margin-top: 0;
-      font-size: 1vw;
-      margin-bottom: 1vh;
-      color: #4682B4;
-    }
-
-    canvas {
-      height: 180px;
-      width: 180px;
-    }
-
-    .games-section {
-      display: flex;
-      justify-content: space-between;
-      gap: 1vw;
-      flex-wrap: wrap;
-      margin-bottom: 2vh;
-    }
-
-.games-progress-container {
-  flex: 1;
-  width: 20vw;
-  min-width: 200px;
-  background: #f7f9fc;
-  border-radius: 1em;
-  padding: 1vw;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-  height: 250px; /* фиксированная высота */
-  font-size: 1vw;
+/* ═══ ОЙЫНШЫ КАРТАСЫ ═══ */
+.header{
+  display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  padding:18px 20px;border-radius:14px;
+  background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);
 }
-
-.games-progress-container canvas {
-  width: 90%;
-  height: 100%; /* занимает высоту родителя */
+.avatar{flex-shrink:0;width:72px;height:72px}
+.avatar img{
+  width:72px;height:72px;border-radius:50%;object-fit:cover;display:block;
+  background:#eaf2ff;border:3px solid #fff;box-shadow:0 4px 14px rgba(47,121,255,.28);
 }
-
-    .stars-summary, .games-history {
-      flex: 1;
-      background: #f9f9f9;
-      padding: 1vw;
-      border-radius: 1em;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.05);
-    }
-
-    .stars-summary h3, .games-history h3 {
-      margin-top: 0;
-      font-size: 1vw;
-      color: #333;
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 1vh;
-      margin-bottom: 1.2vh;
-    }
-
-    .stars-summary p {
-      font-size: 2vw;
-      margin: 0.5em 0 0;
-      color: #000000;
-    }
-
-.games-history ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.user-info{flex:1;min-width:180px}
+.user-info h2{margin:0;font-size:24px;font-weight:800;color:var(--ink)}
+.user-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:700;
+  background:rgba(47,121,255,.09);border:1px solid rgba(47,121,255,.2);color:var(--blue-dk);
 }
-
-.game-item {
-  display: flex;
-  justify-content: space-between; /* название слева, балл справа */
-  align-items: center;
-  padding: 8px 12px;
-  margin-bottom: 6px;
-  background: #f5f5f5;
-  border-radius: 8px;
-  transition: background 0.3s;
-  font-size: 14px;
+.chip.rank{
+  background:linear-gradient(45deg,var(--gold-a),var(--gold-b));
+  border-color:rgba(0,0,0,.06);color:#1c2b45;
+  box-shadow:0 4px 12px rgba(255,180,0,.3);
 }
+.hero-ring{position:relative;width:96px;height:96px;flex-shrink:0}
+.hero-ring svg{transform:rotate(-90deg)}
+.hero-ring .hr-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hero-ring .hr-val{font-size:21px;font-weight:800;color:var(--blue-dk)}
+.hero-ring .hr-lab{font-size:9.5px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase}
 
-.game-item:hover {
-  background: #e0f0ff;
+/* ═══ Статистика ═══ */
+.summary-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.sc-card{
+  position:relative;overflow:hidden;text-align:center;padding:14px 10px 12px;
+  background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+  transition:transform .16s ease,box-shadow .16s ease;
 }
+.sc-card::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--acc,var(--blue))}
+.sc-card:hover{transform:translateY(-3px);box-shadow:0 14px 26px rgba(0,0,0,.13)}
+.sc-ic{display:flex;justify-content:center;margin-bottom:6px;color:var(--acc,var(--blue))}
+.sc-val{font-size:23px;font-weight:800;color:var(--ink);line-height:1.1}
+.sc-val small{font-size:13px;font-weight:700;color:var(--muted-2)}
+.sc-lab{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:3px;line-height:1.3}
 
-.game-name {
-  font-weight: 600;
-  flex: 2; /* название занимает больше места */
+/* ═══ Графиктер ═══ */
+.progress-section{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* canvas өлшемін Chart.js өзі басқарады (responsive + maintainAspectRatio:false).
+   Оны !important-пен мәжбүрлеу ішкі координаттарды жылжытып, сол жақ
+   белгілерді қиып тастайды — сондықтан қолмен өлшем берілмейді. */
+.chart-box{padding:12px 14px 6px;height:280px;position:relative}
+
+/* ═══ Жетондар ═══ */
+.games-section{display:grid;grid-template-columns:1fr 1.25fr;gap:14px;align-items:start}
+.badge-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;padding:14px 16px}
+.badge-cell{
+  text-align:center;padding:13px 8px 11px;border-radius:12px;
+  background:#f7faff;border:1px solid var(--line);
 }
-
-.game-chapter {
-  flex: 1;
-  text-align: center;
-  font-size: 13px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background-color: #cce5ff; /* цвет для главы */
-  color: #0056b3;
+.badge-cell.done{
+  background:linear-gradient(180deg,#fffdf3,#fff6dd);
+  border-color:rgba(255,180,0,.45);box-shadow:0 4px 14px rgba(255,180,0,.18);
 }
+.badge-ic{display:flex;justify-content:center;color:var(--bc,var(--blue))}
+.badge-cnt{font-size:20px;font-weight:800;color:var(--ink);margin-top:5px}
+.badge-cnt .badge-max{font-size:12px;font-weight:700;color:var(--muted-2)}
+.badge-lab{font-size:11.5px;font-weight:700;color:var(--muted);margin-top:1px}
+.badge-bar{height:5px;border-radius:3px;background:rgba(30,79,168,.1);margin:8px 4px 0;overflow:hidden}
+.badge-bar i{display:block;height:100%;border-radius:3px;background:var(--bc,var(--blue))}
+.badge-cell.done .badge-bar i{background:linear-gradient(90deg,var(--gold-b),var(--gold-a))}
+.badge-total{padding:2px 16px 14px;font-size:12.5px;color:var(--muted)}
+.badge-total b{color:var(--blue-dk);font-size:15px}
 
-.game-score {
-  flex: 0.5;
-  text-align: right;
-  font-weight: 600;
-  color: #333;
+/* ═══ Ойын тарихы ═══ */
+.games-history ul{list-style:none;margin:0;padding:8px 10px 12px;max-height:320px;overflow-y:auto}
+.games-history ul::-webkit-scrollbar{width:6px}
+.games-history ul::-webkit-scrollbar-thumb{background:rgba(47,121,255,.25);border-radius:3px}
+.game-item{
+  display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;
+  padding:10px 12px;border-radius:12px;border:1px solid transparent;transition:background .15s ease;
 }
-    .back-btn {
-      display: inline-block;
-      margin-right: 1vw;
-      padding: 1vh 1vw;
-      background-color: #4682B4;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 0.5em;
-      font-size: 1vw;
-      transition: background 0.3s;
-    }
+.game-item:hover{background:#f5f9ff;border-color:var(--line)}
+.game-item + .game-item{margin-top:3px}
+.game-name{font-weight:700;font-size:14px;color:var(--ink)}
+.game-score{
+  grid-row:span 2;text-align:right;font-size:18px;font-weight:800;
+  color:var(--blue-dk);white-space:nowrap;
+}
+.game-score .gs-unit{font-size:10.5px;font-weight:700;color:var(--muted-2);display:block;margin-top:-2px}
+.game-tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{
+  font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;
+  color:#fff;background:var(--tc,var(--blue));
+}
+.tag.bloom{background:rgba(47,121,255,.1);border:1px solid rgba(47,121,255,.22);color:var(--blue-dk)}
+.game-stars{display:inline-flex;gap:2px;margin-left:2px}
+.empty-note{padding:22px 18px;color:var(--muted);font-size:13.5px;text-align:center}
 
-    .back-btn:hover {
-      background-color: #3561a8;
-    }
+/* ═══ Батырмалар ═══ */
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding-top:2px}
+.actions a,.actions button{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:11px 24px;border-radius:999px;font-family:inherit;
+  font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;border:none;
+  transition:transform .15s ease,box-shadow .15s ease;
+}
+.actions a:hover,.actions button:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.16)}
+.back-btn{background:linear-gradient(90deg,#2f79ff,#1e4fa8);color:#fff;box-shadow:0 6px 18px rgba(47,121,255,.3)}
+.logout-form{margin:0}
+.logout-form button{background:#fff;border:1px solid rgba(220,60,60,.3)!important;color:#d94b4b}
 
-    .logout-form button {
-      padding: 1vh 1vw;
-      border: none;
-      border-radius: 0.5em;
-      background-color: #dc3545;
-      color: #fff;
-      cursor: pointer;
-      font-size: 1vw;
-      transition: background 0.3s;
-    }
-
-    .logout-form button:hover {
-      background-color: #c82333;
-    }
-
-
-.actions {
-  display: flex;
-  gap: 1vw;
-  margin-top: auto; /* прижимает к низу */
-  justify-content: flex-start; /* выравнивание по левому краю */
-  padding-top: 2vh;
+@media(max-width:980px){
+  .progress-section,.games-section{grid-template-columns:1fr}
+  .summary-cards{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:560px){
+  .summary-cards{grid-template-columns:repeat(2,1fr)}
+  .header{gap:14px;padding:16px}
+  .user-info h2{font-size:20px}
+  .hero-ring{width:82px;height:82px}
 }
