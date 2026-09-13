@@ -47,16 +47,17 @@ if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    # Railway-прокси закрывает простаивающие соединения — эти опции делают пул
-    # устойчивым к разрывам и не дают приложению падать с "connection timed out".
-    "pool_pre_ping": True,   # проверять соединение перед использованием (авто-реконнект)
-    "pool_recycle": 280,     # пересоздавать соединение раньше, чем его закроет сервер
-    "connect_args": {
-        "sslmode": "require",
-        "connect_timeout": 10,  # не зависать надолго, если БД недоступна
-    },
-}
+if db_url and db_url.startswith("postgresql://"):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        # Railway-прокси закрывает простаивающие соединения — эти опции делают пул
+        # устойчивым к разрывам и не дают приложению падать с "connection timed out".
+        "pool_pre_ping": True,   # проверять соединение перед использованием (авто-реконнект)
+        "pool_recycle": 280,     # пересоздавать соединение раньше, чем его закроет сервер
+        "connect_args": {
+            "sslmode": "require",
+            "connect_timeout": 10,  # не зависать надолго, если БД недоступна
+        },
+    }
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -307,11 +308,20 @@ def register_teacher():
         name = request.form["name"]
         email = request.form["email"]
         password = request.form["password"]
+        invite_code = request.form.get("invite_code", "")
+
+        expected_code = os.getenv("TEACHER_INVITE_CODE")
+        if not expected_code or invite_code != expected_code:
+            return render_template("register_tchr.html",
+                                    error="Мұғалімдер үшін код дұрыс емес.",
+                                    form_name=name, form_email=email)
 
         # Проверка на существующий email
         existing_teacher = Teacher.query.filter_by(email=email).first()
         if existing_teacher:
-            return "Қате: Осындай почтасы бар қолданушы тіркелген."
+            return render_template("register_tchr.html",
+                                    error="Осындай почтасы бар қолданушы тіркелген.",
+                                    form_name=name, form_email=email)
 
         hashed_password = generate_password_hash(password)
         new_teacher = Teacher(name=name, email=email, password=hashed_password)

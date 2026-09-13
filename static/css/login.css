@@ -157,6 +157,12 @@ label {
     color: var(--accent);
 }
 
+.field-hint {
+    margin: -10px 0 16px 2px;
+    color: #9aa3b2;
+    font-size: 12.5px;
+}
+
 /* ===== Главная кнопка ===== */
 .auth-btn {
     width: 100%;
