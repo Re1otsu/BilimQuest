@@ -7,260 +7,424 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;800;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
+/* ══════════════════════════════════════════════════════════════
+   МИССИЯ 6 — «Робот-сумо: чемпионат финалы»
+   • Файтинг жанрының тілі: HP-жолақтар, VS, раунд белгілері, раунд баннері
+   • Екі жақтың түсі қатаң: СІЗ — индиго, ЖАУ — қызыл, чемпионат — алтын
+   • Ринг — көтерілген доҺё: платформа, шаммен жарықталған саз беті,
+     сабан тоқымдардан (тавара) шеңбер, ортасында бастау сызықтары
+   • Тактика карталары — салыстыруға болатын көрсеткіштері бар
+══════════════════════════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;color:#e2e8f0;overflow:hidden;background:#060d2e;user-select:none}
-body{background-image:radial-gradient(ellipse 120% 60% at 50% 0%,rgba(120,30,30,.28) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 12% 50%,rgba(99,102,241,.1) 0%,transparent 50%),radial-gradient(ellipse 60% 40% at 88% 50%,rgba(220,38,38,.1) 0%,transparent 50%);background-color:#0a0815}
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,120,80,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,120,80,.03) 1px,transparent 1px);background-size:40px 40px}
+:root{
+  --bg:#0a0815; --ink:#ece8f4; --muted:#a39bb8; --muted2:#6f6788;
+  --me:#6366f1; --me2:#818cf8; --foe:#ef4444; --foe2:#f87171;
+  --gold:#fbbf24; --green:#22c55e; --sky:#38bdf8;
+  --line:rgba(190,150,255,.16); --line2:rgba(190,150,255,.3);
+  --surface:linear-gradient(160deg,rgba(26,16,48,.94),rgba(12,8,24,.96));
+}
+html,body{height:100%;font-family:'Nunito','Exo 2',system-ui,sans-serif;color:var(--ink);overflow:hidden;user-select:none}
+body{background:
+  radial-gradient(ellipse 110% 55% at 50% -8%,rgba(140,40,60,.3),transparent 60%),
+  radial-gradient(ellipse 50% 45% at 0% 55%,rgba(99,102,241,.12),transparent 60%),
+  radial-gradient(ellipse 50% 45% at 100% 55%,rgba(239,68,68,.12),transparent 60%),var(--bg)}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(255,150,120,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,150,120,.03) 1px,transparent 1px);
+  background-size:40px 40px}
+.app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column}
+svg{display:block}
 
-/* HUD */
-.hud{position:relative;z-index:10;display:flex;align-items:center;height:52px;background:linear-gradient(180deg,rgba(20,8,12,.98),rgba(10,5,12,.96));border-bottom:2px solid rgba(220,80,80,.32);box-shadow:0 2px 20px rgba(220,60,60,.15);padding:0 10px;gap:4px}
-.hud-seg{display:flex;align-items:center;gap:6px;padding:0 12px;height:100%;border-right:1px solid rgba(220,80,80,.16);font-weight:800;font-size:13px;white-space:nowrap}
-.hud-seg:last-child{border-right:none;margin-left:auto}
-.hud-icon{font-size:17px}.hud-label{color:rgba(180,160,164,.65);font-size:10.5px;font-weight:700}
-.hud-val{color:#fff;font-size:13px;font-weight:900}
-.hud-val.red{color:#fb7185;text-shadow:0 0 8px rgba(244,63,94,.5)}
-.hud-val.gold{color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.5)}
-.hud-timer.warn{color:#ef4444;animation:blink .5s infinite}
-.hud-back{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:20px;font-weight:800;font-size:12px;text-decoration:none;transition:background .2s;white-space:nowrap;flex-shrink:0}
-.hud-back.mod{background:rgba(99,102,241,.12);border:1px solid rgba(129,140,248,.4);color:#a5b4fc}
-.hud-back.mod:hover{background:rgba(99,102,241,.24)}
-.hud-back.prev{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);color:#fbbf24}
-.hud-back.prev:hover{background:rgba(245,158,11,.22)}
+/* ═══ HUD ═══ */
+.hud{flex-shrink:0;height:52px;display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:linear-gradient(180deg,rgba(22,10,20,.97),rgba(12,6,16,.96));border-bottom:1px solid rgba(240,100,110,.3);box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.hbtn{height:32px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:10px;font-weight:800;font-size:12px;
+  text-decoration:none;border:1px solid;transition:background .15s;white-space:nowrap}
+.hbtn.mod{color:#c7d2fe;border-color:rgba(129,140,248,.4);background:rgba(99,102,241,.1)}
+.hbtn.mod:hover{background:rgba(99,102,241,.22)}
+.hbtn.prev{color:#fcd34d;border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+.hbtn.prev:hover{background:rgba(245,158,11,.18)}
+.hsep{width:1px;height:26px;background:var(--line);margin:0 4px}
+.hgroup{display:flex;align-items:center;gap:8px}
+.hlabel{font-size:10.5px;font-weight:800;letter-spacing:.7px;color:var(--muted);text-transform:uppercase}
+.mdots{display:flex;gap:5px}
+.mdots i{width:9px;height:9px;border-radius:50%;background:var(--me2);border:1px solid var(--me2);box-shadow:0 0 6px rgba(129,140,248,.5)}
+.mdots i.cur{background:transparent;border:2px solid var(--gold);box-shadow:0 0 0 3px rgba(251,191,36,.18);animation:pulse 1.6s ease-in-out infinite}
+.final{font-family:'Exo 2';font-size:10px;font-weight:900;letter-spacing:1px;padding:3px 8px;border-radius:6px;color:#2a1800;
+  background:linear-gradient(135deg,#fde68a,#f59e0b)}
+.hval{font-family:'Exo 2';font-weight:900;font-size:14px;font-variant-numeric:tabular-nums}
+.pill{height:32px;display:inline-flex;align-items:center;gap:7px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.pill.score .hval{color:var(--gold)}
+.pill.timer{margin-left:auto}
+.pill.timer.warn{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.1)}
+.pill.timer.warn .hval{color:#fca5a5;animation:blink .6s infinite}
 
-/* Mission strip */
-.mission-strip{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:6px 16px;gap:12px;background:linear-gradient(90deg,rgba(99,102,241,.4),rgba(40,20,40,.35),rgba(220,38,38,.4));border-bottom:1px solid rgba(220,80,80,.18)}
-.mission-text{text-align:center;flex:1}
-.m-title{font-family:'Exo 2',sans-serif;font-size:13px;font-weight:900;color:#fff;letter-spacing:.3px;text-shadow:0 0 10px rgba(255,100,80,.4)}
-.m-sub{font-size:11px;color:rgba(200,180,184,.75);margin-top:1px}
-.tip-badge{flex-shrink:0;padding:5px 11px;background:rgba(251,191,36,.08);border:1.5px solid rgba(251,191,36,.32);border-radius:10px;font-size:10.5px;font-weight:700;color:#fde68a;text-align:center;line-height:1.4}
+/* ═══ Миссия жолағы ═══ */
+.mstrip{flex-shrink:0;display:flex;align-items:center;gap:12px;padding:8px 14px;
+  background:linear-gradient(90deg,rgba(99,102,241,.3),rgba(40,18,40,.3),rgba(239,68,68,.3));border-bottom:1px solid var(--line)}
+.m-ico{width:34px;height:34px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.38)}
+.m-text{flex:1;min-width:0}
+.m-title{font-family:'Exo 2';font-weight:900;font-size:14px;letter-spacing:.2px}
+.m-sub{font-size:11.5px;color:var(--muted);margin-top:1px}
+.m-sub b{color:#fde68a}
+.tip{flex-shrink:0;display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:10px;
+  background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);font-size:11px;font-weight:800;color:#fde68a}
 
-/* Stage */
-.stage{position:relative;z-index:1;display:flex;gap:10px;padding:10px 12px;height:calc(100vh - 52px - 48px);overflow:hidden}
-.panel{display:flex;flex-direction:column;gap:7px;min-width:0}
-.panel.left{flex:1.15}
-.panel.right{flex:1}
-.panel-header{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(120,40,140,.5),rgba(80,30,120,.55));border:1.5px solid rgba(200,100,220,.32);font-family:'Exo 2',sans-serif;font-weight:900;font-size:14px;color:#fff;letter-spacing:1.2px;text-shadow:0 0 12px rgba(220,120,255,.45)}
-.panel-body{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;border:1.5px solid rgba(200,100,220,.2);border-radius:14px;padding:10px;background:linear-gradient(160deg,rgba(20,12,40,.78),rgba(10,6,22,.88));overflow:hidden}
+/* ═══ Сахна ═══ */
+.stage{flex:1;min-height:0;display:grid;grid-template-columns:1.15fr 1fr;gap:12px;padding:10px 12px 12px}
+.panel{min-height:0;display:flex;flex-direction:column;border-radius:16px;background:var(--surface);border:1px solid var(--line);
+  box-shadow:0 18px 40px rgba(0,0,0,.4);overflow:hidden}
+.panel-header{flex-shrink:0;display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:1px solid var(--line);
+  font-family:'Exo 2';font-weight:900;font-size:13px;letter-spacing:1.4px;color:#f1e9ff;background:linear-gradient(180deg,rgba(130,60,170,.22),transparent)}
+.panel-body{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;padding:12px}
 
-/* ── VS HEALTH BAR (fighting-game style) ── */
-.vs-bar{flex-shrink:0;display:flex;align-items:stretch;gap:8px;height:52px}
-.vs-side{flex:1;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:5px 8px;border-radius:11px;position:relative;overflow:hidden}
-.vs-side.you{background:linear-gradient(100deg,rgba(99,102,241,.28),rgba(99,102,241,.06));border:1.5px solid rgba(129,140,248,.5)}
-.vs-side.foe{background:linear-gradient(260deg,rgba(220,38,38,.28),rgba(220,38,38,.06));border:1.5px solid rgba(248,113,113,.5)}
-.vs-side .nm{display:flex;align-items:center;gap:5px;font-family:'Exo 2',sans-serif;font-size:11px;font-weight:900;letter-spacing:.5px}
-.vs-side.foe .nm{justify-content:flex-end}
-.vs-side.you .nm{color:#a5b4fc}.vs-side.foe .nm{color:#fca5a5}
-.hp-track{height:13px;border-radius:7px;background:rgba(0,0,0,.45);overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.1)}
-.hp-fill{position:absolute;top:0;height:100%;transition:width .45s cubic-bezier(.4,0,.2,1)}
-.hp-fill.you{left:0;background:linear-gradient(90deg,#4f46e5,#818cf8);box-shadow:0 0 10px rgba(129,140,248,.5)}
-.hp-fill.foe{right:0;background:linear-gradient(270deg,#dc2626,#f87171);box-shadow:0 0 10px rgba(248,113,113,.5)}
+/* ═══ VS жолағы ═══ */
+.vs-bar{flex-shrink:0;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.vs-side{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:12px;min-width:0}
+.vs-side.you{background:linear-gradient(100deg,rgba(99,102,241,.26),rgba(99,102,241,.05));border:1px solid rgba(129,140,248,.45)}
+.vs-side.foe{flex-direction:row-reverse;background:linear-gradient(260deg,rgba(239,68,68,.26),rgba(239,68,68,.05));border:1px solid rgba(248,113,113,.45)}
+.avatar{width:38px;height:38px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
+.vs-side.foe .avatar svg{transform:scaleX(-1)}
+.vs-info{flex:1;min-width:0}
+.vs-name{display:flex;align-items:baseline;justify-content:space-between;gap:6px;font-family:'Exo 2';font-weight:900;font-size:11.5px;letter-spacing:.6px;margin-bottom:4px}
+.vs-side.you .vs-name{color:#c7d2fe}
+.vs-side.foe .vs-name{color:#fecaca;flex-direction:row-reverse}
+.hp-num{font-size:11px;color:#fff;font-variant-numeric:tabular-nums}
+.hp-track{height:12px;border-radius:6px;background:rgba(0,0,0,.5);overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.1)}
+.hp-fill{position:absolute;top:0;height:100%;border-radius:6px;transition:width .45s cubic-bezier(.4,0,.2,1)}
+.hp-fill.you{left:0;background:linear-gradient(90deg,#4338ca,#818cf8);box-shadow:0 0 10px rgba(129,140,248,.5)}
+.hp-fill.foe{right:0;background:linear-gradient(270deg,#b91c1c,#f87171);box-shadow:0 0 10px rgba(248,113,113,.5)}
 .hp-fill.lowhp{background:linear-gradient(90deg,#b45309,#f59e0b)!important}
-.hp-ghost{position:absolute;top:0;height:100%;background:rgba(255,255,255,.35);transition:width .8s ease .15s}
+.hp-ghost{position:absolute;top:0;height:100%;background:rgba(255,255,255,.4);transition:width .8s ease .15s}
 .hp-ghost.you{left:0}.hp-ghost.foe{right:0}
-.hp-num{position:absolute;top:50%;transform:translateY(-50%);font-family:'Exo 2',sans-serif;font-size:9px;font-weight:900;color:#fff;text-shadow:0 1px 2px #000;z-index:2}
-.hp-num.you{right:5px}.hp-num.foe{left:5px}
-.vs-mid{flex-shrink:0;width:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
-.vs-word{font-family:'Exo 2',sans-serif;font-size:18px;font-weight:900;color:#fbbf24;text-shadow:0 0 12px rgba(251,191,36,.6);line-height:1}
-.round-pips{display:flex;gap:4px}
-.pip{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);transition:.3s}
-.pip.win{background:#22c55e;border-color:#16a34a;box-shadow:0 0 7px rgba(34,197,94,.6)}
-.pip.lose{background:#ef4444;border-color:#dc2626}
+.vs-mid{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:66px}
+.vs-word{font-family:'Exo 2';font-size:20px;font-weight:900;line-height:1;background:linear-gradient(180deg,#fde68a,#f59e0b);
+  -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 8px rgba(251,191,36,.45))}
+.round-lbl{font-size:9.5px;font-weight:800;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.round-pips{display:flex;gap:5px}
+.pip{width:12px;height:12px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);transition:.3s}
+.pip.win{background:var(--green);border-color:#4ade80;box-shadow:0 0 8px rgba(34,197,94,.6)}
+.pip.lose{background:var(--foe);border-color:#f87171;box-shadow:0 0 8px rgba(239,68,68,.5)}
 
-/* Arena */
-.arena-center{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative}
-.arena-shake{transition:none}
-#arenaCanvas{border-radius:14px;display:block;max-height:100%;box-shadow:0 0 36px rgba(220,80,60,.18),inset 0 0 40px rgba(0,0,0,.6)}
+/* ═══ Арена ═══ */
+.arena-box{flex:1;min-height:0;display:grid;place-items:center;overflow:hidden}
+#arenaCanvas{display:block;border-radius:16px;width:380px;height:320px;
+  box-shadow:0 0 0 1px rgba(255,200,150,.12),0 20px 44px rgba(0,0,0,.55),0 0 50px rgba(240,120,80,.1)}
 .arena-shake.shaking{animation:arenaShake .4s ease}
 @keyframes arenaShake{0%,100%{transform:translate(0,0)}20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,-2px)}80%{transform:translate(3px,3px)}}
 
-/* Energy */
-.energy-wrap{flex-shrink:0}
-.energy-label{display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:#fbbf24;margin-bottom:3px;letter-spacing:.3px}
-.energy-track{height:11px;border-radius:6px;background:rgba(0,0,0,.4);overflow:hidden;border:1px solid rgba(251,191,36,.25);position:relative}
-.energy-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#d97706,#fbbf24,#fde68a);transition:width .35s;box-shadow:0 0 10px rgba(251,191,36,.5)}
-.energy-pips{position:absolute;inset:0;display:flex}
-.energy-pips i{flex:1;border-right:1px solid rgba(0,0,0,.3)}
+/* ═══ Энергия ═══ */
+.energy-wrap{flex-shrink:0;padding:8px 11px;border-radius:12px;background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.22)}
+.energy-label{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:800;letter-spacing:.6px;color:#fde68a;margin-bottom:5px;text-transform:uppercase}
+.energy-label .num{margin-left:auto;font-family:'Exo 2';font-size:12px;letter-spacing:0;color:#fff;font-variant-numeric:tabular-nums}
+.energy-label .prev{font-family:'Exo 2';font-size:11px;letter-spacing:0}
+.energy-label .prev.cost{color:#fca5a5}.energy-label .prev.gain{color:#86efac}
+.energy-track{height:12px;border-radius:6px;background:rgba(0,0,0,.45);overflow:hidden;border:1px solid rgba(251,191,36,.25);position:relative}
+.energy-fill{height:100%;background:linear-gradient(90deg,#d97706,#fbbf24,#fde68a);transition:width .35s;box-shadow:0 0 10px rgba(251,191,36,.5)}
+.energy-prev{position:absolute;top:0;height:100%;width:0;transition:left .25s,width .25s}
+.energy-prev.cost{background:repeating-linear-gradient(135deg,rgba(239,68,68,.85) 0 4px,rgba(239,68,68,.45) 4px 8px);animation:blink .9s infinite}
+.energy-prev.gain{background:repeating-linear-gradient(135deg,rgba(34,197,94,.75) 0 4px,rgba(34,197,94,.35) 4px 8px);animation:blink .9s infinite}
+.energy-pips{position:absolute;inset:0;display:flex;pointer-events:none}
+.energy-pips i{flex:1;border-right:1px solid rgba(0,0,0,.35)}
+.energy-pips i:last-child{border:none}
 
-/* Strategy cards */
-.strat-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex-shrink:0}
-.scard{position:relative;padding:8px 9px;border-radius:12px;cursor:pointer;border:1.5px solid var(--c,#6366f1);background:linear-gradient(150deg,rgba(30,20,55,.9),rgba(16,10,32,.95));transition:transform .14s,box-shadow .2s,border-color .2s;overflow:hidden}
-.scard:hover:not(.disabled){transform:translateY(-2px);box-shadow:0 5px 18px rgba(var(--cr),.3)}
-.scard.selected{box-shadow:0 0 0 2px var(--c),0 0 18px rgba(var(--cr),.5)}
-.scard.disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.5)}
-.scard-head{display:flex;align-items:center;gap:6px;margin-bottom:2px}
-.scard-ico{font-size:19px;line-height:1}
-.scard-name{font-family:'Exo 2',sans-serif;font-size:12px;font-weight:900;color:#fff}
-.scard-desc{font-size:9px;color:rgba(180,180,200,.7);font-weight:700;line-height:1.3;min-height:22px}
-.scard-tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
-.tag{font-size:8.5px;font-weight:800;padding:2px 5px;border-radius:5px;letter-spacing:.2px}
-.tag.dmg{background:rgba(239,68,68,.18);color:#fca5a5}
-.tag.push{background:rgba(34,197,94,.16);color:#86efac}
-.tag.nrg{background:rgba(251,191,36,.16);color:#fde68a}
-.tag.def{background:rgba(56,189,248,.16);color:#7dd3fc}
+/* ═══ Тактика карталары ═══ */
+.strat-grid{flex-shrink:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scard{position:relative;padding:10px 11px 9px;border-radius:13px;cursor:pointer;overflow:hidden;
+  background:linear-gradient(160deg,rgba(34,22,62,.92),rgba(16,10,32,.96));border:1px solid rgba(var(--cr),.4);
+  transition:transform .14s,box-shadow .2s,border-color .2s,background .2s}
+.scard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c)}
+.scard:hover:not(.disabled){transform:translateY(-2px);box-shadow:0 8px 20px rgba(var(--cr),.25)}
+.scard.selected{border-color:var(--c);background:linear-gradient(160deg,rgba(var(--cr),.2),rgba(16,10,32,.96));
+  box-shadow:0 0 0 1px var(--c),0 0 22px rgba(var(--cr),.4)}
+.scard.disabled{cursor:not-allowed}
+.strat-grid.busy .scard{pointer-events:none}
+.strat-grid.busy .scard:not(.selected){opacity:.45}
+.scard.disabled > *:not(.sc-lock){opacity:.35;filter:grayscale(.6)}
+.sc-top{display:flex;align-items:flex-start;gap:9px}
+.sc-ico{width:34px;height:34px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;color:var(--c);
+  background:rgba(var(--cr),.14);border:1px solid rgba(var(--cr),.4)}
+.sc-titles{flex:1;min-width:0}
+.sc-name{font-family:'Exo 2';font-size:13.5px;font-weight:900;color:#fff;line-height:1.15}
+.sc-desc{font-size:10.5px;color:var(--muted);font-weight:700;line-height:1.3;margin-top:2px}
+.sc-cost{flex-shrink:0;display:flex;align-items:center;gap:2px;height:22px;padding:0 7px;border-radius:7px;font-family:'Exo 2';font-size:11.5px;font-weight:900;
+  color:#fde68a;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3)}
+.sc-cost.gain{color:#86efac;background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.35)}
+.sc-stats{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:center;margin-top:9px}
+.sc-stats span{font-size:9.5px;font-weight:800;letter-spacing:.5px;color:var(--muted2);text-transform:uppercase}
+.pips{display:flex;gap:3px}
+.pips i{flex:1;height:6px;border-radius:2px;background:rgba(255,255,255,.08)}
+.pips i.on{background:var(--c);box-shadow:0 0 6px rgba(var(--cr),.5)}
+.sc-foot{display:flex;align-items:center;gap:6px;margin-top:8px;min-height:20px}
+.trait{font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px}
+.trait.def{color:#7dd3fc;background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.3)}
+.trait.vul{color:#fca5a5;background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.3)}
+.kbd{display:inline-block;margin-left:auto;font-family:'Exo 2';font-size:10px;font-weight:800;line-height:1;padding:3px 6px 2px;border-radius:4px;
+  border:1px solid rgba(255,255,255,.25);border-bottom-width:2px;color:#e2dcf0;background:rgba(255,255,255,.05)}
+.sc-lock{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:6px;
+  font-size:11.5px;font-weight:800;color:#fde68a}
+.scard.disabled .sc-lock{display:flex}
 
-/* Battle log */
-.battle-log{flex:1;min-height:42px;overflow-y:auto;display:flex;flex-direction:column-reverse;gap:3px;padding:7px 9px;border-radius:11px;background:rgba(0,0,0,.4);border:1px solid rgba(200,100,220,.14)}
-.battle-log::-webkit-scrollbar{width:3px}.battle-log::-webkit-scrollbar-thumb{background:rgba(200,100,220,.25);border-radius:2px}
-.log-entry{font-size:10.5px;font-weight:700;color:rgba(220,215,230,.8);line-height:1.35}
-.log-entry.good{color:#86efac}.log-entry.bad{color:#fca5a5}.log-entry.warn{color:#fde68a}
+/* ═══ Әрекет жолағы ═══ */
+.action-row{flex-shrink:0;display:grid;grid-template-columns:1fr auto auto;gap:8px}
+.fight-btn{height:52px;border:none;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  font-family:'Exo 2';font-weight:900;font-size:17px;letter-spacing:1px;color:#fff;
+  background:linear-gradient(135deg,#dc2626,#f59e0b);box-shadow:0 10px 24px rgba(239,68,68,.35),inset 0 1px 0 rgba(255,255,255,.28);
+  transition:transform .15s,filter .15s,opacity .2s}
+.fight-btn .kbd{margin-left:0;border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.14)}
+.fight-btn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.08)}
+.fight-btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+.fight-btn.ready{animation:readyGlow 1.4s ease-in-out infinite}
+@keyframes readyGlow{50%{box-shadow:0 10px 30px rgba(245,158,11,.55),inset 0 1px 0 rgba(255,255,255,.28)}}
+.sbtn{height:52px;padding:0 13px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;
+  font-family:'Nunito';font-weight:800;font-size:10.5px;transition:background .15s,border-color .15s,color .15s;min-width:62px}
+.sbtn.hint{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#fde68a}
+.sbtn.hint:hover{background:rgba(251,191,36,.2)}
+.sbtn.give{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);color:#a39bb8}
+.sbtn.give:hover{background:rgba(255,255,255,.08)}
+.sbtn.give.confirm{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.6);color:#fecaca}
 
-/* Status + actions */
-.status-box{flex-shrink:0;padding:7px 12px;border-radius:10px;font-size:11.5px;font-weight:700;text-align:center;min-height:34px;display:flex;align-items:center;justify-content:center;background:rgba(200,100,220,.07);border:1px solid rgba(200,100,220,.2);color:#e2e8f0;line-height:1.35;transition:.3s}
-.status-box.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.4);color:#4ade80}
-.status-box.err{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.35);color:#f87171}
-.status-box.warn{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.38);color:#fde68a}
-.action-row{flex-shrink:0;display:flex;gap:6px}
-.abtn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px 12px;border:none;border-radius:50px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;transition:transform .15s;flex:1}
-.abtn:hover{transform:translateY(-1px)}.abtn:disabled{opacity:.4;pointer-events:none}
-.abtn-fight{background:linear-gradient(135deg,#dc2626,#f59e0b);color:#fff;box-shadow:0 3px 16px rgba(239,68,68,.35);flex:2}
-.abtn-hint{background:rgba(251,191,36,.14);border:1px solid rgba(251,191,36,.35);color:#fde68a}
-.abtn-give{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#94a3b8}
+/* ═══ Жекпе-жек журналы ═══ */
+.battle-log{flex:1;min-height:60px;display:flex;flex-direction:column;border-radius:13px;background:rgba(0,0,0,.35);border:1px solid var(--line);overflow:hidden}
+.bl-head{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);
+  font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted)}
+.bl-list{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column-reverse;gap:4px;padding:8px 10px}
+.bl-list::-webkit-scrollbar{width:4px}.bl-list::-webkit-scrollbar-thumb{background:rgba(190,150,255,.25);border-radius:2px}
+.lg{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:700;color:#d8d0e8;animation:logIn .22s ease}
+@keyframes logIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.lg .li{width:18px;height:18px;flex-shrink:0;border-radius:50%;display:grid;place-items:center}
+.lg.info .li{background:rgba(255,255,255,.08);color:#c9c0dc}
+.lg.good{color:#86efac}.lg.good .li{background:rgba(34,197,94,.2);color:#86efac}
+.lg.bad{color:#fca5a5}.lg.bad .li{background:rgba(239,68,68,.2);color:#fca5a5}
+.lg.hint{color:#fde68a}.lg.hint .li{background:rgba(251,191,36,.18);color:#fde68a}
+.lg.banner{justify-content:center;padding:5px 8px;border-radius:8px;font-family:'Exo 2';font-weight:900;font-size:11.5px;letter-spacing:1px}
+.lg.banner.good{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3)}
+.lg.banner.bad{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3)}
+.lg.clash{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+.lg-half{display:flex;align-items:center;gap:6px;min-width:0}
+.lg-half.foe{flex-direction:row-reverse}
+.lg-ico{width:22px;height:22px;flex-shrink:0;border-radius:6px;display:grid;place-items:center;color:var(--c);background:rgba(var(--cr),.16);border:1px solid rgba(var(--cr),.4)}
+.lg-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e5def3}
+.lg-eff{font-family:'Exo 2';font-weight:900;font-size:12px;font-variant-numeric:tabular-nums}
+.lg-eff.good{color:#86efac}.lg-eff.bad{color:#fca5a5}.lg-eff.zero{color:var(--muted2)}
+.lg-vs{font-family:'Exo 2';font-size:9.5px;font-weight:900;color:var(--gold);letter-spacing:.8px}
 
-/* Result overlay */
-.result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:300;opacity:0;pointer-events:none;transition:opacity .3s}
+/* ═══ Күй жолағы (оң жақта чат-виджет үшін бос орын) ═══ */
+.status-box{flex-shrink:0;display:flex;align-items:center;gap:9px;min-height:40px;padding:8px 64px 8px 12px;border-radius:11px;
+  background:rgba(190,150,255,.06);border:1px solid rgba(190,150,255,.2);font-size:12.5px;font-weight:700;color:#ddd5ec;transition:.3s}
+.st-ico{width:22px;height:22px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:rgba(190,150,255,.16);color:#d8c9ff}
+.status-box.ok{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.42);color:#86efac}
+.status-box.ok .st-ico{background:rgba(34,197,94,.24);color:#86efac}
+.status-box.err{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.4);color:#fca5a5}
+.status-box.err .st-ico{background:rgba(239,68,68,.22);color:#fca5a5}
+.status-box.warn{background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.38);color:#fde68a}
+.status-box.warn .st-ico{background:rgba(251,191,36,.2);color:#fde68a}
+
+/* ═══ Нәтиже ═══ */
+.result-overlay{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;
+  background:rgba(6,3,12,.86);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .3s}
 .result-overlay.show{opacity:1;pointer-events:all}
-.result-card{background:linear-gradient(155deg,rgba(30,16,50,.99),rgba(12,6,22,.99));border:2px solid rgba(220,120,255,.38);border-radius:24px;padding:30px 40px;text-align:center;max-width:430px;width:92%;box-shadow:0 0 60px rgba(220,80,180,.18);transform:scale(.8);transition:transform .32s}
+.result-card{width:92%;max-width:430px;padding:28px 34px;border-radius:24px;text-align:center;
+  background:linear-gradient(155deg,rgba(34,18,58,.99),rgba(12,6,22,.99));border:1px solid rgba(251,191,36,.4);
+  box-shadow:0 0 60px rgba(251,191,36,.14),0 30px 60px rgba(0,0,0,.5);transform:scale(.85);transition:transform .32s cubic-bezier(.34,1.56,.64,1)}
 .result-overlay.show .result-card{transform:scale(1)}
-.result-icon{font-size:58px;margin-bottom:8px;display:block}
-.result-title{font-family:'Exo 2',sans-serif;font-size:25px;font-weight:900;margin-bottom:6px}
-.result-title.win{color:#fbbf24;text-shadow:0 0 18px rgba(251,191,36,.5)}
-.result-title.lose{color:#f87171}
-.result-sub{font-size:12.5px;color:rgba(200,190,210,.9);line-height:1.6;margin-bottom:12px}
-.stars-row{display:flex;justify-content:center;gap:10px;margin:6px 0 14px}
-.star-icon{font-size:30px;filter:grayscale(1);transition:filter .3s,transform .3s}
-.star-icon.lit{filter:none;animation:starPop .4s ease}
-@keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
-.rbtn-row{display:flex;gap:7px;justify-content:center}
-.rbtn{padding:10px 20px;border:none;border-radius:50px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;transition:transform .18s}
-.rbtn:hover{transform:translateY(-2px)}
-.rbtn-gold{background:linear-gradient(135deg,#d97706,#fbbf24);color:#3a2606;box-shadow:0 4px 16px rgba(251,191,36,.35)}
-.rbtn-ghost{background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid rgba(255,255,255,.18)}
+.result-icon{width:88px;height:88px;margin:0 auto 10px;border-radius:50%;display:grid;place-items:center}
+.result-icon.win{background:radial-gradient(circle,rgba(251,191,36,.24),transparent 70%)}
+.result-icon.lose{background:radial-gradient(circle,rgba(239,68,68,.2),transparent 70%)}
+.result-title{font-family:'Exo 2';font-size:25px;font-weight:900;letter-spacing:1px;margin-bottom:4px}
+.result-title.win{color:var(--gold);text-shadow:0 0 18px rgba(251,191,36,.45)}
+.result-title.lose{color:#fca5a5}
+.score-line{font-family:'Exo 2';font-size:14px;font-weight:900;letter-spacing:1px;margin-bottom:8px}
+.score-line .a{color:#a5b4fc}.score-line .b{color:#fca5a5}.score-line .c{color:var(--muted)}
+.result-sub{font-size:12.5px;color:#bdb4cf;line-height:1.6;margin-bottom:14px}
+.stars-row{display:flex;justify-content:center;gap:10px;margin:4px 0 12px}
+.star-icon{color:rgba(255,255,255,.14);transition:color .3s}
+.star-icon.lit{color:var(--gold);filter:drop-shadow(0 0 10px rgba(251,191,36,.6));animation:starPop .45s ease}
+@keyframes starPop{0%{transform:scale(0)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+.rbtn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.rbtn{height:42px;padding:0 20px;border:none;border-radius:12px;font-family:'Nunito';font-weight:800;font-size:13px;cursor:pointer;transition:transform .15s,filter .15s}
+.rbtn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.rbtn-gold{background:linear-gradient(135deg,#d97706,#fbbf24);color:#2a1800;box-shadow:0 6px 18px rgba(251,191,36,.35)}
+.rbtn-ghost{background:rgba(255,255,255,.07);color:#ddd5ec;border:1px solid rgba(255,255,255,.16)}
 
-@keyframes blink{50%{opacity:.35}}
+@keyframes blink{50%{opacity:.4}}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(251,191,36,0)}}
+
+@media (max-width:900px){
+  html,body{overflow:auto}
+  .app{height:auto;min-height:100vh}
+  .stage{grid-template-columns:1fr}
+  .arena-box{flex:none;height:min(76vw,400px)}
+  .battle-log{flex:none;height:200px}
+  .tip{display:none}
+  .hgroup .hlabel{display:none}
+}
 </style>
 </head>
 <body>
+<div class="app">
 
-<!-- HUD -->
+<!-- ═══ HUD ═══ -->
 <div class="hud">
-  <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
-  <a href="{{ url_for('quest3_m5') }}" class="hud-back prev">← М5</a>
-  <div class="hud-seg"><span class="hud-icon">🥊</span><span class="hud-label">Mission</span><span class="hud-val red">6 / 6</span></div>
-  <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
-  <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">03:00</span></div>
-</div>
-
-<!-- Mission strip -->
-<div class="mission-strip">
-  <div class="tip-badge" style="visibility:hidden;width:150px"></div>
-  <div class="mission-text">
-    <div class="m-title">6-миссия: Робот-сумо жекпе-жегі 🏆 ФИНАЛ</div>
-    <div class="m-sub">Стратегияны таңда → жауды шеңберден итеріп шығар! 3 раундтың 2-уін жең.</div>
+  <a href="/toqsan_3" class="hbtn mod">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" stroke="currentColor" stroke-width="2.2"/></svg>
+    Модуль
+  </a>
+  <a href="{{ url_for('quest3_m5') }}" class="hbtn prev">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    М5
+  </a>
+  <span class="hsep"></span>
+  <div class="hgroup">
+    <span class="hlabel">Миссия</span>
+    <span class="mdots"><i></i><i></i><i></i><i></i><i></i><i class="cur"></i></span>
+    <span class="final">ФИНАЛ</span>
   </div>
-  <div class="tip-badge">Энергияңды бақыла — шабуыл қымбат!</div>
+  <span class="hsep"></span>
+  <div class="pill score">
+    <svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 16.8 6.62 19.6l1.03-6L3.3 9.4l6-.9L12 3z" fill="#fbbf24"/></svg>
+    <span class="hlabel">Жұлдыз</span>
+    <span class="hval" id="hudScore">0</span>
+  </div>
+  <div class="pill timer" id="timerPill">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="#ddd5ec" stroke-width="2"/><path d="M12 9v4.2l2.6 1.6M9.5 2.5h5" stroke="#ddd5ec" stroke-width="2" stroke-linecap="round"/></svg>
+    <span class="hval" id="hudTimer">03:00</span>
+  </div>
 </div>
 
-<!-- Stage -->
+<!-- ═══ Миссия жолағы ═══ -->
+<div class="mstrip">
+  <div class="m-ico">
+    <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M7 3h10v5a5 5 0 01-10 0V3z" fill="#fbbf24"/><path d="M7 5H4v1.5A3.5 3.5 0 007 10M17 5h3v1.5a3.5 3.5 0 01-3 3.5" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round"/><path d="M10.5 13h3v3h-3zM8 16h8v2.5H8z" fill="#d97706"/><path d="M6.5 18.5h11V21h-11z" fill="#92400e"/></svg>
+  </div>
+  <div class="m-text">
+    <div class="m-title">6-миссия: Робот-сумо — чемпионат финалы</div>
+    <div class="m-sub">Тактика таңда да жауды доҺёдан итеріп шығар. Жеңіс үшін <b>3 раундтың 2-уі</b> керек.</div>
+  </div>
+  <div class="tip">
+    <svg width="13" height="13" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1.2 8L19 10.5h-6l.5-8z" fill="#fbbf24"/></svg>
+    Энергияны бақыла — шабуыл қымбат
+  </div>
+</div>
+
+<!-- ═══ Сахна ═══ -->
 <div class="stage">
 
-  <!-- LEFT: Arena -->
-  <div class="panel left">
-    <div class="panel-header">🏟️ ДОҺЁ АРЕНАСЫ</div>
+  <!-- СОЛ: Арена -->
+  <div class="panel">
+    <div class="panel-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 0 5px rgba(251,191,36,.6))"><circle cx="12" cy="12" r="8.5" stroke="#fbbf24" stroke-width="2" stroke-dasharray="3.2 1.6"/><path d="M10 9v6M14 9v6" stroke="#f5efe0" stroke-width="1.8" stroke-linecap="round"/></svg>
+      ДОҺЁ АРЕНАСЫ
+    </div>
     <div class="panel-body">
 
-      <!-- VS health bar -->
       <div class="vs-bar">
         <div class="vs-side you">
-          <div class="nm">🤖 СІЗ</div>
-          <div class="hp-track">
-            <div class="hp-ghost you" id="myHpGhost" style="width:100%"></div>
-            <div class="hp-fill you" id="myHpFill" style="width:100%"></div>
-            <span class="hp-num you" id="myHpNum">100</span>
+          <div class="avatar">
+            <svg width="30" height="30" viewBox="0 0 34 34"><defs><linearGradient id="pvMe" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c7d2fe"/><stop offset=".45" stop-color="#6366f1"/><stop offset="1" stop-color="#312e81"/></linearGradient></defs>
+              <rect x="3" y="7" width="21" height="20" rx="5" fill="#16151f"/><rect x="5.5" y="9.5" width="15" height="15" rx="4" fill="url(#pvMe)"/>
+              <path d="M23 5.5h3l5 7.5v8l-5 7.5h-3z" fill="#cbd5e1"/><rect x="17" y="12.5" width="2.6" height="9" rx="1.3" fill="#67e8f9"/>
+              <path d="M9 14l3 3-3 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          </div>
+          <div class="vs-info">
+            <div class="vs-name"><span>СІЗ</span><span class="hp-num" id="myHpNum">100</span></div>
+            <div class="hp-track">
+              <div class="hp-ghost you" id="myHpGhost" style="width:100%"></div>
+              <div class="hp-fill you" id="myHpFill" style="width:100%"></div>
+            </div>
           </div>
         </div>
         <div class="vs-mid">
           <div class="vs-word">VS</div>
+          <div class="round-lbl" id="roundLbl">Раунд 1</div>
           <div class="round-pips"><div class="pip" id="p1"></div><div class="pip" id="p2"></div><div class="pip" id="p3"></div></div>
         </div>
         <div class="vs-side foe">
-          <div class="nm">ЖАУ 🔴</div>
-          <div class="hp-track">
-            <div class="hp-ghost foe" id="enHpGhost" style="width:100%"></div>
-            <div class="hp-fill foe" id="enHpFill" style="width:100%"></div>
-            <span class="hp-num foe" id="enHpNum">100</span>
+          <div class="avatar">
+            <svg width="30" height="30" viewBox="0 0 34 34"><defs><linearGradient id="pvFoe" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fecaca"/><stop offset=".45" stop-color="#ef4444"/><stop offset="1" stop-color="#7f1d1d"/></linearGradient></defs>
+              <rect x="3" y="7" width="21" height="20" rx="5" fill="#16151f"/><rect x="5.5" y="9.5" width="15" height="15" rx="4" fill="url(#pvFoe)"/>
+              <path d="M23 5.5h3l5 7.5v8l-5 7.5h-3z" fill="#cbd5e1"/><rect x="17" y="12.5" width="2.6" height="9" rx="1.3" fill="#fbbf24"/>
+              <path d="M9.5 14.5l4 4M13.5 14.5l-4 4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </div>
+          <div class="vs-info">
+            <div class="vs-name"><span>ЖАУ</span><span class="hp-num" id="enHpNum">100</span></div>
+            <div class="hp-track">
+              <div class="hp-ghost foe" id="enHpGhost" style="width:100%"></div>
+              <div class="hp-fill foe" id="enHpFill" style="width:100%"></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Arena canvas -->
-      <div class="arena-center">
+      <div class="arena-box" id="arenaBox">
         <div class="arena-shake" id="arenaShake">
           <canvas id="arenaCanvas" width="380" height="320"></canvas>
         </div>
       </div>
 
-      <!-- Energy -->
       <div class="energy-wrap">
-        <div class="energy-label"><span>⚡ ЭНЕРГИЯ</span><span id="energyNum">100 / 100</span></div>
+        <div class="energy-label">
+          <svg width="13" height="13" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1.2 8L19 10.5h-6l.5-8z" fill="#fbbf24"/></svg>
+          Энергия
+          <span class="prev" id="energyPrevTxt"></span>
+          <span class="num" id="energyNum">100 / 100</span>
+        </div>
         <div class="energy-track">
           <div class="energy-fill" id="energyFill" style="width:100%"></div>
-          <div class="energy-pips"><i></i><i></i><i></i><i></i><i style="border:none"></i></div>
+          <div class="energy-prev" id="energyPrev"></div>
+          <div class="energy-pips"><i></i><i></i><i></i><i></i><i></i></div>
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- RIGHT: Tactics -->
-  <div class="panel right">
-    <div class="panel-header">⚔️ ТАКТИКА</div>
+  <!-- ОҢ: Тактика -->
+  <div class="panel">
+    <div class="panel-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="filter:drop-shadow(0 0 5px rgba(190,150,255,.6))"><rect x="3" y="5" width="11" height="15" rx="2.2" stroke="#c4b5fd" stroke-width="1.8" transform="rotate(-8 8.5 12.5)"/><rect x="10" y="4" width="11" height="15" rx="2.2" fill="rgba(196,181,253,.18)" stroke="#e9d5ff" stroke-width="1.8" transform="rotate(8 15.5 11.5)"/></svg>
+      ТАКТИКА
+    </div>
     <div class="panel-body">
 
-      <div class="strat-grid" id="stratGrid">
-        <div class="scard" id="sc_charge" style="--c:#ef4444;--cr:239,68,68" onclick="selectStrat('charge')">
-          <div class="scard-head"><span class="scard-ico">⚡</span><span class="scard-name">Шабуыл</span></div>
-          <div class="scard-desc">Күшті соққы — көп зиян мен итеру</div>
-          <div class="scard-tags"><span class="tag dmg">25 зиян</span><span class="tag push">итеру++</span><span class="tag nrg">−35⚡</span></div>
-        </div>
-        <div class="scard" id="sc_push" style="--c:#22c55e;--cr:34,197,94" onclick="selectStrat('push')">
-          <div class="scard-head"><span class="scard-ico">🤜</span><span class="scard-name">Итеру</span></div>
-          <div class="scard-desc">Жауды шеңбер шетіне қарай ысыру</div>
-          <div class="scard-tags"><span class="tag push">итеру+++</span><span class="tag nrg">−20⚡</span></div>
-        </div>
-        <div class="scard" id="sc_dodge" style="--c:#38bdf8;--cr:56,189,248" onclick="selectStrat('dodge')">
-          <div class="scard-head"><span class="scard-ico">💨</span><span class="scard-name">Жалтару</span></div>
-          <div class="scard-desc">Соққының 60%-нан қашу</div>
-          <div class="scard-tags"><span class="tag def">қорғаныс</span><span class="tag nrg">−10⚡</span></div>
-        </div>
-        <div class="scard" id="sc_charge_up" style="--c:#fbbf24;--cr:251,191,36" onclick="selectStrat('charge_up')">
-          <div class="scard-head"><span class="scard-ico">🔋</span><span class="scard-name">Зарядтау</span></div>
-          <div class="scard-desc">Энергия жина (бірақ ашықсың)</div>
-          <div class="scard-tags"><span class="tag nrg">+40⚡</span><span class="tag dmg">осал</span></div>
-        </div>
-      </div>
-
-      <div class="battle-log" id="battleLog">
-        <div class="log-entry">⚔️ Жекпе-жек басталуға дайын...</div>
-      </div>
-
-      <div class="status-box" id="statusBox">Стратегия таңда да «Жүру!» бас</div>
+      <div class="strat-grid" id="stratGrid"></div>
 
       <div class="action-row">
-        <button class="abtn abtn-fight" id="fightBtn" onclick="doRound()">⚔️ ЖҮРУ!</button>
-        <button class="abtn abtn-hint" onclick="showHint()">💡</button>
-        <button class="abtn abtn-give" onclick="surrender()">🏳</button>
+        <button class="fight-btn" id="fightBtn" onclick="doRound()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4l8.5 8.5M20 4l-8.5 8.5M7 14l-3 3 3 3 3-3M17 14l3 3-3 3-3-3" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          ЖҮРУ!
+          <span class="kbd">Enter</span>
+        </button>
+        <button class="sbtn hint" onclick="showHint()" title="Тактикалық кеңес">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Кеңес
+        </button>
+        <button class="sbtn give" id="giveBtn" onclick="surrender()" title="Жекпе-жекті тоқтату">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 21V4M5 4h11l-2 4 2 4H5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="giveLbl">Берілу</span>
+        </button>
       </div>
 
+      <div class="battle-log">
+        <div class="bl-head">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Жекпе-жек журналы
+        </div>
+        <div class="bl-list" id="battleLog"></div>
+      </div>
+
+      <div class="status-box" id="statusBox"></div>
     </div>
   </div>
 
 </div>
+</div>
 
-<!-- Result overlay -->
+<!-- Нәтиже -->
 <div class="result-overlay" id="resultOverlay">
   <div class="result-card">
-    <span class="result-icon" id="resIcon">🏆</span>
+    <div class="result-icon" id="resIcon"></div>
     <div class="result-title" id="resTitle">ЧЕМПИОН!</div>
+    <div class="score-line" id="resScore"></div>
     <div class="stars-row" id="resStars"></div>
     <p class="result-sub" id="resSub"></p>
     <div class="rbtn-row" id="rBtnRow"></div>
@@ -269,20 +433,21 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 
 <script>
 /* ════════════════════════════════════════════════════════════
-   MISSION 6 — ROBO-SUMO (тактикалық пошаговая)
+   MISSION 6 — ROBO-SUMO (тактикалық, кезекпен)
    Жауды доҺё (шеңбер) шетінен итеріп шығар. Best-of-3.
    Стратегия + энергия менеджменті.
+   Логикалық координаттар 380×320 — сурет HiDPI-ге K коэффициентімен масштабталады.
 ════════════════════════════════════════════════════════════ */
 
 const cv = document.getElementById('arenaCanvas');
 const ctx = cv.getContext('2d');
 const CW = 380, CH = 320;
-const CX = CW/2, CY = CH/2 + 6;
-const R  = 138;                 // dohyo radius
-const EDGE = 0.82;              // |pos|>EDGE → out of ring
-const POS_X = R - 26;           // px per pos unit
+const CX = CW/2, CY = CH/2;
+const R  = 128;                 // доҺё радиусы
+const EDGE = 0.82;              // |pos|>EDGE → шеңберден шықты
+const POS_X = R - 22;           // бір позиция бірлігіне пиксель
 
-/* ── Strategies (1D push model: +x = toward foe's edge / right) ── */
+/* ── Стратегиялар (1D итеру моделі: +x = жаудың шетіне қарай) ── */
 const STRAT = {
   charge:    {name:'Шабуыл',  energy:35,  dmg:25, pushFoe:0.20, recoil:-0.04},
   push:      {name:'Итеру',   energy:20,  dmg:8,  pushFoe:0.28, recoil:0},
@@ -291,9 +456,54 @@ const STRAT = {
 };
 const FOE_AI = ['push','charge','push','dodge','charge','charge_up','push'];
 
-/* ── State ── */
+/* ── Карталарды көрсетуге арналған дерек (STRAT-пен бір көз) ── */
+const ORDER = ['charge','push','dodge','charge_up'];
+const META = {
+  charge:    {c:'#ef4444', cr:'239,68,68',  key:'1', desc:'Күшті соққы — көп зиян мен итеру'},
+  push:      {c:'#22c55e', cr:'34,197,94',  key:'2', desc:'Жауды шеңбер шетіне қарай ысыру'},
+  dodge:     {c:'#38bdf8', cr:'56,189,248', key:'3', desc:'Жаудың соққысынан бұрылып кету', trait:{t:'Зиянның 60%-ынан қашады', cls:'def'}},
+  charge_up: {c:'#fbbf24', cr:'251,191,36', key:'4', desc:'Энергия жинау — бірақ ашық қаласың', trait:{t:'Осал: +25% зиян', cls:'vul'}},
+};
+const ACT_ICON = {
+  charge:    `<path d="M13.5 2.5L5 13.5h6l-1.2 8L19 10.5h-6l.5-8z" fill="currentColor"/>`,
+  push:      `<path d="M4.5 6l6 6-6 6M11.5 6l6 6-6 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
+  dodge:     `<path d="M3.5 17.5c5 0 6-11 11.5-11H20M17 3.5l3 3-3 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M3 11h4M4.5 7h3" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>`,
+  charge_up: `<rect x="3.5" y="7" width="15" height="10" rx="2.4" stroke="currentColor" stroke-width="2.2" fill="none"/><path d="M20.5 10.5v3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M11.8 8.8l-3 3.6h2.6l-.8 2.8 3-3.7h-2.6l.8-2.7z" fill="currentColor"/>`,
+};
+const actSvg = (k,s) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24">${ACT_ICON[k]}</svg>`;
+const STAR_D = 'M12 3l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 16.8 6.62 19.6l1.03-6L3.3 9.4l6-.9L12 3z';
+const svgStar = (s,fill) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24"><path d="${STAR_D}" fill="${fill}"/></svg>`;
+const BOLT = s => `<svg width="${s}" height="${s}" viewBox="0 0 24 24"><path d="M13.5 2.5L5 13.5h6l-1.2 8L19 10.5h-6l.5-8z" fill="currentColor"/></svg>`;
+const LI = {
+  info:`<svg width="9" height="9" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg>`,
+  good:`<svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  bad: `<svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>`,
+  hint:`<svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M9 18h6M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+};
+const ST_ICONS = {
+  '':  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 11v6M12 7h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,
+  ok:  LI.good, err: LI.bad,
+  warn:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 8v5M12 17h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`,
+};
+const SVG_TROPHY = `<svg width="58" height="58" viewBox="0 0 64 64" fill="none">
+  <defs><linearGradient id="tg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".35" stop-color="#fbbf24"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs>
+  <path d="M18 8h28v14a14 14 0 01-28 0V8z" fill="url(#tg)"/>
+  <path d="M18 13H9v4a9 9 0 009 9M46 13h9v4a9 9 0 01-9 9" stroke="#fbbf24" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M28 36h8v8h-8z" fill="#d97706"/><rect x="20" y="44" width="24" height="7" rx="2.5" fill="url(#tg)"/>
+  <rect x="16" y="51" width="32" height="6" rx="2.5" fill="#92400e"/>
+  <path d="M24 12v9a8 8 0 004 7" stroke="rgba(255,255,255,.6)" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+const SVG_MEDAL = `<svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+  <defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#cbd5e1"/><stop offset="1" stop-color="#475569"/></linearGradient></defs>
+  <path d="M22 4l7 18M42 4l-7 18" stroke="#6366f1" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="32" cy="39" r="17" fill="url(#sg)"/><circle cx="32" cy="39" r="12" stroke="rgba(71,85,105,.5)" stroke-width="2"/>
+  <path d="M32 31.5l2.3 4.7 5.2.8-3.8 3.6.9 5.1L32 43.3l-4.6 2.4.9-5.1-3.8-3.6 5.2-.8L32 31.5z" fill="#475569"/></svg>`;
+const SVG_DEFEAT = `<svg width="54" height="54" viewBox="0 0 24 24" fill="none">
+  <path d="M12 2.5l8 3.2V11c0 5-3.4 8.8-8 10.5C7.4 19.8 4 16 4 11V5.7l8-3.2z" stroke="#fca5a5" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M12.6 5.4l-2.1 5 3 2-2.6 5.8" stroke="#fca5a5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+/* ── Күй ── */
 let myHp=100, foeHp=100, myEnergy=100;
-let myX=-0.28, foeX=0.28;       // position on ring axis (-1 my edge … +1 foe edge)
+let myX=-0.28, foeX=0.28;       // ринг осіндегі позиция (-1 менің шетім … +1 жаудың шеті)
 let selected=null;
 let round=0, roundsWon=0, roundsLost=0;
 const MAX_ROUNDS=3;
@@ -302,137 +512,186 @@ let timerSec=180, timerInterval;
 let score=0, stars=0;
 let shake=0;
 const particles=[];
+let banner=null;
 
-/* ════ DRAW ARENA ════ */
+/* ── Canvas: орынға сай өлшем + HiDPI ── */
+let K=1;
+function fitCanvas(){
+  const box=document.getElementById('arenaBox');
+  let w=Math.min(box.clientWidth, (box.clientHeight)*CW/CH);
+  w=Math.max(260, Math.floor(w));
+  const h=Math.floor(w*CH/CW), dpr=window.devicePixelRatio||1;
+  cv.style.width=w+'px'; cv.style.height=h+'px';
+  cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+  K=cv.width/CW;
+}
+
+/* ════ АРЕНА ════
+   Жарық жоғарыдан (шам). ДоҺё — көтерілген платформа: төменгі бүйір беті,
+   жиегі, саз беті және сабан тоқымдардан құралған тавара-шеңбер. */
 function drawArena(){
-  // shake offset
+  const T=performance.now();
   const ox=(Math.random()*2-1)*shake, oy=(Math.random()*2-1)*shake;
-  ctx.setTransform(1,0,0,1,ox,oy);
-  ctx.clearRect(-10,-10,CW+20,CH+20);
+  ctx.setTransform(K,0,0,K,ox*K,oy*K);
+  ctx.clearRect(-20,-20,CW+40,CH+40);
 
-  // backdrop
-  ctx.fillStyle='#0c0a18'; ctx.fillRect(0,0,CW,CH);
+  // еден
+  const fl=ctx.createRadialGradient(CX,CY-20,40,CX,CY,CW*0.78);
+  fl.addColorStop(0,'#211a36'); fl.addColorStop(1,'#07060d');
+  ctx.fillStyle=fl; ctx.fillRect(-20,-20,CW+40,CH+40);
+  ctx.strokeStyle='rgba(255,255,255,.028)'; ctx.lineWidth=1;
+  for(let i=0;i<20;i++){ const a=i/20*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(CX+Math.cos(a)*(R+24),CY+Math.sin(a)*(R+24)); ctx.lineTo(CX+Math.cos(a)*CW,CY+Math.sin(a)*CW); ctx.stroke(); }
 
-  // floor glow
-  const fg=ctx.createRadialGradient(CX,CY,20,CX,CY,R+30);
-  fg.addColorStop(0,'rgba(60,40,30,.5)'); fg.addColorStop(.7,'rgba(30,18,16,.3)'); fg.addColorStop(1,'rgba(10,6,12,0)');
-  ctx.fillStyle=fg; ctx.fillRect(0,0,CW,CH);
+  // платформаның бүйір беті (көтерілген диск)
+  ctx.fillStyle='#08060f'; ctx.beginPath(); ctx.arc(CX,CY+10,R+17,0,6.2832); ctx.fill();
+  const sd=ctx.createLinearGradient(0,CY,0,CY+R+26); sd.addColorStop(0,'#2e2446'); sd.addColorStop(1,'#130f20');
+  ctx.fillStyle=sd; ctx.beginPath(); ctx.arc(CX,CY+7,R+15,0,6.2832); ctx.fill();
 
-  // dohyo base (sand-tech)
-  const dg=ctx.createRadialGradient(CX,CY-20,30,CX,CY,R);
-  dg.addColorStop(0,'#2a2438'); dg.addColorStop(.75,'#1c1830'); dg.addColorStop(1,'#141022');
-  ctx.fillStyle=dg;
-  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.fill();
+  // платформа жиегі (тавараның сыртындағы алаң)
+  const ap=ctx.createLinearGradient(CX-R,CY-R,CX+R,CY+R);
+  ap.addColorStop(0,'#433a5c'); ap.addColorStop(1,'#231d36');
+  ctx.fillStyle=ap; ctx.beginPath(); ctx.arc(CX,CY,R+14,0,6.2832); ctx.fill();
+  ctx.strokeStyle='rgba(255,235,210,.22)'; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.arc(CX,CY,R+14,Math.PI*1.05,Math.PI*1.95); ctx.stroke();
 
-  // radial spokes
-  ctx.strokeStyle='rgba(255,255,255,.045)'; ctx.lineWidth=1;
-  for(let i=0;i<24;i++){const a=i/24*Math.PI*2;ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+Math.cos(a)*R,CY+Math.sin(a)*R);ctx.stroke();}
+  // саз беті + шам жарығы
+  const cl=ctx.createRadialGradient(CX-R*0.25,CY-R*0.3,10,CX,CY,R);
+  cl.addColorStop(0,'#443754'); cl.addColorStop(.6,'#2d2440'); cl.addColorStop(1,'#1e192c');
+  ctx.fillStyle=cl; ctx.beginPath(); ctx.arc(CX,CY,R,0,6.2832); ctx.fill();
+  ctx.save(); ctx.beginPath(); ctx.arc(CX,CY,R,0,6.2832); ctx.clip();
+  ctx.strokeStyle='rgba(255,255,255,.03)'; ctx.lineWidth=1;
+  for(let rr=9; rr<R; rr+=7){ ctx.beginPath(); ctx.arc(CX,CY,rr,0,6.2832); ctx.stroke(); }
+  const sp=ctx.createRadialGradient(CX,CY-R*0.18,4,CX,CY,R*1.05);
+  sp.addColorStop(0,'rgba(255,240,220,.13)'); sp.addColorStop(1,'rgba(255,240,220,0)');
+  ctx.fillStyle=sp; ctx.fillRect(CX-R,CY-R,R*2,R*2);
+  ctx.restore();
 
-  // concentric rings
-  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1.5;
-  for(const rr of [0.4,0.7]){ctx.beginPath();ctx.arc(CX,CY,R*rr,0,Math.PI*2);ctx.stroke();}
+  // орталық эмблема
+  ctx.save(); ctx.globalAlpha=.07; ctx.strokeStyle='#fff'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(CX,CY,R*0.34,0,6.2832); ctx.stroke();
+  ctx.beginPath(); ctx.arc(CX,CY,R*0.64,0,6.2832); ctx.stroke();
+  ctx.restore();
 
-  // center start ticks
-  ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.moveTo(CX-26,CY+R*0.55); ctx.lineTo(CX-12,CY+R*0.55); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(CX+12,CY+R*0.55); ctx.lineTo(CX+26,CY+R*0.55); ctx.stroke();
+  // шикири-сен — бастау сызықтары
+  ctx.fillStyle='rgba(245,240,230,.78)';
+  for(const s of [-1,1]){ roundRect(CX+s*19-2, CY-15, 4, 30, 2); ctx.fill(); }
 
-  // danger band near edge — intensity rises as a robot approaches that side
+  // тавара — сабан тоқымдардан шеңбер; шетке жақындаған жақ қызарады
   const myDanger  = Math.max(0,(Math.abs(myX)-0.45)/(EDGE-0.45));
   const foeDanger = Math.max(0,(Math.abs(foeX)-0.45)/(EDGE-0.45));
-  drawDangerArc(Math.PI*0.5, Math.PI*1.5, myDanger);   // left half (my edge)
-  drawDangerArc(-Math.PI*0.5, Math.PI*0.5, foeDanger); // right half (foe edge)
+  const SEG=28;
+  ctx.lineCap='butt';
+  for(let i=0;i<SEG;i++){
+    const a0=i/SEG*Math.PI*2+0.025, a1=(i+1)/SEG*Math.PI*2-0.025, mid=(a0+a1)/2;
+    const heat=(Math.cos(mid)<0?myDanger:foeDanger)*Math.pow(Math.abs(Math.cos(mid)),2);
+    ctx.lineWidth=8; ctx.strokeStyle='#9c7129'; ctx.beginPath(); ctx.arc(CX,CY,R,a0,a1); ctx.stroke();
+    ctx.lineWidth=3.5; ctx.strokeStyle='#e9c47a'; ctx.beginPath(); ctx.arc(CX,CY,R-1.6,a0,a1); ctx.stroke();
+    if(heat>0.02){
+      ctx.save(); ctx.lineWidth=9; ctx.shadowColor='rgba(239,68,68,.9)'; ctx.shadowBlur=12*heat;
+      ctx.strokeStyle=`rgba(239,68,68,${Math.min(1,heat*(0.6+0.3*Math.sin(T/110)))})`;
+      ctx.beginPath(); ctx.arc(CX,CY,R,a0,a1); ctx.stroke(); ctx.restore();
+    }
+  }
+  ctx.strokeStyle='rgba(251,191,36,.14)'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.arc(CX,CY,R+6,0,6.2832); ctx.stroke();
 
-  // outer boundary ring (the line you must not cross)
-  ctx.strokeStyle='rgba(251,191,36,.85)'; ctx.lineWidth=4;
-  ctx.shadowColor='rgba(251,191,36,.5)'; ctx.shadowBlur=10;
-  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.stroke();
-  ctx.shadowBlur=0;
+  // шеттерін күңгірттеу
+  const vg=ctx.createRadialGradient(CX,CY,R*0.9,CX,CY,CW*0.72);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.45)');
+  ctx.fillStyle=vg; ctx.fillRect(-20,-20,CW+40,CH+40);
 
-  // robots (sorted so the more-forward one overlaps naturally)
-  drawSumo(CX+myX*POS_X,  CY, +1, 'me',  myHp);
-  drawSumo(CX+foeX*POS_X, CY, -1, 'foe', foeHp);
+  // роботтар
+  drawSumo(CX+myX*POS_X,  CY, +1, 'me',  myHp, T);
+  drawSumo(CX+foeX*POS_X, CY, -1, 'foe', foeHp, T);
 
-  // particles on top
   drawParticles();
-
+  drawBanner(T);
   ctx.setTransform(1,0,0,1,0,0);
 }
 
-function drawDangerArc(a0,a1,intensity){
-  if(intensity<=0.02) return;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(CX,CY,R,a0,a1);
-  ctx.lineWidth=14;
-  ctx.strokeStyle=`rgba(239,68,68,${0.12+intensity*0.5})`;
-  ctx.stroke();
-  ctx.restore();
-}
-
-/* ── Sumo robot (top-down wedge pusher) ── */
-function drawSumo(x,y,face,who,hp){
+/* ── Сумо-робот (жоғарыдан көрініс, алға қарай сына-күрек) ──
+   Қаңқа — күңгірт графит, үстіңгі қаптама — команда түсі (жылтыр),
+   күрек — болат, алдыңғы жағында LED-сенсор (түсі HP-ға байланысты). */
+function drawSumo(x,y,face,who,hp,T){
   const me = who==='me';
-  const body = me ? '#4f46e5' : '#dc2626';
-  const bodyLt = me ? '#818cf8' : '#f87171';
-  const glow = me ? 'rgba(99,102,241,.55)' : 'rgba(239,68,68,.55)';
-  const W=42, Hh=34;
+  const P = me
+    ? {hi:'#c7d2fe', mid:'#6366f1', lo:'#312e81', rgb:'99,102,241', stripe:'#a5b4fc'}
+    : {hi:'#fecaca', mid:'#ef4444', lo:'#7f1d1d', rgb:'239,68,68', stripe:'#fca5a5'};
+  const L=60, Wd=52;
+  // логикалық позиция — күрек ұшына жақын нүкте: ең аз арақашықтықта (0.32) күректер тиіседі
+  x -= face*(L*0.46-17);
 
-  // shadow
-  ctx.fillStyle='rgba(0,0,0,.4)';
-  ctx.beginPath(); ctx.ellipse(x, y+Hh*0.5+3, W*0.5, 7, 0, 0, Math.PI*2); ctx.fill();
-
-  ctx.save();
-  ctx.translate(x,y);
-  ctx.scale(face,1);   // face=+1 → looks right (toward foe), -1 → left
-
-  // treads (top & bottom dark bars)
-  ctx.fillStyle='#15131c';
-  roundRect(-W*0.4,-Hh*0.62,W*0.85,7,3); ctx.fill();
-  roundRect(-W*0.4, Hh*0.62-7,W*0.85,7,3); ctx.fill();
-  // tread studs
-  ctx.fillStyle='rgba(255,255,255,.12)';
-  for(let i=0;i<5;i++){ctx.fillRect(-W*0.36+i*W*0.18,-Hh*0.6,2,4);ctx.fillRect(-W*0.36+i*W*0.18,Hh*0.6-4,2,4);}
-
-  // glow under body
-  ctx.shadowColor=glow; ctx.shadowBlur=16;
-
-  // main chassis
-  const bg=ctx.createLinearGradient(-W*0.4,0,W*0.4,0);
-  bg.addColorStop(0,body); bg.addColorStop(1,bodyLt);
-  ctx.fillStyle=bg;
-  roundRect(-W*0.42,-Hh*0.5,W*0.7,Hh, 6); ctx.fill();
-  ctx.shadowBlur=0;
-
-  // front plow (wedge that scoops opponent) — points in +x (forward)
-  ctx.fillStyle=bodyLt;
-  ctx.beginPath();
-  ctx.moveTo(W*0.28,-Hh*0.5);
-  ctx.lineTo(W*0.52,-Hh*0.18);
-  ctx.lineTo(W*0.52, Hh*0.18);
-  ctx.lineTo(W*0.28, Hh*0.5);
-  ctx.closePath(); ctx.fill();
-  // plow highlight
-  ctx.fillStyle='rgba(255,255,255,.3)';
-  ctx.beginPath(); ctx.moveTo(W*0.42,-Hh*0.32); ctx.lineTo(W*0.52,-Hh*0.1); ctx.lineTo(W*0.52,Hh*0.1); ctx.lineTo(W*0.42,Hh*0.32); ctx.closePath(); ctx.fill();
-
-  // LED eye strip (faces forward)
-  const eyeHp = hp>50 ? '#7dd3fc' : hp>25 ? '#fbbf24' : '#ef4444';
-  ctx.fillStyle = me ? eyeHp : eyeHp;
-  ctx.shadowColor=eyeHp; ctx.shadowBlur=8;
-  roundRect(W*0.06,-Hh*0.22,W*0.12,Hh*0.44,3); ctx.fill();
-  ctx.shadowBlur=0;
-  // eye dots
   ctx.fillStyle='rgba(0,0,0,.5)';
-  ctx.fillRect(W*0.09,-Hh*0.1,2,Hh*0.2);
+  ctx.beginPath(); ctx.ellipse(x+face*2, y+5, L*0.58, Wd*0.54, 0, 0, 6.2832); ctx.fill();
 
-  // top detail line
-  ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(-W*0.3,0); ctx.lineTo(W*0.05,0); ctx.stroke();
+  ctx.save(); ctx.translate(x,y); ctx.scale(face,1);
+
+  // доңғалақтар
+  for(const wx of [-L*0.29, L*0.05]) for(const sy of [-1,1]){
+    const wy=sy*Wd*0.5;
+    ctx.fillStyle='#0b0c11'; roundRect(wx-6.5, wy-4.2, 13, 8.4, 2.6); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.14)'; ctx.lineWidth=1;
+    for(let k=0;k<4;k++){ ctx.beginPath(); ctx.moveTo(wx-4.4+k*3, wy-3); ctx.lineTo(wx-4.4+k*3, wy+3); ctx.stroke(); }
+  }
+  // графит қаңқа
+  ctx.fillStyle='#16151f'; roundRect(-L*0.46,-Wd*0.46,L*0.68,Wd*0.92,7); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.09)'; ctx.lineWidth=1; roundRect(-L*0.46,-Wd*0.46,L*0.68,Wd*0.92,7); ctx.stroke();
+  // артқы желдеткіш
+  ctx.fillStyle='rgba(0,0,0,.65)';
+  for(let k=0;k<3;k++){ roundRect(-L*0.43, -Wd*0.24+k*Wd*0.18, 3.2, Wd*0.11, 1.2); ctx.fill(); }
+
+  // команда түсті қаптама
+  ctx.save(); ctx.shadowColor=`rgba(${P.rgb},.6)`; ctx.shadowBlur=14;
+  const sg=ctx.createLinearGradient(-L*0.32,-Wd*0.36,L*0.14,Wd*0.36);
+  sg.addColorStop(0,P.hi); sg.addColorStop(.35,P.mid); sg.addColorStop(1,P.lo);
+  ctx.fillStyle=sg; roundRect(-L*0.35,-Wd*0.36,L*0.5,Wd*0.72,6); ctx.fill(); ctx.restore();
+  // жылтыр шағылыс
+  ctx.save(); roundRect(-L*0.35,-Wd*0.36,L*0.5,Wd*0.72,6); ctx.clip();
+  ctx.fillStyle='rgba(255,255,255,.24)';
+  ctx.beginPath(); ctx.moveTo(-L*0.35,-Wd*0.36); ctx.lineTo(-L*0.04,-Wd*0.36); ctx.lineTo(-L*0.24,Wd*0.02); ctx.lineTo(-L*0.35,Wd*0.02); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  // панель жігі + бұрандалар
+  ctx.strokeStyle='rgba(0,0,0,.32)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(-L*0.34,Wd*0.13); ctx.lineTo(L*0.14,Wd*0.13); ctx.stroke();
+  ctx.fillStyle='rgba(0,0,0,.42)';
+  for(const sy of [-Wd*0.29,Wd*0.29]){ ctx.beginPath(); ctx.arc(-L*0.29,sy,1.4,0,6.2832); ctx.fill(); }
+  // эмблема: СІЗ — қос шеврон, ЖАУ — айқыш
+  ctx.save(); ctx.strokeStyle='rgba(255,255,255,.88)'; ctx.lineWidth=2.1; ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.beginPath();
+  if(me){ ctx.moveTo(-L*0.21,-4.5); ctx.lineTo(-L*0.13,0); ctx.lineTo(-L*0.21,4.5); ctx.moveTo(-L*0.11,-4.5); ctx.lineTo(-L*0.03,0); ctx.lineTo(-L*0.11,4.5); }
+  else  { ctx.moveTo(-L*0.2,-4.5); ctx.lineTo(-L*0.06,4.5); ctx.moveTo(-L*0.06,-4.5); ctx.lineTo(-L*0.2,4.5); }
+  ctx.stroke(); ctx.restore();
+  // соққы іздері — HP азайған сайын көбейеді
+  if(hp<70){
+    ctx.strokeStyle='rgba(10,5,15,.5)'; ctx.lineWidth=1.1; ctx.lineCap='round';
+    const n = hp<35?3:hp<55?2:1;
+    const cuts=[[-0.26,-0.2,-0.14,-0.1],[-0.1,0.24,0.02,0.14],[-0.3,0.2,-0.2,0.28]];
+    for(let k=0;k<n;k++){ const c=cuts[k]; ctx.beginPath(); ctx.moveTo(L*c[0],Wd*c[1]); ctx.lineTo(L*c[2],Wd*c[3]); ctx.stroke(); }
+  }
+  // LED-сенсор
+  const eye = hp>50 ? '#67e8f9' : hp>25 ? '#fbbf24' : '#ef4444';
+  ctx.save(); ctx.shadowColor=eye; ctx.shadowBlur=9; ctx.fillStyle=eye;
+  roundRect(L*0.06,-Wd*0.24,L*0.065,Wd*0.48,2); ctx.fill(); ctx.restore();
+  const scan=Math.sin(T/260+(me?0:1.6))*Wd*0.17;
+  ctx.fillStyle='rgba(255,255,255,.95)'; ctx.beginPath(); ctx.arc(L*0.093,scan,1.5,0,6.2832); ctx.fill();
+
+  // болат күрек
+  const pg=ctx.createLinearGradient(L*0.2,0,L*0.46,0);
+  pg.addColorStop(0,'#475569'); pg.addColorStop(.55,'#e2e8f0'); pg.addColorStop(1,'#94a3b8');
+  ctx.fillStyle=pg;
+  ctx.beginPath();
+  ctx.moveTo(L*0.2,-Wd*0.54); ctx.lineTo(L*0.31,-Wd*0.54); ctx.lineTo(L*0.46,-Wd*0.2);
+  ctx.lineTo(L*0.46,Wd*0.2); ctx.lineTo(L*0.31,Wd*0.54); ctx.lineTo(L*0.2,Wd*0.54); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.moveTo(L*0.46,-Wd*0.2); ctx.lineTo(L*0.46,Wd*0.2); ctx.stroke();
+  ctx.fillStyle=P.stripe; ctx.fillRect(L*0.225,-Wd*0.5,2.2,Wd);
+  ctx.fillStyle='rgba(15,23,42,.55)';
+  for(const sy of [-Wd*0.32,0,Wd*0.32]){ ctx.beginPath(); ctx.arc(L*0.28,sy,1.3,0,6.2832); ctx.fill(); }
 
   ctx.restore();
 
-  // low-HP smoke
+  // HP аз — түтін
   if(hp<=30 && hp>0 && Math.random()<0.25){
     particles.push({x:x+(Math.random()-.5)*16,y:y-12,vx:(Math.random()-.5)*0.4,vy:-0.8-Math.random()*0.5,life:1,color:'rgba(120,120,130,',size:3+Math.random()*3,grav:-0.01,smoke:1});
   }
@@ -440,11 +699,32 @@ function drawSumo(x,y,face,who,hp){
 
 function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
 
-/* ── Particles ── */
+/* ── Раунд баннері (файтинг жанрындағыдай) ── */
+function showBanner(text,color,dur){ banner={text,color:color||'#fbbf24',t0:performance.now(),dur:dur||1250}; }
+function drawBanner(T){
+  if(!banner) return;
+  const t=(T-banner.t0)/banner.dur;
+  if(t>=1){ banner=null; return; }
+  const a = t<0.16 ? t/0.16 : t>0.72 ? (1-t)/0.28 : 1;
+  const s = 0.84+0.16*Math.min(1,t/0.16);
+  ctx.save(); ctx.globalAlpha=a;
+  const bh=48, by=CY-bh/2;
+  const g=ctx.createLinearGradient(0,0,CW,0);
+  g.addColorStop(0,'rgba(8,5,16,0)'); g.addColorStop(.18,'rgba(8,5,16,.85)'); g.addColorStop(.82,'rgba(8,5,16,.85)'); g.addColorStop(1,'rgba(8,5,16,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,by,CW,bh);
+  ctx.fillStyle=banner.color; ctx.fillRect(CW*0.2,by,CW*0.6,1.5); ctx.fillRect(CW*0.2,by+bh-1.5,CW*0.6,1.5);
+  ctx.translate(CX,CY); ctx.scale(s,s);
+  ctx.font="900 27px 'Exo 2', sans-serif"; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.shadowColor=banner.color; ctx.shadowBlur=16; ctx.fillStyle=banner.color;
+  ctx.fillText(banner.text,0,1);
+  ctx.restore();
+}
+
+/* ── Бөлшектер ── */
 function spawnSparks(x,y,n,color){
   for(let i=0;i<n;i++){
-    const a=Math.random()*Math.PI*2, sp=1.5+Math.random()*3.5;
-    particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color,size:2+Math.random()*3,grav:0.06});
+    const a=Math.random()*Math.PI*2, spd=1.5+Math.random()*3.5;
+    particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,life:1,color,size:2+Math.random()*3,grav:0.06});
   }
 }
 function drawParticles(){
@@ -457,50 +737,86 @@ function drawParticles(){
   }
 }
 
-/* ── Idle render loop ── */
 function idle(){ if(shake>0.1) shake*=0.85; else shake=0; drawArena(); requestAnimationFrame(idle); }
 
-/* ════ STRATEGY SELECT ════ */
+/* ════ ТАКТИКА КАРТАЛАРЫ ════ */
+function renderCards(){
+  const pips=(n,max)=>Array.from({length:max},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
+  document.getElementById('stratGrid').innerHTML = ORDER.map(k=>{
+    const st=STRAT[k], m=META[k];
+    const dmgP=Math.round(st.dmg/25*5), pushP=Math.round(st.pushFoe/0.28*5);
+    const gain=st.energy<0;
+    return `<div class="scard" id="sc_${k}" style="--c:${m.c};--cr:${m.cr}" onclick="selectStrat('${k}')">
+      <div class="sc-top">
+        <span class="sc-ico">${actSvg(k,19)}</span>
+        <div class="sc-titles"><div class="sc-name">${st.name}</div><div class="sc-desc">${m.desc}</div></div>
+        <span class="sc-cost${gain?' gain':''}">${gain?'+':'−'}${Math.abs(st.energy)}${BOLT(11)}</span>
+      </div>
+      <div class="sc-stats">
+        <span>Зиян</span><b class="pips">${pips(dmgP,5)}</b>
+        <span>Итеру</span><b class="pips">${pips(pushP,5)}</b>
+      </div>
+      <div class="sc-foot">${m.trait?`<span class="trait ${m.trait.cls}">${m.trait.t}</span>`:''}<span class="kbd">${m.key}</span></div>
+      <div class="sc-lock">${BOLT(13)} Энергия жетпейді</div>
+    </div>`;
+  }).join('');
+}
+
 function selectStrat(s){
   if(gameOver||busy) return;
   const st=STRAT[s];
-  if(st.energy>0 && myEnergy<st.energy){ setStatus('⚡ Энергия жеткіліксіз! 🔋 Зарядта.','err'); return; }
+  if(st.energy>0 && myEnergy<st.energy){ setStatus('Энергия жетпейді — алдымен Зарядта.','err'); return; }
   selected=s;
   document.querySelectorAll('.scard').forEach(c=>c.classList.remove('selected'));
   document.getElementById('sc_'+s).classList.add('selected');
-  setStatus(`${st.name} таңдалды — «ЖҮРУ!» бас`,'');
+  document.getElementById('fightBtn').classList.add('ready');
+  previewEnergy(s);
+  setStatus(`«${st.name}» таңдалды — «Жүру!» бас`,'');
 }
 
-/* ════ ROUND RESOLVE ════ */
+/* Таңдалған тактика энергияның қай бөлігін жұмсайтынын (не толтыратынын) алдын ала көрсету */
+function previewEnergy(k){
+  const pv=document.getElementById('energyPrev'), tx=document.getElementById('energyPrevTxt');
+  if(!k){ pv.className='energy-prev'; pv.style.width='0'; tx.textContent=''; tx.className='prev'; return; }
+  const st=STRAT[k];
+  if(st.energy>0){
+    pv.className='energy-prev cost'; pv.style.left=(myEnergy-st.energy)+'%'; pv.style.width=st.energy+'%';
+    tx.className='prev cost'; tx.textContent=`−${st.energy}`;
+  } else {
+    const gain=Math.min(100,myEnergy-st.energy)-myEnergy;
+    pv.className='energy-prev gain'; pv.style.left=myEnergy+'%'; pv.style.width=gain+'%';
+    tx.className='prev gain'; tx.textContent=`+${gain}`;
+  }
+}
+
+/* ════ РАУНДТЫ ШЕШУ ════ */
 async function doRound(){
   if(gameOver||busy) return;
-  if(!selected){ setStatus('Алдымен стратегия таңда!','warn'); return; }
+  if(!selected){ setStatus('Алдымен тактика таңда — карталардың бірін бас немесе 1–4 перне','warn'); return; }
   busy=true;
-  document.getElementById('fightBtn').disabled=true;
-  document.querySelectorAll('.scard').forEach(c=>c.classList.add('disabled'));
+  const fb=document.getElementById('fightBtn'); fb.disabled=true; fb.classList.remove('ready');
+  document.getElementById('stratGrid').classList.add('busy');
+  previewEnergy(null);
 
-  const my=STRAT[selected];
+  const myKey=selected;
+  const my=STRAT[myKey];
   const foeKey=FOE_AI[round%FOE_AI.length];
   const foe=STRAT[foeKey];
 
-  // energy
   myEnergy = my.energy>0 ? Math.max(0,myEnergy-my.energy) : Math.min(100,myEnergy-my.energy);
   updateEnergy();
 
-  // damage
   let dmgToMe = foe.dmg;
   let dmgToFoe= my.dmg * (foeKey==='dodge'?0.4:1);
-  if(selected==='dodge') dmgToMe*=my.dodge;
-  if(selected==='charge_up') dmgToMe*=my.vulnerable;
+  if(myKey==='dodge') dmgToMe*=my.dodge;
+  if(myKey==='charge_up') dmgToMe*=my.vulnerable;
   dmgToMe=Math.round(dmgToMe); dmgToFoe=Math.round(dmgToFoe);
 
-  // push (1D)
-  let pushFoe = my.pushFoe * (foeKey==='dodge'?0.4:1);   // I push foe toward +
-  let pushMe  = foe.pushFoe * (selected==='dodge'?my.dodge:1); // foe pushes me toward -
+  let pushFoe = my.pushFoe * (foeKey==='dodge'?0.4:1);
+  let pushMe  = foe.pushFoe * (myKey==='dodge'?my.dodge:1);
   const fromX_me=myX, fromX_foe=foeX;
   let nMyX  = myX  - pushMe  + my.recoil;
   let nFoeX = foeX + pushFoe - foe.recoil;
-  // keep them from passing through each other
   if(nFoeX - nMyX < 0.32){ const mid=(nFoeX+nMyX)/2; nMyX=mid-0.16; nFoeX=mid+0.16; }
   nMyX=Math.max(-1.05,Math.min(0.5,nMyX));
   nFoeX=Math.max(-0.5,Math.min(1.05,nFoeX));
@@ -508,12 +824,11 @@ async function doRound(){
   myHp=Math.max(0,myHp-dmgToMe);
   foeHp=Math.max(0,foeHp-dmgToFoe);
 
-  await animateClash(selected, foeKey, fromX_me, fromX_foe, nMyX, nFoeX, dmgToMe, dmgToFoe);
+  await animateClash(myKey, foeKey, fromX_me, fromX_foe, nMyX, nFoeX, dmgToMe, dmgToFoe);
 
   myX=nMyX; foeX=nFoeX;
   updateHp();
 
-  // outcome
   const foeOut = foeX>=EDGE || foeHp<=0;
   const myOut  = myX<=-EDGE || myHp<=0;
   let result=null;
@@ -521,28 +836,27 @@ async function doRound(){
   else if(myOut && !foeOut){ result='lose'; }
   else if(myOut && foeOut){ result = foeHp<=myHp?'win':'lose'; }
 
-  // log
-  if(result==='win') addLog(`✅ ${my.name}: жауды шеңберден шығардың!`,'good');
-  else if(result==='lose') addLog(`❌ ${foe.name}: жау сені итеріп шығарды!`,'bad');
-  else addLog(`⚔️ ${my.name} ↔ ${foe.name}: −${dmgToMe} саған, −${dmgToFoe} жауға`,'');
+  addClash(myKey, foeKey, dmgToMe, dmgToFoe);
+  if(result==='win') addLog(`${my.name} — жау доҺёдан шықты!`,'good');
+  else if(result==='lose') addLog(`${foe.name} — жау сені доҺёдан шығарды`,'bad');
 
-  document.getElementById('fightBtn').disabled=false;
-  document.querySelectorAll('.scard').forEach(c=>c.classList.remove('disabled','selected'));
+  fb.disabled=false;
+  document.getElementById('stratGrid').classList.remove('busy');
+  document.querySelectorAll('.scard').forEach(c=>c.classList.remove('selected'));
   selected=null;
-  refreshCardsAvailability();
   busy=false;
+  refreshCardsAvailability();
 
   if(result){ await sleep(550); finishRound(result); }
-  else if(myHp<28){ setStatus(`⚠️ HP аз (${myHp})! 🔋 Зарядта не 💨 жалтар!`,'warn'); }
-  else if(myEnergy<25){ setStatus(`⚡ Энергия аз (${myEnergy})! 🔋 Зарядта.`,'warn'); }
-  else setStatus('Раунд жалғасуда — стратегия таңда','');
+  else if(myHp<28){ setStatus(`HP аз (${myHp})! Жалтар немесе жаудың соққысы әлсіз кезде зарядта`,'warn'); }
+  else if(myEnergy<25){ setStatus(`Энергия аз (${myEnergy}) — Зарядтау керек`,'warn'); }
+  else setStatus('Раунд жалғасуда — келесі тактиканы таңда','');
 }
 
-/* ════ CLASH ANIMATION ════ */
+/* ════ ҚАҚТЫҒЫС АНИМАЦИЯСЫ ════ */
 async function animateClash(myKey,foeKey,fmX,ffX,toMyX,toFoeX,dmgMe,dmgFoe){
   const lungeMe  = myKey==='charge'||myKey==='push';
   const lungeFoe = foeKey==='charge'||foeKey==='push';
-  // phase A: lunge inward
   const A=8;
   for(let f=1;f<=A;f++){
     const t=f/A;
@@ -550,17 +864,15 @@ async function animateClash(myKey,foeKey,fmX,ffX,toMyX,toFoeX,dmgMe,dmgFoe){
     foeX = ffX + (lungeFoe? -0.10*t :  0.01*t);
     await frameWait();
   }
-  // impact
   const ix=CX+((myX+foeX)/2)*POS_X, iy=CY;
   shake = (dmgMe>15||dmgFoe>15) ? 7 : 3.5;
-  spawnSparks(ix,iy, (dmgMe>15||dmgFoe>15)?20:11, 'rgba(251,191,36,ALPHA)');
+  spawnSparks(ix,iy, (dmgMe>15||dmgFoe>15)?22:12, 'rgba(251,191,36,ALPHA)');
   if(dmgFoe>0) spawnSparks(CX+foeX*POS_X,iy,8,'rgba(129,140,248,ALPHA)');
   if(dmgMe>0)  spawnSparks(CX+myX*POS_X, iy,8,'rgba(248,113,113,ALPHA)');
   document.getElementById('arenaShake').classList.add('shaking');
   setTimeout(()=>document.getElementById('arenaShake').classList.remove('shaking'),400);
   playImpact(Math.max(dmgMe,dmgFoe));
   await sleep(90);
-  // phase B: settle to new positions
   const B=14, sMy=myX, sFoe=foeX;
   for(let f=1;f<=B;f++){
     const t=f/B, e=1-Math.pow(1-t,3);
@@ -572,21 +884,25 @@ async function animateClash(myKey,foeKey,fmX,ffX,toMyX,toFoeX,dmgMe,dmgFoe){
 }
 function frameWait(){return new Promise(r=>requestAnimationFrame(()=>r()));}
 
-/* ════ ROUND / BATTLE ════ */
+/* ════ РАУНД / ЖЕКПЕ-ЖЕК ════ */
 function finishRound(result){
   round++;
   const pip=document.getElementById('p'+round);
-  if(result==='win'){ roundsWon++; if(pip)pip.className='pip win'; addLog(`🏅 РАУНД ${round}: ЖЕҢІС!`,'good'); }
-  else { roundsLost++; if(pip)pip.className='pip lose'; addLog(`💀 РАУНД ${round}: жеңіліс`,'bad'); }
+  if(result==='win'){ roundsWon++; if(pip)pip.className='pip win'; addLog(`РАУНД ${round} — ЖЕҢІС`,'good banner'); showBanner('ЖЕҢІС!','#4ade80',850); }
+  else { roundsLost++; if(pip)pip.className='pip lose'; addLog(`РАУНД ${round} — ЖЕҢІЛІС`,'bad banner'); showBanner('ЖЕҢІЛІС','#f87171',850); }
 
   if(roundsWon>=2 || roundsLost>=2 || round>=MAX_ROUNDS){ endBattle(); return; }
-  setTimeout(()=>{ resetRound(); setStatus(`РАУНД ${round+1} басталды! Алға!`,'ok'); }, 850);
+  setTimeout(()=>{ resetRound(); setStatus(`${round+1}-раунд басталды — тактиканы таңда`,'ok'); }, 850);
 }
 
 function resetRound(){
   myHp=100; foeHp=100;
   myX=-0.28; foeX=0.28;
   selected=null;
+  previewEnergy(null);
+  document.getElementById('fightBtn').classList.remove('ready');
+  document.getElementById('roundLbl').textContent=`Раунд ${round+1}`;
+  showBanner(`РАУНД ${round+1}`);
   updateHp(); refreshCardsAvailability();
   document.querySelectorAll('.scard').forEach(c=>c.classList.remove('selected'));
 }
@@ -601,24 +917,28 @@ function endBattle(){
   setTimeout(()=>showResult(win),650);
 }
 
-/* ════ RESULT ════ */
+/* ════ НӘТИЖЕ ════ */
 function showResult(win){
-  document.getElementById('resIcon').textContent=win?(stars===3?'🏆':'🥈'):'💀';
+  const ic=document.getElementById('resIcon');
+  ic.className='result-icon '+(win?'win':'lose');
+  ic.innerHTML = win ? (stars===3?SVG_TROPHY:SVG_MEDAL) : SVG_DEFEAT;
   const rt=document.getElementById('resTitle');
   rt.textContent=win?(stars===3?'ЧЕМПИОН!':'ЖЕҢІС!'):'ЖЕҢІЛДІҢ';
   rt.className='result-title '+(win?'win':'lose');
+  document.getElementById('resScore').innerHTML=
+    `<span class="a">СІЗ ${roundsWon}</span> <span class="c">:</span> <span class="b">${roundsLost} ЖАУ</span>`;
   document.getElementById('resSub').textContent=win
-    ? `${roundsWon}:${roundsLost} есебімен жеңдің! ${stars===3?'Бірде-бір раунд жоғалтпай — тамаша тактика!':'Жақсы! Энергияны тиімдірек басқарсаң — 3 жұлдыз.'}`
-    : `${roundsWon}:${roundsLost} — жеңіле бердің. Шабуыл/итеру/зарядтау тепе-теңдігін тап!`;
+    ? (stars===3?'Бірде-бір раунд жоғалтпадың — тамаша тактика!':'Жақсы! Энергияны тиімдірек басқарсаң — 3 жұлдыз.')
+    : 'Шабуыл, итеру және зарядтау арасындағы тепе-теңдікті тап — кеңес батырмасы көмектеседі.';
   const sr=document.getElementById('resStars'); sr.innerHTML='';
-  for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='star-icon';s.textContent='⭐';sr.appendChild(s);if(i<=stars)setTimeout(()=>s.classList.add('lit'),i*200);}
+  for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='star-icon';s.innerHTML=svgStar(34,'currentColor');sr.appendChild(s);if(i<=stars)setTimeout(()=>s.classList.add('lit'),i*200);}
   const row=document.getElementById('rBtnRow'); row.innerHTML='';
   if(!win){
-    const retry=document.createElement('button'); retry.className='rbtn rbtn-ghost'; retry.textContent='↻ Қайта';
+    const retry=document.createElement('button'); retry.className='rbtn rbtn-ghost'; retry.textContent='Қайта жекпе-жек';
     retry.onclick=retryBattle; row.appendChild(retry);
   }
   const fin=document.createElement('button'); fin.className='rbtn rbtn-gold';
-  fin.textContent=win?'🎓 Квестті аяқтау':'Модульге оралу'; fin.onclick=goFinish; row.appendChild(fin);
+  fin.textContent=win?'Квестті аяқтау →':'Модульге оралу'; fin.onclick=goFinish; row.appendChild(fin);
   document.getElementById('resultOverlay').classList.add('show');
   submitResult(); playVictory(win);
 }
@@ -635,35 +955,47 @@ function retryBattle(){
   round=0; roundsWon=0; roundsLost=0; myEnergy=100;
   ['p1','p2','p3'].forEach(id=>{const p=document.getElementById(id);if(p)p.className='pip';});
   document.getElementById('hudScore').textContent='0';
-  document.getElementById('battleLog').innerHTML='<div class="log-entry">⚔️ Қайта бастадың!</div>';
-  timerSec=180; document.getElementById('hudTimer').classList.remove('warn');
+  document.getElementById('battleLog').innerHTML='';
+  addLog('Жаңа жекпе-жек басталды','info');
+  timerSec=180; document.getElementById('timerPill').classList.remove('warn');
   document.getElementById('hudTimer').textContent='03:00';
   document.getElementById('fightBtn').disabled=false;
   resetRound(); updateEnergy();
-  setStatus('Стратегия таңда да «Жүру!» бас','');
+  setStatus('Тактика таңда да «Жүру!» бас','');
   startTimer();
 }
 
 function goFinish(){ window.location.href='{{ url_for("toqsan_3") }}'; }
 
+/* Берілу — қайтымсыз әрекет, сондықтан екінші басумен ғана расталады */
+let giveArmed=null;
 function surrender(){
   if(gameOver) return;
+  const btn=document.getElementById('giveBtn'), lbl=document.getElementById('giveLbl');
+  if(!giveArmed){
+    btn.classList.add('confirm'); lbl.textContent='Растау?';
+    setStatus('Берілесің бе? Растау үшін тағы бір рет бас','warn');
+    giveArmed=setTimeout(()=>{ btn.classList.remove('confirm'); lbl.textContent='Берілу'; giveArmed=null; },3000);
+    return;
+  }
+  clearTimeout(giveArmed); giveArmed=null;
+  btn.classList.remove('confirm'); lbl.textContent='Берілу';
   roundsLost=2; stars=0; score=0.05; endBattle();
 }
 
 function showHint(){
   if(gameOver) return;
   const tips=[
-    '💡 Энергия аз болса — алдымен 🔋 Зарядта!',
-    '💡 Жау HP-сы аз болса — ⚡ Шабуыл шешеді!',
-    '💡 🤜 Итеру ең күшті ысыру — жауды шетке тез апарады.',
-    '💡 Жау шабуылдайды деп ойласаң — 💨 Жалтар (зиян −60%).',
-    '💡 🔋 Зарядтағанда осалсың — қауіпсіз кезде ғана зарядта.',
+    'Энергия аз болса — алдымен Зарядта.',
+    'Жаудың HP-сы аз болса — Шабуыл шешеді.',
+    'Итеру — ең күшті ысыру: жауды шетке тез апарады.',
+    'Жау шабуылдайды деп ойласаң — Жалтар (зиянның 60%-ынан қашасың).',
+    'Зарядтағанда осалсың — тек жау әлсіз соғатын кезде зарядта.',
   ];
-  addLog(tips[Math.floor(Math.random()*tips.length)],'warn');
+  addLog(tips[Math.floor(Math.random()*tips.length)],'hint');
 }
 
-/* ════ HP / ENERGY UI ════ */
+/* ════ HP / ЭНЕРГИЯ ════ */
 function updateHp(){
   const my=document.getElementById('myHpFill'), fo=document.getElementById('enHpFill');
   my.style.width=myHp+'%'; fo.style.width=foeHp+'%';
@@ -680,46 +1012,78 @@ function updateEnergy(){
   refreshCardsAvailability();
 }
 function refreshCardsAvailability(){
-  if(busy) return; // during a round all cards are disabled by doRound()
+  if(busy) return;
   for(const key in STRAT){
     const st=STRAT[key], card=document.getElementById('sc_'+key);
     if(!card) continue;
-    const tooCostly = st.energy>0 && myEnergy<st.energy;
-    card.classList.toggle('disabled', tooCostly);
+    card.classList.toggle('disabled', st.energy>0 && myEnergy<st.energy);
   }
 }
 
+/* ════ ЖУРНАЛ ════ */
 function addLog(msg,type){
-  const log=document.getElementById('battleLog');
-  const el=document.createElement('div'); el.className='log-entry'+(type?' '+type:''); el.textContent=msg;
-  log.insertBefore(el,log.firstChild);
+  const t=(type||'info').split(' ')[0];
+  const el=document.createElement('div'); el.className='lg '+(type||'info');
+  el.innerHTML = (type||'').includes('banner') ? '' : `<span class="li">${LI[t]||LI.info}</span>`;
+  el.appendChild(document.createTextNode(msg));
+  const log=document.getElementById('battleLog'); log.insertBefore(el,log.firstChild);
+}
+/* Бір қақтығыс — бір жол: сол жақта сенің әрекетің мен жауға келген зиян, оң жақта керісінше */
+function addClash(myKey,foeKey,dmgMe,dmgFoe){
+  const half=(k,eff,cls,side)=>`<div class="lg-half ${side}">
+      <span class="lg-ico" style="--c:${META[k].c};--cr:${META[k].cr}">${actSvg(k,13)}</span>
+      <span class="lg-name">${STRAT[k].name}</span>
+      <span class="lg-eff ${eff?cls:'zero'}">${eff?'−'+eff:'0'}</span></div>`;
+  const el=document.createElement('div'); el.className='lg clash';
+  el.innerHTML = half(myKey,dmgFoe,'good','me') + `<span class="lg-vs">VS</span>` + half(foeKey,dmgMe,'bad','foe');
+  el.title = `Сен: ${STRAT[myKey].name} (жауға −${dmgFoe}) · Жау: ${STRAT[foeKey].name} (саған −${dmgMe})`;
+  const log=document.getElementById('battleLog'); log.insertBefore(el,log.firstChild);
 }
 
-/* ════ TIMER ════ */
+/* ════ УАҚЫТ ════ */
 function startTimer(){
   clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
     timerSec--;
-    const m=Math.floor(timerSec/60),s=timerSec%60;
-    const el=document.getElementById('hudTimer');
-    el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
-    if(timerSec<=30) el.classList.add('warn');
+    const t=Math.max(0,timerSec), m=Math.floor(t/60), s=t%60;
+    document.getElementById('hudTimer').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if(timerSec<=30) document.getElementById('timerPill').classList.add('warn');
     if(timerSec<=0){clearInterval(timerInterval);if(!gameOver){gameOver=true;roundsLost=Math.max(roundsLost,2);stars=roundsWon>=1?1:0;score=roundsWon>=1?0.1:0.05;showResult(roundsWon>=2);}}
   },1000);
 }
 
-/* ════ HELPERS ════ */
-function setStatus(msg,type){const el=document.getElementById('statusBox');el.textContent=msg;el.className='status-box'+(type?' '+type:'');}
+function setStatus(msg,type){
+  const el=document.getElementById('statusBox');
+  el.className='status-box'+(type?' '+type:'');
+  el.innerHTML=`<span class="st-ico">${ST_ICONS[type||'']}</span><span>${msg}</span>`;
+}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
-/* ════ AUDIO ════ */
+/* ════ ПЕРНЕТАҚТА: 1–4 тактика, Enter/Space — жүру ════ */
+document.addEventListener('keydown',e=>{
+  if(e.target.closest && e.target.closest('input,textarea,select,[contenteditable]')) return;
+  if(document.getElementById('resultOverlay').classList.contains('show')) return;
+  const intro=document.getElementById('bqGameIntro');
+  if(intro && intro.style.display!=='none' && !intro.classList.contains('hide')) return;
+  const map={'1':'charge','2':'push','3':'dodge','4':'charge_up'};
+  if(map[e.key]){ selectStrat(map[e.key]); }
+  else if(e.key==='Enter'||e.key===' '){ e.preventDefault(); doRound(); }
+});
+
+/* ════ ДЫБЫС ════ */
 let audioCtx;
 function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
 function playImpact(dmg){try{const a=getAudio(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sawtooth';o.frequency.setValueAtTime(dmg>15?260:150,a.currentTime);o.frequency.exponentialRampToValueAtTime(60,a.currentTime+0.18);g.gain.setValueAtTime(.28,a.currentTime);g.gain.linearRampToValueAtTime(0,a.currentTime+0.22);o.start();o.stop(a.currentTime+0.22);}catch(e){}}
 function playVictory(win){try{const a=getAudio();const seq=win?[440,550,660,880]:[440,330,220];seq.forEach((f,i)=>{const o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.type='sine';o.frequency.value=f;const t=a.currentTime+i*0.12;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.25,t+0.04);g.gain.linearRampToValueAtTime(0,t+0.36);o.start(t);o.stop(t+0.36);});}catch(e){}}
 
-/* ── Init ── */
+/* ── Іске қосу ── */
+renderCards();
 updateHp(); updateEnergy();
+addLog('Жекпе-жек басталуға дайын','info');
+setStatus('Тактика таңда (карта немесе 1–4 перне) да «Жүру!» бас','');
+fitCanvas();
+new ResizeObserver(fitCanvas).observe(document.getElementById('arenaBox'));
+showBanner('РАУНД 1');
 startTimer();
 idle();
 </script>
