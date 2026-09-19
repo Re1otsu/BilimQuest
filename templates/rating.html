@@ -2,38 +2,134 @@
 <html lang="kk">
 <head>
   <meta charset="UTF-8">
-  <title>Рейтинг</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Оқушылар рейтингі</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/opensans-local.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  {# топбар, фон, карталар — жеке парақшамен ортақ #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/rating.css') }}">
 </head>
 <body>
-  <div class="container">
-    <a href="javascript:history.back()" class="back-btn">⬅ Артқа</a>
-    <h1>Оқушылар рейтингі</h1>
-    {% for student in students %}
-      <a href="{{ url_for('student_dashboard', student_id=student.id) }}" class="student-card-link">
-        <div class="student-card">
-          <div class="avatar">
-            <img src="{{ url_for('static', filename='img/user.png') }}">
-          </div>
-          <div class="student-name">{{ student.name }}</div>
-          <div class="student-stats">
-            <div class="stars">
-              {% for i in range(student.stars_sum|int) %}⭐{% endfor %}
-              ({{ student.stars_sum|int }})
-            </div>
-            <div class="average">
-              <img src="{{ url_for('static', filename='img/rating.png') }}" class="rating-icon">
-              {% if student.completed_games > 0 %}
-                  {{ (student.score_sum / student.completed_games)|round(2) }}
-              {% else %}
-                  0
-              {% endif %}
-            </div>
-          </div>
-        </div>
+  {% set role = session.get('role') %}
+  {% set home = '/student' if role == 'student' else ('/teacher_panel' if role == 'teacher' else 'javascript:history.back()') %}
+  {% set max_stars = (students[0].stars_sum|int) if students else 0 %}
+  {% set total_stars = students|sum(attribute='stars_sum')|int %}
+  {# аватар түстері — басты беттегі 4 модуль түсі #}
+  {% set av_colors = ['#2f79ff','#2dbd66','#ff8a2a','#8e6bff'] %}
+
+  {% macro initials(s) -%}
+    {{ (s.name or '?')[:1]|upper }}{{ (s.surname or '')[:1]|upper }}
+  {%- endmacro %}
+  {% macro avg(s) -%}
+    {{ "%.2f"|format(s.score_sum / s.completed_games) if s.completed_games > 0 else "0.00" }}
+  {%- endmacro %}
+  {% macro star(size, fill) -%}
+    <svg width="{{ size }}" height="{{ size }}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.03 6L12 16.8 6.62 19.6l1.03-6L3.3 9.4l6-.9L12 3z" fill="{{ fill }}"/></svg>
+  {%- endmacro %}
+
+  <!-- ═══ ТОПБАР — басты бет пен жеке парақшадағымен бірдей ═══ -->
+  <header class="d-topbar">
+    <a href="{{ home }}" class="d-logo">BilimQuest</a>
+    <div class="d-actions">
+      <a href="{{ home }}" class="d-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M14 6l-6 6 6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Артқа
       </a>
-    {% endfor %}
+    </div>
+  </header>
+
+  <main class="d-page">
+  <div class="dashboard-container">
+
+    <!-- ═══ ТАҚЫРЫП ═══ -->
+    <section class="r-hero">
+      <div class="r-hero-ic">
+        <svg width="30" height="30" viewBox="0 0 64 64" fill="none"><defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset=".4" stop-color="#ffd700"/><stop offset="1" stop-color="#e09a00"/></linearGradient></defs>
+          <path d="M18 8h28v14a14 14 0 01-28 0V8z" fill="url(#hg)"/><path d="M18 13H9v4a9 9 0 009 9M46 13h9v4a9 9 0 01-9 9" stroke="#ffd700" stroke-width="3.6" stroke-linecap="round"/>
+          <path d="M28 36h8v8h-8z" fill="#e09a00"/><rect x="18" y="44" width="28" height="12" rx="3" fill="#fff" opacity=".9"/></svg>
+      </div>
+      <div class="r-hero-txt">
+        <h1>Оқушылар рейтингі</h1>
+        <p>{% if students %}Жұлдыз саны бойынша үздік {{ students|length }} оқушы{% else %}Жұлдыз жинаған оқушылар осында көрсетіледі{% endif %}</p>
+      </div>
+      <div class="r-hero-stats">
+        <div class="r-hs"><b>{{ students|length }}</b><span>оқушы</span></div>
+        <div class="r-hs"><b>{{ star(15,'#ffb400') }}{{ total_stars }}</b><span>барлық жұлдыз</span></div>
+      </div>
+    </section>
+
+    {% if students %}
+    <!-- ═══ ПОДИУМ: 2 · 1 · 3 ═══ -->
+    <section class="r-podium">
+      {% for idx in [1, 0, 2] %}{% if students|length > idx %}
+      {% set s = students[idx] %}{% set place = idx + 1 %}
+      {% set me = role == 'student' and session.get('user_id') == s.id %}
+      <a href="{{ url_for('student_dashboard', student_id=s.id) }}" class="r-pod p{{ place }}{{ ' is-me' if me }}">
+        <div class="r-medal">
+          <svg width="38" height="44" viewBox="0 0 38 44" aria-hidden="true">
+            <path d="M9 0h8l4 12h-8zM29 0h-8l-4 12h8z" fill="var(--rib)"/>
+            <circle cx="19" cy="27" r="15" fill="var(--m2)"/><circle cx="19" cy="27" r="11.5" fill="var(--m1)"/>
+            <path d="M12 21a9 9 0 017-4" stroke="rgba(255,255,255,.7)" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <text x="19" y="32" text-anchor="middle" font-size="14" font-weight="800" fill="var(--mt)" font-family="Open Sans, sans-serif">{{ place }}</text>
+          </svg>
+        </div>
+        <div class="r-ava lg" style="--av:{{ av_colors[s.id % 4] }}">{{ initials(s) }}</div>
+        <div class="r-pod-name">{{ s.name }} {{ s.surname or '' }}</div>
+        <div class="r-pod-meta">
+          <span class="r-cls">{{ s.student_class }}</span>
+          {% if me %}<span class="r-me">Сен</span>{% endif %}
+        </div>
+        <div class="r-pod-stars">{{ star(20,'#ffb400') }}<b>{{ s.stars_sum|int }}</b></div>
+        <div class="r-pod-sub">{{ s.completed_games }} ойын · орт. {{ avg(s) }}</div>
+        <div class="r-step"><span>{{ place }}</span></div>
+      </a>
+      {% endif %}{% endfor %}
+    </section>
+
+    <!-- ═══ ТОЛЫҚ ТІЗІМ ═══ -->
+    {% if students|length > 3 %}
+    <section class="pcard r-list">
+      <div class="r-head">
+        <span>Орын</span><span>Оқушы</span><span class="r-c-stars">Жұлдыз</span><span class="r-c-num">Ойын</span><span class="r-c-num">Орт. ұпай</span>
+      </div>
+      {% for s in students[3:] %}
+      {% set me = role == 'student' and session.get('user_id') == s.id %}
+      {% set share = ((s.stars_sum / max_stars * 100) if max_stars > 0 else 0)|round|int %}
+      <a href="{{ url_for('student_dashboard', student_id=s.id) }}" class="r-row{{ ' is-me' if me }}">
+        <span class="r-rank">{{ loop.index + 3 }}</span>
+        <span class="r-who">
+          <span class="r-ava" style="--av:{{ av_colors[s.id % 4] }}">{{ initials(s) }}</span>
+          <span class="r-who-txt">
+            <span class="r-name">{{ s.name }} {{ s.surname or '' }}{% if me %} <span class="r-me">Сен</span>{% endif %}</span>
+            <span class="r-cls">{{ s.student_class }}</span>
+          </span>
+        </span>
+        <span class="r-c-stars">
+          <span class="r-stars">{{ star(14,'#ffb400') }}<b>{{ s.stars_sum|int }}</b></span>
+          <span class="r-bar" title="Көшбасшының {{ share }}%"><i style="width:{{ share }}%"></i></span>
+        </span>
+        <span class="r-c-num">{{ s.completed_games }}</span>
+        <span class="r-c-num">{{ avg(s) }}</span>
+      </a>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <p class="r-note">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      Орын жұлдыз санымен анықталады; жұлдыз тең болса — жалпы ұпаймен. «Орт. ұпай» — бір ойынға шаққандағы орташа ұпай.
+    </p>
+
+    {% else %}
+    <section class="pcard r-empty">
+      {{ star(40,'#d5deec') }}
+      <b>Рейтинг әзірге бос</b>
+      <span>Ойындарды өтіп, жұлдыз жина — атың осында бірінші болып шығады!</span>
+    </section>
+    {% endif %}
+
   </div>
+  </main>
 </body>
 </html>

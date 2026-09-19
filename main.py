@@ -714,6 +714,7 @@ def rating():
         db.session.query(
             Student.id,
             Student.name,
+            Student.surname,
             Student.student_class,
             func.coalesce(func.sum(GameProgress.stars), 0).label("stars_sum"),
             func.count(GameProgress.id).label("completed_games"),
@@ -721,7 +722,9 @@ def rating():
         )
         .outerjoin(GameProgress, GameProgress.student_id == Student.id)
         .group_by(Student.id)
-        .order_by(func.coalesce(func.sum(GameProgress.stars), 0).desc())
+        # жұлдыз тең болса — жалпы ұпай шешеді
+        .order_by(func.coalesce(func.sum(GameProgress.stars), 0).desc(),
+                  func.coalesce(func.sum(GameProgress.score), 0).desc())
         .limit(20)
         .all()
     )

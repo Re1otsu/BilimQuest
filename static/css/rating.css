@@ -1,97 +1,128 @@
-body {
-  margin: 0;
-  font-family: 'Open Sans', sans-serif;
-  background: #e0e0e0;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 0;
-}
+/* ══════════════════════════════════════════════════════════════
+   BilimQuest — Оқушылар рейтингі
+   Негізі dashboard.css-тен (топбар, фон, .pcard, түстер) — мұнда тек
+   рейтингке тән элементтер: тақырып, подиум, тізім.
+   Медаль түстері: алтын / күміс / қола — басты беттегі алтын акцентпен үйлес.
+══════════════════════════════════════════════════════════════ */
 
-.container {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+/* ═══ Тақырып ═══ */
+.r-hero{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:18px 20px;border-radius:14px;
+  background:linear-gradient(90deg,#2f79ff,#1e4fa8);color:#fff;
+  box-shadow:0 10px 24px rgba(30,79,168,.25);position:relative;overflow:hidden;
 }
+.r-hero::after{content:"";position:absolute;right:-40px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,215,0,.28),transparent 65%);pointer-events:none}
+.r-hero-ic{width:56px;height:56px;border-radius:14px;flex-shrink:0;display:grid;place-items:center;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25)}
+.r-hero-txt{flex:1;min-width:200px}
+.r-hero h1{margin:0;font-size:24px;font-weight:800;letter-spacing:.2px}
+.r-hero p{margin:4px 0 0;font-size:13.5px;font-weight:600;color:rgba(255,255,255,.82)}
+.r-hero-stats{display:flex;gap:10px;position:relative;z-index:1}
+.r-hs{min-width:92px;padding:9px 14px;border-radius:12px;text-align:center;
+  background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22)}
+.r-hs b{display:flex;align-items:center;justify-content:center;gap:5px;font-size:20px;font-weight:800;line-height:1.1}
+.r-hs span{display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.78);margin-top:2px}
 
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-weight: 600;
-  color: #333;
-}
+/* ═══ Аватар (аты-жөнінің бас әріптері) ═══ */
+.r-ava{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;
+  font-size:14px;font-weight:800;color:#fff;letter-spacing:.3px;
+  background:var(--av);
+  background:linear-gradient(145deg,color-mix(in srgb,var(--av) 70%,#fff),var(--av));
+  box-shadow:0 3px 8px color-mix(in srgb,var(--av) 35%,transparent)}
+.r-ava.lg{width:68px;height:68px;font-size:22px;border:3px solid #fff;
+  box-shadow:0 0 0 3px var(--ring),0 8px 18px rgba(0,0,0,.12)}
 
-.student-card-link {
-  text-decoration: none;
+/* ═══ Подиум ═══ */
+.r-podium{display:grid;grid-template-columns:1fr 1.12fr 1fr;gap:14px;align-items:end}
+.r-pod{
+  --ring:#c9d4e6;--m1:#e6ebf3;--m2:#b8c3d6;--mt:#4b5a73;--rib:#7a879c;--step:#eef3fa;
+  position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:16px 12px 0;border-radius:14px;text-decoration:none;color:var(--ink);
+  background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden;
+  transition:transform .16s ease,box-shadow .16s ease;
 }
+.r-pod:hover{transform:translateY(-3px);box-shadow:0 14px 26px rgba(0,0,0,.13)}
+.r-pod::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--m2)}
+.r-pod.p1{--ring:#ffc93c;--m1:#ffd84d;--m2:#f0a800;--mt:#6b4700;--rib:#2f79ff;--step:#fff6d6;
+  padding-top:22px;background:linear-gradient(180deg,#fffdf3,#fff);border-color:rgba(255,180,0,.45);
+  box-shadow:0 12px 28px rgba(255,180,0,.22)}
+.r-pod.p2{--ring:#c3ccda;--m1:#eef1f6;--m2:#a9b4c6;--mt:#44516a;--rib:#2dbd66;--step:#eef3fa}
+.r-pod.p3{--ring:#e8b58a;--m1:#f3c8a0;--m2:#c9803f;--mt:#5c3413;--rib:#ff8a2a;--step:#fdf0e5}
+.r-medal{position:absolute;top:8px;left:10px}
+.r-pod.p1 .r-medal{transform:scale(1.12);transform-origin:top left}
+.r-pod-name{margin-top:10px;font-size:15px;font-weight:800;line-height:1.25;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r-pod.p1 .r-pod-name{font-size:16.5px}
+.r-pod-meta{display:flex;gap:6px;justify-content:center;margin-top:5px}
+.r-pod-stars{display:flex;align-items:center;gap:6px;margin-top:10px}
+.r-pod-stars b{font-size:26px;font-weight:800;line-height:1}
+.r-pod.p1 .r-pod-stars b{font-size:32px}
+.r-pod-sub{font-size:12px;font-weight:700;color:var(--muted);margin:4px 0 12px}
+.r-step{align-self:stretch;margin:0 -12px;display:grid;place-items:center;background:var(--step);
+  border-top:1px solid var(--line);font-size:20px;font-weight:800;color:var(--m2)}
+.r-pod.p1 .r-step{height:56px}.r-pod.p2 .r-step{height:40px}.r-pod.p3 .r-step{height:30px;font-size:17px}
 
-.student-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 15px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  background: #f9f9f9;
-  transition: background 0.2s;
-}
+/* ═══ Белгілер ═══ */
+.r-cls{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;
+  background:rgba(47,121,255,.09);border:1px solid rgba(47,121,255,.2);color:var(--blue-dk)}
+.r-me{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;
+  color:#1c2b45;background:linear-gradient(45deg,var(--gold-a),var(--gold-b));box-shadow:0 3px 8px rgba(255,180,0,.3)}
+.r-pod.is-me{outline:3px solid var(--gold-b);outline-offset:-1px}
 
-.student-card:hover {
-  background: #f0f0f0;
-}
+/* ═══ Тізім ═══ */
+.r-list{padding:6px 10px 10px}
+.r-head,.r-row{display:grid;grid-template-columns:52px minmax(0,1fr) 190px 64px 84px;align-items:center;gap:10px}
+.r-head{padding:10px 12px 8px;font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted-2);
+  border-bottom:1px solid var(--line);margin-bottom:4px}
+.r-row{padding:9px 12px;border-radius:12px;text-decoration:none;color:var(--ink);border:1px solid transparent;
+  transition:background .15s ease,border-color .15s ease}
+.r-row + .r-row{margin-top:2px}
+.r-row:hover{background:#f5f9ff;border-color:var(--line)}
+.r-row.is-me{background:linear-gradient(90deg,#fffbea,#fff);border-color:rgba(255,180,0,.45)}
+.r-rank{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:14px;font-weight:800;
+  color:var(--blue-dk);background:#eef4ff;border:1px solid rgba(47,121,255,.18)}
+.r-who{display:flex;align-items:center;gap:11px;min-width:0}
+.r-who-txt{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.r-name{font-size:14.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.r-c-stars{display:flex;flex-direction:column;gap:5px}
+.r-stars{display:flex;align-items:center;gap:5px}
+.r-stars b{font-size:15px;font-weight:800}
+.r-bar{height:6px;border-radius:3px;background:rgba(30,79,168,.1);overflow:hidden}
+.r-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold-b),var(--gold-a))}
+.r-c-num{text-align:right;font-size:14px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.r-head .r-c-stars{flex-direction:row}
+.r-head .r-c-num{font-size:11px;font-weight:800;color:var(--muted-2)}
 
-.avatar img {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  margin-right: 15px;
-}
+.r-note{display:flex;align-items:flex-start;gap:7px;margin:0;padding:0 4px;font-size:12px;line-height:1.5;color:var(--muted)}
+.r-note svg{flex-shrink:0;margin-top:2px}
 
-.student-name {
-  flex-grow: 1;
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
+.r-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:40px 20px;text-align:center}
+.r-empty b{font-size:17px;color:var(--ink)}
+.r-empty span{font-size:13.5px;color:var(--muted)}
 
-.student-stats {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  font-size: 14px;
-  color: #333;
+/* ═══ Бейімделу ═══ */
+@media(max-width:720px){
+  .r-head,.r-row{grid-template-columns:40px minmax(0,1fr) 110px}
+  .r-head .r-c-num,.r-row .r-c-num{display:none}
 }
-
-.stars {
-  color: #f5b700;
-  margin-bottom: 0.4em;
+@media(max-width:480px){
+  .r-list{padding:4px 4px 8px}
+  .r-head,.r-row{grid-template-columns:30px minmax(0,1fr) 64px;gap:8px;padding-left:8px;padding-right:8px}
+  .r-rank{width:28px;height:28px;font-size:13px;border-radius:8px}
+  .r-who{gap:8px}
+  .r-ava{width:32px;height:32px;font-size:12px}
+  .r-name{white-space:normal;font-size:13.5px;line-height:1.25}
 }
-
-.average {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 600;
+@media(max-width:720px){
+  .r-hero-stats{width:100%}
+  .r-hs{flex:1}
 }
-
-.rating-icon {
-  width: 16px;
-  height: 16px;
-}
-.back-btn {
-  display: inline-block;
-  margin-bottom: 20px;
-  padding: 8px 16px;
-  background: #007bff;
-  color: white;
-  text-decoration: none;
-  border-radius: 6px;
-  transition: 0.2s;
-}
-
-.back-btn:hover {
-  background: #0056b3;
+@media(max-width:560px){
+  .r-podium{grid-template-columns:1fr;gap:10px}
+  .r-podium .p1{order:-1}
+  .r-step{display:none}
+  .r-pod{padding-bottom:14px}
+  .r-pod-sub{margin-bottom:0}
 }
