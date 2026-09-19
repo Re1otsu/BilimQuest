@@ -239,6 +239,12 @@ function wrapLabel(s, max){
   return lines;
 }
 
+/* Графиктерді шрифт жүктелгеннен кейін саламыз: әйтпесе Chart.js белгілерді
+   уақытша шрифтпен өлшеп, Open Sans-пен салғанда сол жақтан қиып тастайды */
+(document.fonts ? document.fonts.ready : Promise.resolve()).then(drawCharts);
+
+const GRID = 'rgba(30,79,168,.22)';
+function drawCharts(){
 /* ═══ Bloom — радар ═══ */
 const rctx = document.getElementById('bloomRadar').getContext('2d');
 new Chart(rctx, {
@@ -257,9 +263,9 @@ new Chart(rctx, {
     responsive:true, maintainAspectRatio:false,
     scales:{ r:{
       suggestedMin:0, suggestedMax:100,
-      angleLines:{ color:'rgba(30,79,168,.12)' },
-      grid:{ color:'rgba(30,79,168,.12)' },
-      ticks:{ stepSize:25, backdropColor:'transparent', color:'#9aa7bd',
+      angleLines:{ color:GRID, lineWidth:1.2 },
+      grid:{ color:GRID, lineWidth:1.2 },
+      ticks:{ stepSize:25, backdropColor:'transparent', color:'#66758c',
               font:{size:9.5}, callback:v=>v+'%' },
       pointLabels:{ color:'#1c2b45', font:{size:11, weight:'700'} }
     }},
@@ -278,26 +284,33 @@ new Chart(bctx, {
     datasets:[{
       data:[{% for chapter, data in chapters_progress_display.items() %}{{ data.percent }},{% endfor %}],
       backgroundColor:[{% for chapter in chapters_progress_display.keys() %}'{{ chapter_colors.get(chapter,'#2f79ff') }}',{% endfor %}],
-      borderRadius:7, borderSkipped:false, barPercentage:.62, categoryPercentage:.8
+      borderRadius:7, borderSkipped:false, barPercentage:.62, categoryPercentage:.8, order:1
+    },{
+      /* 0–100% сұр жолақ: прогресс 0 болса да, әр тараудың «ізі» көрініп тұрады */
+      data:[{% for chapter in chapters_progress_display.keys() %}100,{% endfor %}],
+      backgroundColor:'rgba(30,79,168,.08)', hoverBackgroundColor:'rgba(30,79,168,.08)',
+      borderRadius:7, borderSkipped:false, barPercentage:.62, categoryPercentage:.8, order:2
     }]
   },
   options:{
     indexAxis:'y', responsive:true, maintainAspectRatio:false,
-    /* сол жақта қор қалдырамыз: «Робототехника» сияқты ұзын бір сөзді
-       белгі тым тығыз отырады да, басқа шрифтте қиылып қалуы мүмкін */
-    layout:{ padding:{ right:22, left:8 } },
+    layout:{ padding:{ right:22, left:4 } },
     scales:{
       x:{ min:0, max:100, border:{display:false},
-          grid:{ color:'rgba(30,79,168,.08)' },
-          ticks:{ color:'#9aa7bd', font:{size:10}, callback:v=>v+'%' } },
-      y:{ border:{display:false}, grid:{display:false},
-          ticks:{ color:'#1c2b45', font:{size:10.5, weight:'700'}, autoSkip:false } }
+          grid:{ color:GRID, lineWidth:1.2 },
+          ticks:{ color:'#66758c', font:{size:10}, callback:v=>v+'%' } },
+      y:{ stacked:true, border:{display:true, color:'rgba(30,79,168,.35)', width:1.5}, grid:{display:false},
+          ticks:{ color:'#1c2b45', font:{size:10.5, weight:'700'}, autoSkip:false, padding:8 },
+          /* белгілер бағанына кепілді ең аз ен — ұзын сөз қиылмайды */
+          afterFit(s){ s.width = Math.max(s.width, 112); } }
     },
     plugins:{ legend:{display:false},
       tooltip:{ backgroundColor:'#1c2b45', padding:10, displayColors:false,
+                filter:c=>c.datasetIndex===0,
                 callbacks:{ label:c=>c.parsed.x + '%' } } }
   }
 });
+}
 </script>
 </body>
 </html>

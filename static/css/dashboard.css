@@ -132,6 +132,8 @@ body::before{
 
 /* ═══ Графиктер ═══ */
 .progress-section{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* grid элементі әдепкіде min-width:auto — Chart.js canvas-ы бағанды кеңейтіп жібереді */
+.progress-section > *,.games-section > *{min-width:0}
 /* canvas өлшемін Chart.js өзі басқарады (responsive + maintainAspectRatio:false).
    Оны !important-пен мәжбүрлеу ішкі координаттарды жылжытып, сол жақ
    белгілерді қиып тастайды — сондықтан қолмен өлшем берілмейді. */
