@@ -13,9 +13,9 @@ body{
   background:#e3ecfb url("/static/img/home2/student_bg.webp") center top / cover no-repeat fixed;
   min-height:100vh;
 }
-/* ортаңғы бөлікті жұмсартатын жарық қабат — карталардың артындағы фон тыныш көрінеді */
+/* тақырып астындағы жеңіл жарық — мәтін аспан фонында анық оқылады */
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 62% 48% at 50% 52%,rgba(236,243,255,.62),rgba(236,243,255,0) 72%)}
+  background:radial-gradient(ellipse 60% 42% at 50% 26%,rgba(240,246,255,.38),rgba(240,246,255,0) 70%)}
 
 /* ═══ Шапка ═══ */
 .s-top{position:sticky;top:0;z-index:20;color:#fff;
