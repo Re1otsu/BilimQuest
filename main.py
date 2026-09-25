@@ -2035,9 +2035,10 @@ def _game_guide(page):
              "goal": "Тапсырманы сәтті аяқта!"}
     rules = [{"ic": ic, "b": b, "t": t} for (ic, b, t) in g["rules"]]
     chapter = CHAPTER_LABELS.get(GAME_TO_CHAPTER.get(name, ""), "")
+    back = GAME_CHAPTERS.get(GAME_TO_CHAPTER.get(name, ""), {}).get("back", "/student")
     return {"title": name, "icon": g.get("icon", "🎮"),
             "subtitle": g.get("subtitle", ""), "rules": rules,
-            "goal": g["goal"], "chapter": chapter}
+            "goal": g["goal"], "chapter": chapter, "back": back}
 
 
 GAME_HELP_PROMPTS = {
@@ -2131,6 +2132,9 @@ def inject_game_intro(response):
             game_title=guide["title"], icon=guide["icon"],
             subtitle=guide["subtitle"], rules=guide["rules"],
             goal=guide["goal"], chapter=guide["chapter"],
+            back=guide["back"],
+            # ойында модульге қайтатын өз батырмасы болса — қосымша батырма керек емес
+            has_back=('href="%s"' % guide["back"]) in html,
         )
         # <body> ашылғаннан кейін бірден қоямыз — кідірту скрипті ойын
         # скриптерінен бұрын іске қосылуы үшін.

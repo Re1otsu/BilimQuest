@@ -34,7 +34,24 @@
   background:linear-gradient(135deg,#7dffa0,#34d36b);box-shadow:0 10px 26px rgba(52,211,107,.45);
   transition:transform .15s ease,filter .2s ease}
 #bqGameIntro .bgi-start:hover{transform:translateY(-2px);filter:brightness(1.05)}
+
+/* Ойын ішіндегі «Артқа» батырмасы — модуль бетіне қайтарады (сол жақ жоғарғы бұрыш) */
+#bqBack{position:fixed;left:12px;top:12px;z-index:9990;display:inline-flex;align-items:center;gap:6px;
+  height:38px;padding:0 14px 0 10px;border-radius:999px;text-decoration:none;
+  font-family:'Nunito','Open Sans',system-ui,Arial,sans-serif;font-size:14px;font-weight:800;color:#1e4fa8;
+  background:rgba(255,255,255,.94);border:1px solid rgba(30,79,168,.18);
+  box-shadow:0 6px 18px rgba(10,20,60,.25);transition:transform .15s ease,background .15s ease}
+#bqBack:hover{transform:translateX(-2px);background:#fff}
+#bqBack svg{width:18px;height:18px}
+@media (max-width:600px){ #bqBack{height:34px;font-size:13px;padding:0 11px 0 8px;left:8px;top:8px}}
 </style>
+
+{% if back and not has_back %}
+<a id="bqBack" href="{{ back }}" title="Модульге оралу">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  Артқа
+</a>
+{% endif %}
 
 <script>
 /* Нұсқаулық ашық тұрғанда ойынды кідірту: setInterval-таймерлер жабылғанша кейінге қалдырылады */
@@ -68,11 +85,6 @@
     {% if chapter %}<div class="bgi-chip">{{ chapter }}</div>{% endif %}
     <div class="bgi-title">{{ game_title }}</div>
     {% if subtitle %}<div class="bgi-sub">{{ subtitle }}</div>{% endif %}
-    <div class="bgi-rules">
-      {% for r in rules %}
-      <div class="bgi-rule"><span class="r-ic">{{ r.ic }}</span><span>{% if r.b %}<b>{{ r.b }}</b> — {% endif %}{{ r.t }}</span></div>
-      {% endfor %}
-    </div>
     <div class="bgi-goal">🎯 Мақсат: <b>{{ goal }}</b></div>
     <button class="bgi-start" id="bgiStart">▶ Бастау!</button>
   </div>

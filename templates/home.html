@@ -3,71 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Рөлді Таңдау</title>
+    <title>BilimQuest — Рөлді таңдау</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="{{ url_for('static', filename='img/home2/role_bg.webp') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-      <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
 </head>
 <body>
-<header class="header">
-    <h1 class="title">BilimQuest</h1>
-    <div class="logo-container">
-        <img src="{{ url_for('static', filename='img/EKU.png') }}" alt="School 1" class="school-logo">
-        <img src="{{ url_for('static', filename='img/44.png') }}" alt="School 2" class="school-logo">
-        <img src="{{ url_for('static', filename='img/Bokei.webp') }}" alt="School 3" class="school-logo">
-        <img src="{{ url_for('static', filename='img/45.png') }}" alt="School 4" class="school-logo">
+
+<!-- ═══ Шапка: логотип + университет ═══ -->
+<header class="h-top">
+    <div class="h-top-in">
+        <a href="/" class="h-logo" aria-label="BilimQuest">
+            <svg class="h-cap" viewBox="0 0 48 32" aria-hidden="true">
+                <path d="M24 2L2 11l22 9 22-9z" fill="#1d3f9e"/>
+                <path d="M11 15.5v7c0 2.6 5.8 5 13 5s13-2.4 13-5v-7l-13 5.3z" fill="#1d3f9e"/>
+                <path d="M42 12.6v9.2" stroke="#1d3f9e" stroke-width="2.2" stroke-linecap="round"/>
+                <circle cx="42" cy="23.6" r="2.4" fill="#2f79ff"/>
+            </svg>
+            <span class="h-bilim">Bilim</span><span class="h-quest">Quest</span>
+        </a>
+        <div class="h-uni">
+            <img src="{{ url_for('static', filename='img/home2/amu_emblem.webp') }}" alt="" class="h-uni-emb">
+            <span class="h-uni-txt">AMANZHOLOV<br>UNIVERSITY</span>
+        </div>
     </div>
 </header>
 
-    <main class="container">
-        <img src="{{ url_for('static', filename='img/main.png') }}" alt="Картинка" class="main-img">
-        <h2 class="subtitle">Порталға қош келдіңіз!</h2>
-        <p class="lead">Жалғастыру үшін рөліңізді таңдаңыз</p>
+<!-- ═══ Басты экран ═══ -->
+<main class="h-hero">
+    <div class="h-hero-in">
+        <h1 class="h-brand">
+            <svg class="h-brand-cap" viewBox="0 0 48 32" aria-hidden="true">
+                <path d="M24 2L2 11l22 9 22-9z" fill="#dff1ff"/>
+                <path d="M11 15.5v7c0 2.6 5.8 5 13 5s13-2.4 13-5v-7l-13 5.3z" fill="#bfe3ff"/>
+                <path d="M42 12.6v9.2" stroke="#dff1ff" stroke-width="2.2" stroke-linecap="round"/>
+                <circle cx="42" cy="23.6" r="2.4" fill="#ffd54a"/>
+            </svg>
+            <span class="h-brand-b">Bilim</span><span class="h-brand-q">Quest</span>
+            <svg class="h-spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1c.7 5.6 4.4 9.3 11 11-6.6 1.7-10.3 5.4-11 11-.7-5.6-4.4-9.3-11-11 6.6-1.7 10.3-5.4 11-11z" fill="#ffd54a"/></svg>
+        </h1>
+        <p class="h-tag">Білім ал. Ойна. Дамы.</p>
 
-        <div class="btn-group">
-            <!-- Кнопка для учителя -->
-            <form method="POST" action="/" class="role-form">
-                <button type="submit" name="role" value="teacher" class="role-card role-card--teacher">
-                    <span class="role-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 3L2 8l10 5 8-4v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M6 11v4c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </span>
-                    <span class="role-text">
-                        <span class="role-title">Мұғалім</span>
-                        <span class="role-desc">Сабақтарды басқару және бақылау</span>
+        <h2 class="h-welcome">Порталға қош келдіңіз!</h2>
+        <p class="h-lead">Жалғастыру үшін рөліңізді таңдаңыз</p>
+
+        <div class="h-roles">
+            <!-- Мұғалім -->
+            <form method="POST" action="/" class="h-role-form">
+                <button type="submit" name="role" value="teacher" class="h-role h-role--teacher">
+                    <span class="h-role-title">Мұғалім</span>
+                    <span class="h-role-desc">Сабақтарды басқару және бақылау</span>
+                    <span class="h-role-go" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </span>
                 </button>
             </form>
 
-            <!-- Кнопка для ученика, которая открывает модалку -->
-            <button type="button" id="studentBtn" class="role-card role-card--student">
-                <span class="role-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-                        <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span class="role-text">
-                    <span class="role-title">Оқушы</span>
-                    <span class="role-desc">Тапсырмалар мен ойындарға кіру</span>
+            <!-- Оқушы: кіру / тіркелу терезесін ашады -->
+            <button type="button" id="studentBtn" class="h-role h-role--student">
+                <span class="h-role-title">Оқушы</span>
+                <span class="h-role-desc">Тапсырмаларды орындау және білім алу</span>
+                <span class="h-role-go" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </span>
             </button>
         </div>
-    </main>
-
-    <!-- Модальное окно -->
-    <div id="modal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Қош келдіңіз!</h2>
-        <p>Әрекетті таңдаңыз:</p>
-        <button class="action-btn login-btn"  id="loginBtn">Кіру</button>
-        <button class="action-btn register-btn" id="registerBtn">Тіркелу</button>
-      </div>
     </div>
+</main>
 
-    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+<!-- ═══ Оқушы: кіру немесе тіркелу ═══ -->
+<div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+        <button type="button" class="close" aria-label="Жабу">&times;</button>
+        <img src="{{ url_for('static', filename='img/home2/role_student.webp') }}" alt="" class="modal-art">
+        <h2 id="modalTitle">Қош келдің!</h2>
+        <p>Әрекетті таңдаңыз:</p>
+        <button class="action-btn login-btn" id="loginBtn">Кіру</button>
+        <button class="action-btn register-btn" id="registerBtn">Тіркелу</button>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>

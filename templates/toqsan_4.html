@@ -327,7 +327,7 @@
     </div>
 
     <!-- title banner -->
-    <div class="banner"><h1>Компьютер және қауіпсіздік</h1></div>
+    <div class="banner"><h1>Жасанды интеллект зертханасы</h1></div>
 
     <!-- chrome -->
     <div class="compass" title="Карта">
@@ -478,8 +478,7 @@ function openNode(i){
   const primary=document.createElement('button'); primary.className='btn btn-primary';
   primary.textContent = st==='done' ? 'Қайта өту' : 'Бастау';
   primary.onclick=()=>startBlock(i);
-  const ghost=document.createElement('button'); ghost.className='btn btn-ghost'; ghost.textContent='Жабу'; ghost.onclick=closeModal;
-  act.appendChild(primary); act.appendChild(ghost);
+  act.appendChild(primary);
   overlay.classList.add('show');
 }
 function closeModal(){ overlay.classList.remove('show'); openIdx=-1; }

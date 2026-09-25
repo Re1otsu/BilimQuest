@@ -17,6 +17,10 @@ body{background:
 .hud{display:flex;align-items:center;justify-content:space-between;gap:12px;height:58px;padding:0 14px;flex-wrap:nowrap;
   background:linear-gradient(180deg,rgba(10,16,44,.96),rgba(6,10,30,.96));border-bottom:1.5px solid rgba(80,140,255,.3)}
 .agent{display:flex;align-items:center;gap:10px}
+.hud-back{display:inline-flex;align-items:center;gap:5px;height:36px;padding:0 13px 0 9px;border-radius:10px;text-decoration:none;
+  font-size:12.5px;font-weight:800;color:#c7d6ff;background:rgba(80,140,255,.12);border:1px solid rgba(120,160,255,.4);transition:background .15s}
+.hud-back:hover{background:rgba(80,140,255,.25)}
+.hud-back svg{width:15px;height:15px}
 .ava{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:22px;
   background:radial-gradient(circle at 38% 30%,#2a4a9a,#0e1844);border:1.5px solid rgba(120,160,255,.5)}
 .ag-meta{font-size:12px;font-weight:800;line-height:1.2}.ag-meta b{font-size:13px}.ag-lvl{color:#8fb3ff;font-size:10.5px}
@@ -118,6 +122,7 @@ body{background:
 <!-- HUD -->
 <div class="hud">
   <div class="agent">
+    <a href="/toqsan_4" class="hud-back" title="Модульге оралу"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Артқа</a>
     <div class="ava" id="agentAva"></div>
     <div class="ag-meta"><b>АГЕНТ</b><div class="ag-lvl">Кибер-бекініс</div></div>
   </div>

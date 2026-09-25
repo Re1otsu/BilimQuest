@@ -51,7 +51,6 @@
       <div class="nm-meta" id="nmMeta"></div>
       <div class="nm-actions">
         <button class="nm-btn nm-start" id="nmStart">▶ Ойынды бастау</button>
-        <button class="nm-btn nm-close" id="nmClose">Жабу</button>
       </div>
     </div>
   </div>
@@ -82,7 +81,6 @@
   function close(){ ovl.classList.remove('show'); }
   nodes.forEach((n,i)=>n.addEventListener('click',e=>{ e.preventDefault(); open(n,i+1,nodes.length); }));
   document.getElementById('nmStart').onclick=()=>{ if(url) window.location.href=url; };
-  document.getElementById('nmClose').onclick=close;
   document.getElementById('nmX').onclick=close;
   ovl.addEventListener('click',e=>{ if(e.target===ovl) close(); });
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });

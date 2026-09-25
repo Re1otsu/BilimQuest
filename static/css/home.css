@@ -1,397 +1,100 @@
-:root {
-    --bg-1: #4f8ef7;
-    --bg-2: #6a5af9;
-    --accent: #4285f4;
-    --accent-dark: #3367d6;
+/* ══════════════════════════════════════════════════════════════
+   BilimQuest — Рөлді таңдау беті (макет бойынша)
+   • Ақ шапка: логотип сол жақта, университет эмблемасы оң жақта
+   • Көк-күлгін градиентті экран; сурет-фон: role_bg.webp (кітаптар, ноутбук, сызбалар)
+   • Екі шыны карта: сурет — фон ретінде, мәтін мен батырма — HTML (өзгертуге болады)
+   • Карта ішіндегі өлшемдер карта еніне қарай масштабталады (cqw)
+══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:'Nunito','Open Sans','Segoe UI',system-ui,sans-serif;
+  color:#fff;background:#3b5cf4;
+  display:flex;flex-direction:column;min-height:100vh;
 }
 
-* {
-    box-sizing: border-box;
-}
+/* ═══ Шапка ═══ */
+.h-top{flex-shrink:0;background:#fff;box-shadow:0 4px 18px rgba(20,40,120,.12);position:relative;z-index:2}
+.h-top-in{max-width:1320px;margin:0 auto;padding:12px clamp(16px,5vw,64px);
+  display:flex;align-items:center;justify-content:space-between;gap:16px}
+.h-logo{display:flex;align-items:flex-end;text-decoration:none;font-weight:900;font-size:clamp(26px,3.2vw,50px);letter-spacing:-.5px;line-height:1;position:relative;padding-top:6px}
+.h-cap{position:absolute;left:-6px;top:-6px;width:.95em;transform:rotate(-12deg)}
+.h-bilim{color:#1d3f9e}
+.h-quest{background:linear-gradient(180deg,#48a4ff,#1f6fe6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.h-uni{display:flex;align-items:center;gap:10px}
+.h-uni-emb{height:clamp(40px,4.6vw,74px);width:auto}
+.h-uni-txt{font-family:'Open Sans','Segoe UI',sans-serif;font-size:clamp(12px,1.4vw,22px);line-height:1.12;letter-spacing:.3px;color:#1f8fd6;font-weight:400}
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Open Sans', sans-serif;
-    background: linear-gradient(135deg, #4f8ef7 0%, #6a5af9 60%, #8b5cf6 100%);
-    min-height: 100vh;
-    color: white;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    overflow-x: hidden;
-}
+/* ═══ Басты экран ═══ */
+.h-hero{flex:1;position:relative;display:flex;
+  background:#3b5cf4 url("/static/img/home2/role_bg.webp") center bottom / cover no-repeat}
+.h-hero-in{position:relative;z-index:1;width:100%;max-width:1100px;margin:0 auto;
+  padding:clamp(28px,6vh,72px) 16px clamp(28px,5vh,56px);
+  display:flex;flex-direction:column;align-items:center;text-align:center}
 
-/* мягкие декоративные пятна на фоне */
-body::before,
-body::after {
-    content: "";
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.45;
-    z-index: 0;
-    pointer-events: none;
-}
-body::before {
-    width: 420px;
-    height: 420px;
-    background: #7ed0ff;
-    top: -120px;
-    left: -120px;
-}
-body::after {
-    width: 480px;
-    height: 480px;
-    background: #b388ff;
-    bottom: -160px;
-    right: -140px;
-}
+.h-brand{position:relative;margin:0;font-weight:900;font-size:clamp(52px,8.2vw,124px);line-height:.95;letter-spacing:-2px;
+  filter:drop-shadow(0 8px 22px rgba(20,30,120,.35))}
+.h-brand-b{color:#fff}
+.h-brand-q{background:linear-gradient(180deg,#b9ecff 0%,#6cc6ff 55%,#4aa8ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.h-brand-cap{position:absolute;left:-.34em;top:-.3em;width:.62em;transform:rotate(-14deg);filter:drop-shadow(0 4px 8px rgba(0,0,40,.25))}
+.h-spark{position:absolute;right:-.36em;top:-.2em;width:.32em;animation:twinkle 2.6s ease-in-out infinite}
+@keyframes twinkle{50%{transform:scale(.72) rotate(20deg);opacity:.75}}
+.h-tag{margin:.35em 0 0;font-size:clamp(20px,2.3vw,32px);font-weight:400;color:#eef4ff;letter-spacing:.2px}
+.h-welcome{margin:clamp(22px,4vh,44px) 0 0;font-size:clamp(19px,1.8vw,25px);font-weight:800}
+.h-lead{margin:6px 0 0;font-size:clamp(15px,1.35vw,19px);font-weight:600;color:rgba(255,255,255,.88)}
 
-/* ===== Шапка ===== */
-.header {
-    width: 100%;
-    background-color: #fff;
-    padding: 12px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+/* ═══ Рөл карталары ═══ */
+.h-roles{margin-top:clamp(18px,3vh,30px);display:flex;gap:clamp(12px,1.6vw,22px);justify-content:center;width:100%}
+.h-role-form{margin:0;display:contents}
+.h-role{
+  container-type:inline-size;
+  position:relative;width:clamp(150px,21vw,330px);aspect-ratio:329/367;
+  border:none;padding:0;cursor:pointer;font:inherit;color:#fff;text-align:center;
+  border-radius:6.8% / 6.1%;background:transparent center / 100% 100% no-repeat;
+  box-shadow:0 18px 40px rgba(20,20,110,.35);
+  transition:transform .22s cubic-bezier(.3,1.4,.5,1),box-shadow .22s ease,filter .2s ease;
 }
+.h-role--teacher{background-image:url("/static/img/home2/role_teacher.webp")}
+.h-role--student{background-image:url("/static/img/home2/role_student.webp")}
+.h-role:hover,.h-role:focus-visible{transform:translateY(-6px);filter:brightness(1.06);
+  box-shadow:0 26px 50px rgba(20,20,110,.45),0 0 0 2px rgba(255,255,255,.55)}
+.h-role:focus-visible{outline:none}
+.h-role-title{position:absolute;left:6%;right:6%;top:48.5%;font-size:9cqw;font-weight:800;line-height:1.1;
+  text-shadow:0 2px 10px rgba(10,20,90,.35)}
+.h-role-desc{position:absolute;left:9%;right:9%;top:61%;font-size:5.4cqw;font-weight:600;line-height:1.35;color:rgba(255,255,255,.9)}
+.h-role-go{position:absolute;left:50%;bottom:4.5%;width:19.5cqw;height:19.5cqw;transform:translateX(-50%);
+  border-radius:50%;display:grid;place-items:center;color:#fff;
+  background:rgba(255,255,255,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 16px rgba(20,20,100,.25);
+  transition:background .2s ease,transform .2s ease}
+.h-role--student .h-role-go{background:rgba(190,150,255,.4)}
+.h-role-go svg{width:50%;height:50%}
+.h-role:hover .h-role-go{background:rgba(255,255,255,.34);transform:translateX(-50%) scale(1.06)}
+.h-role:hover .h-role-go svg{animation:nudge .6s ease}
+@keyframes nudge{50%{transform:translateX(3px)}}
 
-/* логотип */
-.logo-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 2em;
-    flex-wrap: wrap;
-    width: 100vw;
-}
+/* ═══ Оқушы терезесі ═══ */
+.modal{display:none;position:fixed;inset:0;z-index:50;background:rgba(10,14,50,.55);backdrop-filter:blur(4px);animation:fade .2s ease}
+.modal-content{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,380px);
+  padding:22px 26px 26px;border-radius:24px;text-align:center;color:#1c2b45;
+  background:linear-gradient(180deg,#ffffff,#eef3ff);box-shadow:0 30px 70px rgba(10,20,80,.45);animation:pop .28s cubic-bezier(.3,1.5,.5,1)}
+.modal-art{width:120px;height:auto;border-radius:18px;margin:4px auto 8px;display:block;box-shadow:0 10px 24px rgba(80,60,220,.3)}
+.modal-content h2{margin:4px 0 2px;font-size:24px;font-weight:900;color:#1d3f9e}
+.modal-content p{margin:0 0 16px;font-size:15px;font-weight:600;color:#5a6a8c}
+.close{position:absolute;right:14px;top:10px;width:34px;height:34px;border:none;border-radius:50%;cursor:pointer;
+  font-size:24px;line-height:1;color:#6a7aa0;background:#eef2fb;transition:background .15s}
+.close:hover{background:#dfe6f7}
+.action-btn{display:block;width:100%;height:50px;margin-top:10px;border:none;border-radius:14px;cursor:pointer;
+  font-family:inherit;font-size:17px;font-weight:800;transition:transform .15s ease,filter .15s ease}
+.action-btn:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.login-btn{color:#fff;background:linear-gradient(90deg,#2f79ff,#5b4cf0);box-shadow:0 10px 22px rgba(60,80,240,.35)}
+.register-btn{color:#3b3fd6;background:#fff;border:2px solid rgba(90,90,240,.3)!important}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{transform:translate(-50%,-46%) scale(.94);opacity:0}}
 
-.school-logo {
-    height: 15vh;
-    margin-right: 5em;
-    width: auto;
-    transition: transform 0.3s ease, filter 0.3s ease;
-}
-
-.school-logo:hover {
-    transform: scale(1.1);
-    filter: brightness(1.2);
-    cursor: pointer;
-}
-
-/* заголовок */
-.title {
-    font-size: 48px;
-    font-weight: 800;
-    color: #3367d6;
-    margin: 0;
-    letter-spacing: -0.5px;
-}
-
-/* ===== Контейнер ===== */
-.container {
-    position: relative;
-    z-index: 1;
-    margin-top: 48px;
-    padding: 0 20px 60px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    animation: rise 0.6s ease both;
-}
-
-@keyframes rise {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-.main-img {
-    width: 18vw;
-    max-width: 260px;
-    min-width: 160px;
-    height: auto;
-    margin-bottom: 12px;
-    filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.25));
-}
-
-.subtitle {
-    font-size: 30px;
-    font-weight: 700;
-    margin: 4px 0 0;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.lead {
-    font-size: 17px;
-    font-weight: 400;
-    opacity: 0.9;
-    margin: 0 0 8px;
-}
-
-/* ===== Карточки ролей ===== */
-.btn-group {
-    display: flex;
-    gap: 28px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 28px;
-}
-
-.role-form {
-    margin: 0;
-    display: flex;
-}
-
-.role-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 12px;
-    width: 240px;
-    padding: 32px 24px;
-    background: rgba(255, 255, 255, 0.14);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 22px;
-    color: #fff;
-    cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-    transition: transform 0.25s ease, box-shadow 0.25s ease,
-                background 0.25s ease, border-color 0.25s ease;
-}
-
-.role-card:hover {
-    transform: translateY(-8px);
-    background: rgba(255, 255, 255, 0.22);
-    border-color: rgba(255, 255, 255, 0.6);
-    box-shadow: 0 22px 45px rgba(0, 0, 0, 0.28);
-}
-
-.role-card:active {
-    transform: translateY(-2px);
-}
-
-.role-card:focus-visible {
-    outline: 3px solid #fff;
-    outline-offset: 3px;
-}
-
-.role-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
-    color: var(--accent-dark);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-    transition: transform 0.25s ease;
-}
-
-.role-card--student .role-icon {
-    color: #e8590c;
-}
-
-.role-card:hover .role-icon {
-    transform: scale(1.08) rotate(-4deg);
-}
-
-.role-icon svg {
-    width: 38px;
-    height: 38px;
-}
-
-.role-text {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.role-title {
-    font-size: 24px;
-    font-weight: 700;
-}
-
-.role-desc {
-    font-size: 14px;
-    font-weight: 400;
-    opacity: 0.9;
-    line-height: 1.4;
-}
-
-/* ===== Модальное окно ===== */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0; top: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-content {
-    background: #fff;
-    color: #333;
-    margin: 12% auto;
-    padding: 36px 28px;
-    width: min(380px, 90vw);
-    border-radius: 20px;
-    text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-    animation: slideDown 0.3s ease;
-    position: relative;
-}
-
-.modal-content h2 {
-    margin: 0 0 6px;
-    color: var(--accent-dark);
-}
-
-.modal-content p {
-    margin: 0 0 18px;
-    color: #666;
-}
-
-/* анимации */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes slideDown {
-    from { transform: translateY(-50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-/* крестик */
-.close {
-    position: absolute;
-    right: 18px;
-    top: 14px;
-    font-size: 28px;
-    cursor: pointer;
-    color: #aaa;
-    line-height: 1;
-    transition: 0.3s;
-}
-.close:hover {
-    color: #000;
-}
-
-/* кнопки внутри модалки */
-.modal-content .action-btn {
-    display: inline-block;
-    padding: 13px 26px;
-    margin: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    color: #fff;
-    transition: all 0.25s ease;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-}
-
-.modal-content .login-btn {
-    background: linear-gradient(135deg, #2196F3, #1976d2);
-}
-.modal-content .register-btn {
-    background: linear-gradient(135deg, #FF7043, #f4511e);
-}
-
-.modal-content .action-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
-    filter: brightness(1.05);
-}
-
-/* ===== Адаптивность ===== */
-
-/* Экраны до 1280px (ноутбуки, планшеты) */
-@media (max-width: 1280px) {
-  .title {
-    font-size: 36px;
-  }
-  .subtitle {
-    font-size: 24px;
-  }
-  .school-logo {
-    height: 80px;
-    margin-right: 2em;
-  }
-  .main-img {
-    width: 220px;
-  }
-}
-
-/* Экраны до 720px (телефоны) */
-@media (max-width: 720px) {
-  .header {
-    flex-direction: column;
-    padding: 10px;
-  }
-  .logo-container {
-    gap: 1em;
-    margin-bottom: 10px;
-  }
-  .school-logo {
-    height: 60px;
-    margin-right: 0;
-  }
-  .title {
-    font-size: 28px;
-  }
-  .subtitle {
-    font-size: 20px;
-  }
-  .lead {
-    font-size: 15px;
-  }
-  .btn-group {
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-    max-width: 320px;
-  }
-  .role-card {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    text-align: left;
-    padding: 20px;
-    gap: 16px;
-  }
-  .role-icon {
-    width: 56px;
-    height: 56px;
-    flex-shrink: 0;
-  }
-  .role-icon svg {
-    width: 30px;
-    height: 30px;
-  }
-  .role-text {
-    align-items: flex-start;
-    gap: 4px;
-  }
-  .role-title {
-    font-size: 20px;
-  }
-  .main-img {
-    max-width: 200px;
-  }
+/* ═══ Бейімделу ═══ */
+@media (max-width:700px){
+  .h-uni-txt{display:none}
+  .h-hero{background-position:22% bottom}
+  .h-role{width:min(44vw,260px)}
+  .h-brand{letter-spacing:-1px}
 }

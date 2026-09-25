@@ -28,6 +28,11 @@ svg{display:block}
 .glass{background:linear-gradient(180deg,rgba(18,16,52,.78),rgba(8,8,28,.86));border:1px solid rgba(140,160,255,.22);
   box-shadow:0 8px 24px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.07);backdrop-filter:blur(6px)}
 .agent{display:flex;align-items:center;gap:10px;border-radius:14px;padding:7px 14px 8px 7px;position:relative}
+.hud-left{display:flex;align-items:center;gap:8px}
+.hud-back{pointer-events:auto;display:inline-flex;align-items:center;gap:5px;height:38px;padding:0 14px 0 10px;border-radius:12px;text-decoration:none;
+  font-size:13px;font-weight:800;color:#dbe4ff}
+.hud-back:hover{border-color:rgba(94,242,255,.6)}
+.hud-back svg{width:16px;height:16px}
 .agent::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--cy);box-shadow:0 0 10px var(--cy)}
 .av{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:radial-gradient(circle at 40% 30%,#2b3a9a,#10133e);border:1px solid rgba(94,242,255,.4)}
 .ag-name{display:flex;align-items:baseline;gap:8px;font-family:'Exo 2';font-weight:900;font-size:13px;letter-spacing:1.2px}
@@ -115,6 +120,8 @@ body #bq-chat .bq-pet-bubble::after{display:none}
   <canvas id="game" width="960" height="540"></canvas>
 
   <div class="hud">
+    <div class="hud-left">
+    <a href="/toqsan_4" class="hud-back glass" title="Модульге оралу"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Артқа</a>
     <div class="agent glass">
       <div class="av">
         <svg width="30" height="30" viewBox="0 0 32 32"><defs><radialGradient id="hel" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#c7cff5"/><stop offset="1" stop-color="#6f7ab8"/></radialGradient></defs>
@@ -124,6 +131,7 @@ body #bq-chat .bq-pet-bubble::after{display:none}
         <div class="ag-name">АГЕНТ <span class="ag-lvl" id="lvlLabel">Деңгей 1/3</span></div>
         <div class="hp-row"><span class="hp-lab">HP</span><div class="hpbar"><div class="hpfill" id="hpFill"></div></div></div>
       </div>
+    </div>
     </div>
     <div class="chips">
       <div class="chip coin glass">
@@ -174,12 +182,6 @@ body #bq-chat .bq-pet-bubble::after{display:none}
     <div class="card">
       <h1>Кибер-Тұзақ</h1>
       <p>Интернет-қалада жүгіріп, кибер-тұзақтардан секіріп өт.</p>
-      <div class="how">
-        <div class="how-row"><span class="how-ic" style="background:rgba(94,242,255,.12)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 14l7-7 7 7M5 20l7-7 7 7" stroke="#5ef2ff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Секіру</b> — Space / ↑. Жолдағы <b style="color:#5ef2ff">көк жебелерге</b> жеткенде бас</span></div>
-        <div class="how-row"><span class="how-ic" style="background:rgba(255,79,154,.14)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3l10 18H2z" stroke="#ff4f9a" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 10v5M12 18h.01" stroke="#ff4f9a" stroke-width="2.4" stroke-linecap="round"/></svg></span><span><b>Тұзақ</b> — фишинг, күмәнді сілтеме, алаяқ. Секіріп өт!</span></div>
-        <div class="how-row"><span class="how-ic" style="background:rgba(70,224,122,.14)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z" fill="#46e07a"/><path d="M8 12l3 3 5-6" stroke="#06301a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Қауіпсіз сайт</b> — жина! 12 сайт = 3 деңгей</span></div>
-        <div class="how-row"><span class="how-ic" style="background:rgba(185,140,255,.14)"><svg width="20" height="20" viewBox="0 0 24 24"><ellipse cx="12" cy="13" rx="7" ry="6" fill="#cdd4f6"/><rect x="7.5" y="10.5" width="9" height="5" rx="2.5" fill="#090d2c"/><rect x="10.5" y="12" width="4" height="2" rx="1" fill="#b98cff"/><path d="M3 7h6M15 7h6" stroke="#9aa6d8" stroke-width="1.8" stroke-linecap="round"/></svg></span><span><b>Кронос</b> дроны тұзақты алдын ала ескертеді — тыңда!</span></div>
-      </div>
       <p style="margin-bottom:16px">Мақсат: <b style="color:#7dffa0">12 қауіпсіз сайт</b> жина, HP-ды сақта.</p>
       <button class="btn" onclick="beginRun()">Бастау</button>
     </div>
