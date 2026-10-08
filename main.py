@@ -2148,6 +2148,45 @@ def inject_game_intro(response):
     return response
 
 
+# Тоқсан картасы → тарау кілті және аяқталу анимациясының мәтіндері
+CHAPTER_PAGES = {"/1module": "info", "/toqsan_2": "graphics",
+                 "/toqsan_3": "robotics", "/toqsan_4": "security"}
+CHAPTER_FINALE = {
+    "info":     {"title": "Ақпарат галактикасы бағындырылды!", "acc": "#8fd0ff", "glow": "rgba(143,208,255,.6)"},
+    "graphics": {"title": "Пазл әлемі толық жиналды!",          "acc": "#ffd24a", "glow": "rgba(255,210,74,.55)"},
+    "robotics": {"title": "Квест жолы аяқталды!",               "acc": "#ffb35a", "glow": "rgba(255,170,60,.55)"},
+    "security": {"title": "ЖИ зертханасы толық іске қосылды!",  "acc": "#5ef2ff", "glow": "rgba(94,242,255,.55)"},
+}
+
+
+@app.after_request
+def inject_chapter_complete(response):
+    """Тоқсанның барлық ойыны өтілсе — картаға тақырыптық аяқталу анимациясын қосады."""
+    try:
+        ck = CHAPTER_PAGES.get(request.path)
+        if (not ck or session.get("role") != "student"
+                or not (response.content_type or "").startswith("text/html")
+                or response.direct_passthrough or response.status_code != 200):
+            return response
+        sid = session.get("user_id")
+        games = GAME_CHAPTERS[ck]["games"]
+        rows = GameProgress.query.filter(GameProgress.student_id == sid,
+                                         GameProgress.game_name.in_(games)).all()
+        if {r.game_name for r in rows} != set(games):
+            return response
+        html = response.get_data(as_text=True)
+        if "</body>" not in html or 'id="bqCC"' in html:
+            return response
+        cc = dict(CHAPTER_FINALE[ck], key=ck, sid=sid, label=CHAPTER_LABELS[ck],
+                  games=len(games), stars=sum(int(r.stars or 0) for r in rows),
+                  max_stars=len(games) * 3)
+        snippet = render_template("_chapter_complete.html", cc=cc)
+        response.set_data(html.replace("</body>", snippet + "\n</body>", 1))
+    except Exception as e:
+        print("chapter finale inject skipped:", e)
+    return response
+
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))

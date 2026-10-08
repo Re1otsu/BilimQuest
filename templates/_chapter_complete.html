@@ -1,0 +1,335 @@
+<!-- ============================================================
+     BilimQuest — тоқсан аяқталғандағы тақырыптық анимация
+     main.py → inject_chapter_complete() тоқсан картасына қосады,
+     егер оқушы осы тоқсанның БАРЛЫҚ ойынын өткен болса.
+     • info      — жұлдыздар шоқжұлдызға жиналып, үлкен жұлдыз болады
+     • graphics  — пазл бөліктері ұшып келіп, суретке жиналады
+     • robotics  — картада жол сызылып, робот сандыққа жетеді
+     • security  — схемалар жанып, ЖИ-чип іске қосылады, қалқан құлыпталады
+     Бірінші рет автоматты көрсетіледі; кейін «Марапат» батырмасымен қайта ашылады.
+============================================================ -->
+<style>
+#bqCC{position:fixed;inset:0;z-index:99990;display:none;align-items:center;justify-content:center;flex-direction:column;
+  padding:16px;font-family:'Nunito','Open Sans',system-ui,sans-serif;color:#fff;text-align:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(30,36,90,.92),rgba(4,6,20,.96));backdrop-filter:blur(6px)}
+#bqCC.show{display:flex;animation:ccFade .4s ease both}
+@keyframes ccFade{from{opacity:0}}
+#bqCC .cc-stage{width:min(560px,90vw,62vh);aspect-ratio:1;position:relative}
+#bqCC .cc-stage svg{width:100%;height:100%;overflow:visible;display:block}
+#bqCC .cc-text{margin-top:6px;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;max-width:560px}
+#bqCC.done .cc-text{opacity:1;transform:none}
+#bqCC .cc-chip{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--cc-acc);margin-bottom:4px}
+#bqCC .cc-title{font-family:'Exo 2','Nunito',sans-serif;font-size:clamp(24px,3.6vw,36px);font-weight:900;line-height:1.15;
+  text-shadow:0 0 24px var(--cc-glow)}
+#bqCC .cc-sub{margin:6px 0 0;font-size:15px;font-weight:600;color:#c9d3f5}
+#bqCC .cc-stars{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:7px 16px;border-radius:999px;
+  font-size:18px;font-weight:900;color:#ffd970;background:rgba(255,201,64,.12);border:1px solid rgba(255,201,64,.4)}
+#bqCC .cc-btn{display:block;margin:16px auto 0;height:50px;padding:0 34px;border:none;border-radius:999px;cursor:pointer;
+  font-family:inherit;font-size:17px;font-weight:900;color:#06231a;
+  background:linear-gradient(135deg,#8dffb0,#2ec865);box-shadow:0 10px 26px rgba(46,200,101,.45);transition:transform .15s}
+#bqCC .cc-btn:hover{transform:translateY(-2px)}
+#bqCC .cc-skip{position:absolute;right:18px;top:16px;border:none;background:rgba(255,255,255,.1);color:#c9d3f5;
+  font:inherit;font-size:13px;font-weight:700;padding:7px 14px;border-radius:999px;cursor:pointer}
+#bqCC .cc-skip:hover{background:rgba(255,255,255,.2)}
+#bqCCconf{position:fixed;inset:0;pointer-events:none;z-index:99991}
+
+/* картадағы «Марапат» батырмасы — анимацияны қайта көру */
+#bqCCbtn{position:fixed;left:16px;bottom:16px;z-index:9000;display:inline-flex;align-items:center;gap:8px;height:46px;
+  padding:0 18px 0 8px;border:none;border-radius:999px;cursor:pointer;font-family:'Nunito','Open Sans',sans-serif;
+  font-size:14px;font-weight:900;color:#3a2600;background:linear-gradient(135deg,#ffe27a,#ffb31a);
+  box-shadow:0 8px 22px rgba(255,170,0,.45),inset 0 1px 0 rgba(255,255,255,.6);animation:ccBtnIn .6s cubic-bezier(.3,1.6,.5,1) both}
+#bqCCbtn .ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.55)}
+#bqCCbtn:hover{filter:brightness(1.05);transform:translateY(-2px)}
+@keyframes ccBtnIn{from{transform:scale(.4);opacity:0}}
+@media (max-width:600px){ #bqCCbtn .lbl{display:none}#bqCCbtn{padding:0 7px}}
+</style>
+
+<button id="bqCCbtn" type="button" title="Тоқсан марапатын қайта көру">
+  <span class="ic"><svg width="20" height="20" viewBox="0 0 64 64"><path d="M18 8h28v14a14 14 0 01-28 0z" fill="#e08a00"/><path d="M18 13H9v4a9 9 0 009 9M46 13h9v4a9 9 0 01-9 9" stroke="#e08a00" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M28 36h8v8h-8zM18 46h28v10H18z" fill="#b86b00"/></svg></span>
+  <span class="lbl">Тоқсан аяқталды!</span>
+</button>
+
+<div id="bqCC" role="dialog" aria-modal="true" aria-label="Тоқсан аяқталды" style="--cc-acc:{{ cc.acc }};--cc-glow:{{ cc.glow }}">
+  <button class="cc-skip" type="button" id="bqCCskip">Өткізіп жіберу</button>
+  <div class="cc-stage" id="bqCCstage"></div>
+  <div class="cc-text">
+    <div class="cc-chip">{{ cc.label }}</div>
+    <div class="cc-title">{{ cc.title }}</div>
+    <p class="cc-sub">Барлық {{ cc.games }} ойын өтілді — тоқсан толық аяқталды!</p>
+    <div class="cc-stars"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.3l-5.8 3 1.1-6.4-4.7-4.6 6.5-.9z" fill="#ffd24a"/></svg>{{ cc.stars }} / {{ cc.max_stars }}</div>
+    <button class="cc-btn" type="button" id="bqCCok">Керемет!</button>
+  </div>
+</div>
+<canvas id="bqCCconf"></canvas>
+
+<script>
+(function(){
+const KIND={{ cc.key|tojson }}, KEY='bqChapterDone:{{ cc.sid }}:'+KIND;
+const ov=document.getElementById('bqCC'), stage=document.getElementById('bqCCstage');
+const NS='http://www.w3.org/2000/svg';
+let runId=0;
+
+/* ── көмекшілер ── */
+const el=(tag,attrs,parent)=>{const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;};
+const ease={out:t=>1-Math.pow(1-t,3), inOut:t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
+  back:t=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(t-1,3)+c*Math.pow(t-1,2);},
+  elastic:t=>t===0||t===1?t:Math.pow(2,-10*t)*Math.sin((t*10-.75)*(2*Math.PI)/3)+1};
+function tween(dur,fn,ez,delay){ const my=runId;
+  return new Promise(res=>{ setTimeout(()=>{ const t0=performance.now();
+    (function f(now){ if(my!==runId) return res(); const t=Math.min(1,(now-t0)/dur); fn((ez||ease.out)(t),t); t<1?requestAnimationFrame(f):res(); })(t0);
+  },delay||0); }); }
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function svg(){ stage.innerHTML=''; return el('svg',{viewBox:'0 0 600 600'},stage); }
+function defs(s,html){ const d=el('defs',{},s); d.innerHTML=html; return d; }
+
+/* ── дыбыс ── */
+let ac;
+function tone(f,dur,type,gain,delay){ try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+  const t=ac.currentTime+(delay||0), o=ac.createOscillator(), g=ac.createGain(); o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(gain||.12,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+dur+.05);}catch(e){} }
+const click=()=>{tone(1400,.06,'square',.05);tone(700,.1,'sine',.08,.02);};
+const fanfare=()=>[523,659,784,1047].forEach((f,i)=>tone(f,.5,'triangle',.13,i*.12));
+
+/* ── конфетти ── */
+function confetti(colors){ const c=document.getElementById('bqCCconf'), x=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+  const P=Array.from({length:160},()=>({x:innerWidth/2,y:innerHeight*.42,vx:(Math.random()-.5)*16,vy:-Math.random()*15-4,
+    r:Math.random()*6+4,a:Math.random()*6,va:(Math.random()-.5)*.3,col:colors[Math.random()*colors.length|0],life:1}));
+  const my=runId;(function f(){ if(my!==runId){x.clearRect(0,0,c.width,c.height);return;} x.clearRect(0,0,c.width,c.height); let alive=0;
+    for(const p of P){ p.vy+=.35; p.vx*=.99; p.x+=p.vx; p.y+=p.vy; p.a+=p.va; p.life-=.006; if(p.life<=0||p.y>c.height+20) continue; alive++;
+      x.save(); x.globalAlpha=Math.min(1,p.life*2); x.translate(p.x,p.y); x.rotate(p.a); x.fillStyle=p.col; x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2); x.restore(); }
+    if(alive) requestAnimationFrame(f); else x.clearRect(0,0,c.width,c.height); })(); }
+
+/* ════════ 1. АҚПАРАТ ГАЛАКТИКАСЫ ════════ */
+async function galaxy(){
+  const s=svg();
+  defs(s,`<radialGradient id="gS" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#bfe6ff"/><stop offset="1" stop-color="#5ab8ff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gStar" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6c4"/><stop offset=".45" stop-color="#ffd24a"/><stop offset="1" stop-color="#ff9d1a"/></linearGradient>
+    <filter id="gGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`);
+  // фондағы ұсақ жұлдыздар
+  for(let i=0;i<70;i++) el('circle',{cx:Math.random()*600,cy:Math.random()*600,r:Math.random()*1.4+.3,fill:'#cfe0ff',opacity:Math.random()*.6+.2},s);
+  const cx=300,cy=300,R=200,r=82;
+  const V=[]; for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r:R; V.push([cx+Math.cos(a)*rr,cy+Math.sin(a)*rr]); }
+  const pts=V.concat([[cx,cy-30],[cx,cy+40]]).slice(0,12);
+  const lines=el('g',{stroke:'#8fd0ff','stroke-width':2.4,'stroke-linecap':'round',opacity:.9,filter:'url(#gGlow)'},s);
+  const bigStar=el('path',{d:'M'+V.map(p=>p.join(',')).join('L')+'Z',fill:'url(#gStar)',opacity:0,filter:'url(#gGlow)'},s);
+  const nodes=pts.map(()=>{ const g=el('g',{},s); el('circle',{r:16,fill:'url(#gS)'},g); el('circle',{r:3.6,fill:'#fff'},g); return g; });
+  const starts=pts.map(()=>{ const a=Math.random()*Math.PI*2, d=380+Math.random()*120; return [cx+Math.cos(a)*d,cy+Math.sin(a)*d]; });
+  // жұлдыздар ұшып келеді
+  await Promise.all(nodes.map((g,i)=>tween(1100,t=>{ const x=lerp(starts[i][0],pts[i][0],t), y=lerp(starts[i][1],pts[i][1],t);
+    g.setAttribute('transform',`translate(${x},${y}) scale(${.4+.6*t})`); },ease.out,i*90).then(()=>tone(880+i*60,.25,'sine',.06))));
+  // шоқжұлдыз сызықтары
+  for(let i=0;i<10;i++){ const a=V[i], b=V[(i+1)%10]; const ln=el('line',{x1:a[0],y1:a[1],x2:a[0],y2:a[1]},lines);
+    tone(660+i*55,.2,'triangle',.05); await tween(130,t=>{ ln.setAttribute('x2',lerp(a[0],b[0],t)); ln.setAttribute('y2',lerp(a[1],b[1],t)); }); }
+  // үлкен алтын жұлдыз
+  await tween(700,t=>{ bigStar.setAttribute('opacity',t); bigStar.setAttribute('transform',`rotate(${(1-t)*-25} ${cx} ${cy}) translate(${cx} ${cy}) scale(${.6+.4*ease.back(t)}) translate(${-cx} ${-cy})`); nodes.forEach(n=>n.setAttribute('opacity',1-t*.7)); });
+  burst(s,cx,cy,['#ffd24a','#fff','#8fd0ff']);
+}
+
+/* ════════ 2. ПАЗЛ ӘЛЕМІ ════════ */
+function jigsaw(cols,rows,W,H,ox,oy){
+  // көлденең/тік жиектердің құлақшалары (+1 сыртқа, −1 ішке)
+  const hz=[],vt=[]; for(let r=0;r<=rows;r++){hz[r]=[];for(let c=0;c<cols;c++)hz[r][c]=(r===0||r===rows)?0:(Math.random()<.5?1:-1);}
+  for(let r=0;r<rows;r++){vt[r]=[];for(let c=0;c<=cols;c++)vt[r][c]=(c===0||c===cols)?0:(Math.random()<.5?1:-1);}
+  const pw=W/cols, ph=H/rows;
+  // (x0,y0)→(x1,y1) жиек, d: құлақша бағыты (жиекке перпендикуляр, сол жақ)
+  function edge(x0,y0,x1,y1,d){ if(!d) return `L${x1},${y1}`; const dx=x1-x0, dy=y1-y0, L=Math.hypot(dx,dy), ux=dx/L, uy=dy/L, nx=-uy*d, ny=ux*d;
+    const P=(a,b)=>`${(x0+ux*L*a+nx*L*b).toFixed(1)},${(y0+uy*L*a+ny*L*b).toFixed(1)}`;
+    return `L${P(.36,0)} C${P(.40,.02)} ${P(.34,.22)} ${P(.42,.26)} C${P(.48,.32)} ${P(.62,.30)} ${P(.60,.20)} C${P(.58,.12)} ${P(.60,.02)} ${P(.64,0)} L${x1},${y1}`; }
+  const out=[];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const x=ox+c*pw, y=oy+r*ph;
+    const d=`M${x},${y}`+edge(x,y,x+pw,y,-hz[r][c])+edge(x+pw,y,x+pw,y+ph,-vt[r][c+1])+edge(x+pw,y+ph,x,y+ph,hz[r+1][c])+edge(x,y+ph,x,y,vt[r][c])+'Z';
+    out.push({d,cx:x+pw/2,cy:y+ph/2,r,c});
+  }
+  return out;
+}
+async function puzzle(){
+  const s=svg(), W=420,H=420,ox=90,oy=90;
+  defs(s,`<linearGradient id="pSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b6cf5"/><stop offset=".55" stop-color="#8fc7ff"/><stop offset="1" stop-color="#ffd9a0"/></linearGradient>
+    <radialGradient id="pSun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff7c2"/><stop offset=".6" stop-color="#ffc93c"/><stop offset="1" stop-color="#ff9a1a"/></radialGradient>
+    <linearGradient id="pShine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <filter id="pSh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity=".45"/></filter>
+    <g id="pArt">
+      <rect x="${ox}" y="${oy}" width="${W}" height="${H}" fill="url(#pSky)"/>
+      <circle cx="${ox+300}" cy="${oy+120}" r="62" fill="url(#pSun)"/>
+      <path d="M${ox},${oy+300} L${ox+110},${oy+170} L${ox+200},${oy+260} L${ox+290},${oy+150} L${ox+420},${oy+300} V${oy+420} H${ox} Z" fill="#5b4cf0"/>
+      <path d="M${ox+110},${oy+170} l28,32 -18,-6 -14,14 -10,-12 z M${ox+290},${oy+150} l32,36 -20,-6 -12,14 -14,-16 z" fill="#fff" opacity=".9"/>
+      <path d="M${ox},${oy+330} C${ox+120},${oy+290} ${ox+260},${oy+360} ${ox+420},${oy+320} V${oy+420} H${ox} Z" fill="#2dbd66"/>
+      <path d="M${ox},${oy+380} C${ox+140},${oy+350} ${ox+280},${oy+400} ${ox+420},${oy+370} V${oy+420} H${ox} Z" fill="#1d9450"/>
+      <path d="M${ox+40},${oy+90} q30,-30 60,0 q30,-30 60,0" stroke="#fff" stroke-width="6" fill="none" opacity=".75" stroke-linecap="round"/>
+      <g transform="translate(${ox+300},${oy+300}) rotate(-30)"><rect x="-8" y="-70" width="16" height="90" rx="6" fill="#ff8a2a"/><rect x="-9" y="10" width="18" height="16" fill="#cfd6e6"/><path d="M-9,26 h18 l-9,26z" fill="#2f2a5a"/></g>
+    </g>`);
+  const pieces=jigsaw(3,3,W,H,ox,oy);
+  const frame=el('rect',{x:ox-6,y:oy-6,width:W+12,height:H+12,rx:14,fill:'rgba(255,255,255,.05)',stroke:'rgba(255,255,255,.25)','stroke-width':2,'stroke-dasharray':'10 8'},s);
+  const groups=pieces.map((p,i)=>{
+    el('clipPath',{id:'pc'+i},s.querySelector('defs')).appendChild(el('path',{d:p.d}));
+    const g=el('g',{filter:'url(#pSh)'},s);
+    el('use',{href:'#pArt','clip-path':`url(#pc${i})`},g);
+    el('path',{d:p.d,fill:'none',stroke:'rgba(255,255,255,.85)','stroke-width':2.5,class:'pEdge'},g);
+    return g; });
+  // АЛДЫМЕН барлық бөлікті экран сыртына шашыратамыз — басында бос жақтау ғана көрінеді
+  const start=groups.map((g,i)=>{ const a=Math.random()*Math.PI*2, d=520+Math.random()*120;
+    const st={sx:Math.cos(a)*d, sy:Math.sin(a)*d, rot:(Math.random()-.5)*160};
+    g.setAttribute('transform',`translate(${st.sx},${st.sy}) rotate(${st.rot} ${pieces[i].cx} ${pieces[i].cy})`); g.setAttribute('opacity',0); return st; });
+  await wait(500);
+  const order=groups.map((g,i)=>i).sort(()=>Math.random()-.5);
+  for(let k=0;k<order.length;k++){ const i=order[k], p=pieces[i], g=groups[i];
+    const {sx,sy,rot}=start[i]; g.setAttribute('opacity',1);
+    tween(950,(t,raw)=>{ const lift=Math.sin(raw*Math.PI)*0.18;
+      g.setAttribute('transform',`translate(${sx*(1-t)},${sy*(1-t)}) rotate(${rot*(1-t)} ${p.cx} ${p.cy}) translate(${p.cx} ${p.cy}) scale(${1+lift}) translate(${-p.cx} ${-p.cy})`); },ease.back)
+      .then(()=>{ click(); g.removeAttribute('filter'); });
+    await wait(380);
+  }
+  await wait(900);
+  // жіктер жоғалады, жарқыл өтеді
+  frame.setAttribute('opacity',0);
+  const edges=[...s.querySelectorAll('.pEdge')];
+  await tween(500,t=>edges.forEach(e=>e.setAttribute('opacity',1-t)));
+  const clip=el('clipPath',{id:'pAll'},s.querySelector('defs')); el('rect',{x:ox,y:oy,width:W,height:H,rx:6},clip);
+  const shine=el('rect',{x:-200,y:oy-40,width:140,height:H+80,fill:'url(#pShine)','clip-path':'url(#pAll)',transform:'skewX(-18)'},s);
+  const border=el('rect',{x:ox,y:oy,width:W,height:H,rx:6,fill:'none',stroke:'#ffd24a','stroke-width':0},s);
+  tween(500,t=>border.setAttribute('stroke-width',6*t));
+  await tween(900,t=>shine.setAttribute('x',lerp(-60,ox+W+200,t)),ease.inOut);
+  burst(s,300,300,['#ffd24a','#5b4cf0','#2dbd66','#3b6cf5']);
+}
+
+/* ════════ 3. КВЕСТ ЖОЛЫ (робототехника) ════════ */
+async function quest(){
+  const s=svg();
+  defs(s,`<linearGradient id="qPap" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e2b3"/><stop offset="1" stop-color="#e2bf7c"/></linearGradient>
+    <linearGradient id="qWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c47a2c"/><stop offset="1" stop-color="#7a4314"/></linearGradient>
+    <radialGradient id="qRay" cx=".5" cy="1" r="1"><stop offset="0" stop-color="#fff3b0" stop-opacity=".95"/><stop offset="1" stop-color="#ffd24a" stop-opacity="0"/></radialGradient>
+    <mask id="qMask"><path id="qMaskPath" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/></mask>`);
+  // пергамент
+  el('path',{d:'M60,70 Q300,40 540,70 Q560,300 540,530 Q300,560 60,530 Q40,300 60,70Z',fill:'url(#qPap)',stroke:'#a8742e','stroke-width':4},s);
+  for(let i=0;i<14;i++) el('circle',{cx:80+Math.random()*440,cy:90+Math.random()*420,r:Math.random()*16+6,fill:'#c9a063',opacity:.18},s);
+  // таулар, ағаштар
+  [[150,170],[200,160],[420,450]].forEach(([x,y])=>el('path',{d:`M${x-34},${y+22} L${x},${y-26} L${x+34},${y+22}Z`,fill:'#b9915a',opacity:.7},s));
+  [[460,150],[480,175],[130,430]].forEach(([x,y])=>{el('circle',{cx:x,cy:y,r:13,fill:'#7c9a4c',opacity:.8},s);});
+  const D='M110,470 C160,380 250,450 280,370 S200,250 260,200 S400,150 420,230 S350,330 430,370 S510,300 480,140';
+  el('path',{d:D,fill:'none',stroke:'#8a5a22','stroke-width':6,'stroke-dasharray':'2 14','stroke-linecap':'round',mask:'url(#qMask)'},s);
+  const mp=s.querySelector('#qMaskPath'); mp.setAttribute('d',D);
+  const probe=el('path',{d:D,fill:'none'},s), L=probe.getTotalLength();
+  mp.setAttribute('stroke-dasharray',L); mp.setAttribute('stroke-dashoffset',L);
+  // бақылау нүктелері (6 ойын)
+  const fr=[.0,.2,.38,.56,.74,.88], flags=fr.map(f=>{ const p=probe.getPointAtLength(L*f); const g=el('g',{transform:`translate(${p.x},${p.y})`,opacity:0},s);
+    el('circle',{r:9,fill:'#fff',stroke:'#8a5a22','stroke-width':3},g); el('path',{d:'M0,-6 V-34',stroke:'#5a3a14','stroke-width':3},g);
+    el('path',{d:'M0,-34 L22,-27 L0,-20Z',fill:'#2f79ff'},g); return g; });
+  // сандық
+  const end=probe.getPointAtLength(L), chest=el('g',{transform:`translate(${end.x},${end.y-6}) scale(1.5)`},s);
+  const rays=el('g',{opacity:0},chest); for(let i=0;i<9;i++) el('path',{d:'M0,-10 L-12,-120 L12,-120Z',fill:'url(#qRay)',transform:`rotate(${-60+i*15})`},rays);
+  el('rect',{x:-32,y:-14,width:64,height:40,rx:5,fill:'url(#qWood)',stroke:'#4a2a0c','stroke-width':3},chest);
+  el('rect',{x:-32,y:2,width:64,height:6,fill:'#ffc93c'},chest);
+  const lid=el('g',{},chest); el('path',{d:'M-32,-14 Q0,-44 32,-14Z',fill:'url(#qWood)',stroke:'#4a2a0c','stroke-width':3},lid);
+  el('rect',{x:-6,y:-16,width:12,height:14,rx:2,fill:'#ffc93c',stroke:'#7a5000','stroke-width':2},chest);
+  // робот
+  const bot=el('g',{},s);
+  el('rect',{x:-15,y:-2,width:30,height:24,rx:7,fill:'#e9eefb',stroke:'#2b3870','stroke-width':2.5},bot);
+  el('rect',{x:-13,y:-28,width:26,height:22,rx:8,fill:'#fff',stroke:'#2b3870','stroke-width':2.5},bot);
+  el('rect',{x:-9,y:-22,width:18,height:10,rx:4,fill:'#16224f'},bot);
+  const eyes=el('g',{fill:'#5ef2ff'},bot); el('rect',{x:-6,y:-20,width:4,height:6,rx:2},eyes); el('rect',{x:2,y:-20,width:4,height:6,rx:2},eyes);
+  el('path',{d:'M0,-28 V-36',stroke:'#2b3870','stroke-width':2.5},bot); el('circle',{cx:0,cy:-38,r:3.5,fill:'#ff8a2a'},bot);
+  el('circle',{cx:-9,cy:24,r:5,fill:'#2b3870'},bot); el('circle',{cx:9,cy:24,r:5,fill:'#2b3870'},bot);
+  // жүру
+  let hit=0;
+  const STOP=L-100;   // робот сандықтың алдында тоқтайды
+  await tween(5200,(t,raw)=>{ const len=L*t, p=probe.getPointAtLength(Math.min(len,STOP)), q=probe.getPointAtLength(Math.min(STOP,len+2));
+    mp.setAttribute('stroke-dashoffset',L-len);
+    const bob=Math.abs(Math.sin(raw*60))*3, dir=q.x<p.x?-1:1;
+    bot.setAttribute('transform',`translate(${p.x},${p.y-26-bob}) scale(${1.45*dir},1.45)`);
+    while(hit<fr.length && t>=fr[hit]){ const f=flags[hit]; tween(400,u=>f.setAttribute('opacity',u)); tone(700+hit*90,.2,'triangle',.08); hit++; }
+  },ease.inOut);
+  // сандық ашылады
+  tone(330,.3,'square',.06);
+  await tween(600,t=>lid.setAttribute('transform',`translate(-32,-14) rotate(${-110*t}) translate(32,14)`),ease.back);
+  tween(800,t=>rays.setAttribute('opacity',t));
+  tween(1200,t=>rays.setAttribute('transform',`rotate(${t*12})`));
+  // робот қуанып секіреді
+  const bp=probe.getPointAtLength(STOP);
+  tween(700,t=>bot.setAttribute('transform',`translate(${bp.x},${bp.y-26-Math.sin(t*Math.PI*2)*18}) scale(1.45)`),x=>x);
+  eyes.setAttribute('fill','#ffd24a');
+  burst(s,end.x,end.y-30,['#ffd24a','#ffe98a','#ff8a2a','#fff']);
+}
+
+/* ════════ 4. ЖИ ЗЕРТХАНАСЫ (қауіпсіздік) ════════ */
+async function ailab(){
+  const s=svg();
+  defs(s,`<linearGradient id="aChip" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b3a8a"/><stop offset="1" stop-color="#0e1440"/></linearGradient>
+    <radialGradient id="aCore" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#e9fdff"/><stop offset=".5" stop-color="#5ef2ff"/><stop offset="1" stop-color="#2b6cff"/></radialGradient>
+    <linearGradient id="aShield" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9dffbe" stop-opacity=".9"/><stop offset="1" stop-color="#1fa653" stop-opacity=".85"/></linearGradient>
+    <filter id="aGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`);
+  // торлы фон
+  const grid=el('g',{stroke:'rgba(94,242,255,.08)','stroke-width':1},s); for(let i=0;i<=600;i+=30){el('line',{x1:i,y1:0,x2:i,y2:600},grid);el('line',{x1:0,y1:i,x2:600,y2:i},grid);}
+  const C=[300,300];
+  // 5 түйін (5 ойын) және олардан чипке баратын схема жолдары
+  const nodes=[[110,130],[490,130],[520,330],[300,525],[80,330]];
+  const paths=['M110,130 H200 V240 H240','M490,130 H400 V240 H360','M520,330 H420 V320 H360','M300,525 V420 H300 V360','M80,330 H180 V320 H240'];
+  const icons=['M-8,-4 h16 v12 h-16z M-5,-4 v-5 a5,5 0 0 1 10,0 v5','M-9,0 a9,9 0 1 0 18,0 a9,9 0 1 0 -18,0 M6,6 l7,7','M0,-10 l9,4 v6 c0,6 -4,10 -9,12 c-5,-2 -9,-6 -9,-12 v-6z','M-10,-6 h20 v12 h-20z M-3,6 v4 h6 v-4','M-9,-8 h18 v16 h-18z M-9,-2 h18'];
+  const traces=paths.map(d=>el('path',{d,fill:'none',stroke:'rgba(94,242,255,.18)','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round'},s));
+  const lit=paths.map(d=>{ const p=el('path',{d,fill:'none',stroke:'#5ef2ff','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round',filter:'url(#aGlow)'},s);
+    const L=p.getTotalLength(); p.setAttribute('stroke-dasharray',L); p.setAttribute('stroke-dashoffset',L); p._L=L; return p; });
+  const nodeG=nodes.map(([x,y],i)=>{ const g=el('g',{transform:`translate(${x},${y})`},s);
+    el('circle',{r:30,fill:'#101a4a',stroke:'rgba(94,242,255,.4)','stroke-width':3},g);
+    el('path',{d:icons[i],fill:'none',stroke:'#7e8fc8','stroke-width':2.4,'stroke-linecap':'round','stroke-linejoin':'round'},g); return g; });
+  // чип
+  const chip=el('g',{},s);
+  for(let i=0;i<6;i++){ const o=-50+i*20; [[o,-72,o,-62],[o,62,o,72],[-72,o,-62,o],[62,o,72,o]].forEach(([a,b,c,d])=>el('line',{x1:C[0]+a,y1:C[1]+b,x2:C[0]+c,y2:C[1]+d,stroke:'#7e8fc8','stroke-width':4,'stroke-linecap':'round'},chip)); }
+  el('rect',{x:C[0]-62,y:C[1]-62,width:124,height:124,rx:14,fill:'url(#aChip)',stroke:'#5ef2ff','stroke-width':2.5},chip);
+  const core=el('circle',{cx:C[0],cy:C[1],r:34,fill:'url(#aCore)',opacity:.15,filter:'url(#aGlow)'},chip);
+  const ai=el('text',{x:C[0],y:C[1]+12,'text-anchor':'middle','font-size':38,'font-weight':900,'font-family':'Exo 2,Nunito,sans-serif',fill:'#0b1140',opacity:0},chip); ai.textContent='AI';
+  // жолдар кезекпен жанады
+  for(let i=0;i<5;i++){ const g=nodeG[i];
+    g.querySelector('circle').setAttribute('stroke','#5ef2ff'); g.querySelector('path').setAttribute('stroke','#5ef2ff');
+    tone(500+i*120,.25,'sine',.08);
+    await tween(420,t=>lit[i].setAttribute('stroke-dashoffset',lit[i]._L*(1-t)),ease.inOut);
+    core.setAttribute('opacity',.15+(i+1)*.17);
+  }
+  tone(1046,.4,'triangle',.1);
+  await tween(500,t=>{ ai.setAttribute('opacity',t); });
+  // толқын сақиналары
+  for(let k=0;k<3;k++){ const ring=el('circle',{cx:C[0],cy:C[1],r:70,fill:'none',stroke:'#5ef2ff','stroke-width':3},s);
+    tween(1100,t=>{ ring.setAttribute('r',70+t*180); ring.setAttribute('opacity',1-t); },ease.out,k*250); }
+  await wait(500);
+  // қорғаныш қалқаны пайда болып, құлып жабылады
+  const sh=el('g',{opacity:0},s);
+  el('path',{d:`M300,95 L455,150 V285 C455,395 385,470 300,505 C215,470 145,395 145,285 V150Z`,fill:'url(#aShield)',opacity:.22,stroke:'#46e07a','stroke-width':5,filter:'url(#aGlow)'},sh);
+  const lock=el('g',{transform:'translate(300,420)'},sh);
+  const shackle=el('path',{d:'M-14,0 V-16 A14,14 0 0 1 14,-16 V-6',fill:'none',stroke:'#fff','stroke-width':6,'stroke-linecap':'round'},lock);
+  el('rect',{x:-22,y:-2,width:44,height:34,rx:7,fill:'#46e07a',stroke:'#fff','stroke-width':3},lock);
+  el('circle',{cx:0,cy:12,r:5,fill:'#0b3a1e'},lock);
+  await tween(600,t=>{ sh.setAttribute('opacity',t); sh.setAttribute('transform',`translate(300 300) scale(${.85+.15*ease.back(t)}) translate(-300 -300)`); });
+  await tween(300,t=>shackle.setAttribute('d',`M-14,0 V-16 A14,14 0 0 1 14,-16 V${-6+6*t}`));
+  click(); tone(880,.3,'triangle',.1,.05);
+  burst(s,300,300,['#5ef2ff','#46e07a','#fff','#b98cff']);
+}
+
+/* ── ортақ: ұшқын-жарылыс ── */
+function burst(s,x,y,cols){ for(let i=0;i<28;i++){ const a=Math.random()*Math.PI*2, d=120+Math.random()*160;
+  const c=el('circle',{cx:x,cy:y,r:Math.random()*4+2,fill:cols[i%cols.length]},s);
+  tween(900+Math.random()*500,t=>{ c.setAttribute('cx',x+Math.cos(a)*d*t); c.setAttribute('cy',y+Math.sin(a)*d*t+40*t*t); c.setAttribute('opacity',1-t); }); } }
+
+const RUN={info:galaxy, graphics:puzzle, robotics:quest, security:ailab};
+const CONF={info:['#ffd24a','#8fd0ff','#fff','#b98cff'],graphics:['#3b6cf5','#ffd24a','#2dbd66','#ff8a2a','#5b4cf0'],
+  robotics:['#ff8a2a','#ffd24a','#2f79ff','#fff'],security:['#5ef2ff','#46e07a','#b98cff','#fff']};
+
+async function play(){
+  runId++; ov.classList.remove('done'); ov.classList.add('show');
+  try{ localStorage.setItem(KEY,'1'); }catch(e){}
+  const my=runId;
+  await RUN[KIND]();
+  if(my!==runId) return;
+  fanfare(); confetti(CONF[KIND]); ov.classList.add('done');
+}
+function close(){ runId++; ov.classList.remove('show','done'); stage.innerHTML=''; }
+document.getElementById('bqCCok').onclick=close;
+document.getElementById('bqCCskip').onclick=()=>{ runId++; ov.classList.add('done'); };
+document.getElementById('bqCCbtn').onclick=play;
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ov.classList.contains('show')) close(); });
+
+let seen=false; try{ seen=!!localStorage.getItem(KEY); }catch(e){}
+if(!seen) window.addEventListener('load',()=>setTimeout(play,500));
+})();
+</script>
