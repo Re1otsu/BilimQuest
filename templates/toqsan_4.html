@@ -3,521 +3,282 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BilimQuest — Квест жолы</title>
+<title>BilimQuest — Жасанды интеллект зертханасы</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="{{ url_for('static', filename='img/toqsan4/lab/bg.webp') }}">
 <style>
-  :root{
-    --cyan:#37e1ff;
-    --magenta:#ff4fd8;
-    --green:#46e06a;
-    --gold:#ffcf48;
-    --ink:#06121a;
-    --panel:#0e1f29;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;}
-  body{
-    background:#05080a;
-    font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;
-    overflow:hidden;
-    color:#eaf6ff;
-    -webkit-font-smoothing:antialiased;
-  }
+/* ══════════════════════════════════════════════════════════════
+   4-тоқсан — «Жасанды интеллект зертханасы» (макет бойынша)
+   • Фон: тас зертхана (bg.webp) — бүкіл экранды толтырады
+   • Сахна 1920×1080, экранға пропорционалды масштабталады (бұрмаланбайды)
+   • Платформалар — суреттер; нөмір, жазу, батырма — HTML (анық, өзгертуге оңай)
+   • Ортада ЖИ-ми голограммасы мен робот-көмекші
+══════════════════════════════════════════════════════════════ */
+:root{--cy:#37e1ff;--ink:#06121a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Rubik',system-ui,'Segoe UI',sans-serif;color:#eaf6ff;overflow:hidden;-webkit-font-smoothing:antialiased;
+  background:#0a1220 url("/static/img/toqsan4/lab/bg.webp") center / cover no-repeat}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 50% 45%,transparent 40%,rgba(3,8,20,.55))}
 
-  /* ---------- scaling stage ---------- */
-  #viewport{
-    position:fixed;inset:0;
-    display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(circle at 50% 40%, #0a1218 0%, #05080a 80%);
-  }
-  #stage{
-    position:relative;
-    width:1920px;height:1080px;
-    transform-origin:center center;
-    flex:0 0 auto;
-    overflow:hidden;
-    box-shadow:0 40px 120px rgba(0,0,0,.7);
-  }
-  #bg{
-    position:absolute;inset:0;
-    background:url("{{ url_for('static', filename='img/toqsan4/background.webp') }}") center/cover no-repeat;
-  }
-  /* atmospheric depth */
-  #bg::after{
-    content:"";position:absolute;inset:0;
-    background:
-      radial-gradient(120% 80% at 50% 45%, rgba(70,170,120,.10), transparent 60%),
-      radial-gradient(140% 120% at 50% 110%, rgba(0,0,0,.55), transparent 55%),
-      linear-gradient(to bottom, rgba(4,12,16,.45), rgba(4,12,16,0) 22%, rgba(4,12,16,0) 70%, rgba(4,12,16,.5));
-  }
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center}
 
-  /* ---------- neon path ---------- */
-  #paths{position:absolute;inset:0;width:1920px;height:1080px;pointer-events:none;}
-  .seg-base{fill:none;stroke:rgba(120,140,160,.28);stroke-width:9;stroke-linecap:round;}
-  .seg-glow{fill:none;stroke:var(--cyan);stroke-width:7;stroke-linecap:round;
-    filter:drop-shadow(0 0 10px var(--cyan));opacity:.18;transition:opacity .5s;}
-  .seg-dash{fill:none;stroke:var(--magenta);stroke-width:3.5;stroke-linecap:round;
-    stroke-dasharray:2 22;opacity:0;transition:opacity .5s;
-    filter:drop-shadow(0 0 6px var(--magenta));}
-  .seg.lit .seg-glow{opacity:.95;}
-  .seg.lit .seg-dash{opacity:1;animation:flow 1.1s linear infinite;}
-  @keyframes flow{to{stroke-dashoffset:-24;}}
+/* ═══ HUD ═══ */
+.brand{position:absolute;left:44px;top:30px;text-decoration:none;color:#fff}
+.brand-name{position:relative;display:block;font-size:54px;font-weight:900;letter-spacing:-1px;line-height:1;text-shadow:0 4px 18px rgba(0,0,0,.55)}
+.brand-name b{background:linear-gradient(180deg,#c3eeff,#4fb8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand-cap{position:absolute;left:-12px;top:-14px;width:46px;transform:rotate(-14deg)}
+.brand-tag{display:block;margin-top:8px;font-size:15px;font-weight:700;letter-spacing:3px;color:#cfe2ff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 
-  /* ---------- check gates ---------- */
-  .gate{position:absolute;width:48px;height:48px;transform:translate(-50%,-50%) scale(.4);
-    opacity:0;transition:opacity .4s, transform .4s;pointer-events:none;z-index:6;}
-  .gate.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
-  .gate .disc{width:100%;height:100%;border-radius:50%;
-    background:radial-gradient(circle at 38% 32%, #7dffa0, #2bbd54 60%, #1a8a3c);
-    box-shadow:0 0 16px rgba(70,224,106,.8), inset 0 -3px 6px rgba(0,0,0,.35), inset 0 3px 4px rgba(255,255,255,.4);
-    display:flex;align-items:center;justify-content:center;border:2px solid rgba(220,255,230,.6);}
-  .gate svg{width:26px;height:26px;}
+.hud-r{position:absolute;right:40px;top:34px;display:flex;align-items:center;gap:16px}
+.coin,.user{display:flex;align-items:center;gap:10px;height:56px;border-radius:999px;text-decoration:none;color:#fff;
+  background:rgba(8,18,44,.78);border:1.5px solid rgba(120,170,255,.35);box-shadow:0 8px 22px rgba(0,0,0,.4);transition:background .15s}
+.coin{padding:0 22px 0 8px;font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}
+.coin svg{width:42px;height:42px}
+.user{padding:0 22px 0 7px;font-size:21px;font-weight:700}
+.user img{width:42px;height:42px;border-radius:50%;background:#fff;border:2px solid #fff}
+.coin:hover,.user:hover{background:rgba(20,40,90,.9)}
+.hud-sep{width:2px;height:34px;background:rgba(255,255,255,.4);border-radius:1px}
 
-  /* ---------- hero (static) ---------- */
-  #hero{position:static;width:100%;height:auto;z-index:7;
-    filter:drop-shadow(0 18px 22px rgba(0,0,0,.55));}
-  .hero-cap{margin-top:8px;text-align:center;font-weight:800;font-size:17px;color:#dff1ff;
-    background:linear-gradient(180deg,rgba(18,30,42,.92),rgba(10,18,26,.95));
-    border:1.5px solid rgba(120,210,255,.5);border-radius:14px;padding:7px 14px;
-    box-shadow:0 8px 20px rgba(0,0,0,.45);text-shadow:0 1px 3px rgba(0,0,0,.6);transition:.2s}
-  .hero-link:hover .hero-cap{border-color:rgba(120,210,255,.9);color:#fff;transform:translateY(-2px)}
+/* ═══ Баннер ═══ */
+.banner{position:absolute;left:50%;top:40px;transform:translateX(-50%);text-align:center}
+.banner-box{position:relative;padding:22px 64px 26px;border-radius:26px;
+  background:linear-gradient(180deg,rgba(10,26,64,.92),rgba(6,14,38,.94));border:3px solid #3aa6ff;
+  box-shadow:0 0 0 2px rgba(58,166,255,.25),0 0 36px rgba(58,166,255,.55),inset 0 0 30px rgba(58,166,255,.25)}
+.banner-box::before,.banner-box::after{content:"";position:absolute;top:50%;width:20px;height:58px;margin-top:-29px;border-radius:6px;
+  background:linear-gradient(180deg,#8fe3ff,#2f8cff);box-shadow:0 0 16px #37b4ff}
+.banner-box::before{left:-12px}.banner-box::after{right:-12px}
+.banner h1{font-size:54px;font-weight:900;line-height:1.08;letter-spacing:1px;text-transform:uppercase;
+  background:linear-gradient(180deg,#fff,#cfe9ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 12px rgba(80,180,255,.6))}
+.banner-sub{display:inline-block;margin-top:-16px;position:relative;padding:8px 26px;border-radius:999px;font-size:17px;font-weight:800;letter-spacing:2px;
+  color:#7fe8ff;background:rgba(6,14,38,.95);border:2px solid #2f8cff;box-shadow:0 0 18px rgba(47,140,255,.5)}
 
-  /* ---------- nodes ---------- */
-  .node{position:absolute;transform:translate(-50%,-50%);z-index:8;
-    background:none;border:none;cursor:pointer;padding:0;
-    width:240px;display:flex;flex-direction:column;align-items:center;
-    -webkit-tap-highlight-color:transparent;}
-  .node .art{position:relative;width:400px;height:300px;display:flex;align-items:center;justify-content:center;}
-  @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
-  .node .art img{width:100%;height:100%;object-fit:contain;
-    filter:drop-shadow(0 12px 16px rgba(0,0,0,.5));transition:filter .25s, transform .25s;}
-  .halo{position:absolute;left:50%;top:54%;width:230px;height:150px;transform:translate(-50%,-50%);
-    border-radius:50%;z-index:-1;filter:blur(14px);opacity:.0;transition:opacity .35s;}
-  .node.completed .halo{opacity:.55;background:radial-gradient(ellipse, rgba(70,224,106,.85), transparent 68%);}
-  .node.active .halo{opacity:.85;background:radial-gradient(ellipse, rgba(255,207,72,.9), transparent 66%);
-    animation:pulseHalo 1.8s ease-in-out infinite;}
-  .node.locked .halo{opacity:.0;}
-  @keyframes pulseHalo{0%,100%{opacity:.5;}50%{opacity:.95;}}
+/* ═══ Орталық: ЖИ миы + робот ═══ */
+.brain{position:absolute;left:750px;top:238px;width:420px;pointer-events:none}
+.brain img{width:100%;display:block;animation:brainFloat 5s ease-in-out infinite}
+.brain-ai{position:absolute;left:50%;top:21.5%;transform:translateX(-50%);font-size:58px;font-weight:900;color:#fff;letter-spacing:1px;
+  text-shadow:0 0 14px #37e1ff,0 0 30px #2f8cff;animation:brainFloat 5s ease-in-out infinite}
+.brain-glow{position:absolute;left:12%;right:12%;bottom:6%;height:22%;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(55,200,255,.55),transparent 70%);filter:blur(10px);animation:pulse 2.6s ease-in-out infinite}
+@keyframes brainFloat{50%{transform:translate(var(--tx,0),-10px)}}
+.brain-ai{--tx:-50%}
+@keyframes pulse{50%{opacity:.45}}
 
-  /* status ring */
-  .ring{position:absolute;left:50%;top:54%;width:188px;height:188px;transform:translate(-50%,-50%);
-    border-radius:50%;pointer-events:none;}
-  .node.active .ring{border:5px dashed rgba(255,207,72,.95);animation:spin 9s linear infinite;
-    box-shadow:0 0 26px rgba(255,207,72,.65), inset 0 0 22px rgba(255,207,72,.3);}
-  .node.active .art{filter:drop-shadow(0 0 18px rgba(255,207,72,.55));}
-  @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+.robot{position:absolute;left:1150px;top:478px;width:128px;pointer-events:none;animation:bob 3.2s ease-in-out infinite}
+.robot img{width:100%;display:block;filter:drop-shadow(0 12px 14px rgba(0,0,0,.45))}
+@keyframes bob{50%{transform:translateY(-8px)}}
+.bubble{position:absolute;left:1196px;top:372px;width:172px;padding:12px 14px;border-radius:16px;text-align:center;
+  font-size:18px;font-weight:700;line-height:1.25;color:#fff;background:rgba(8,18,44,.92);border:2px solid #37b4ff;
+  box-shadow:0 0 18px rgba(55,180,255,.45);animation:bubbleIn .6s 1s cubic-bezier(.3,1.6,.5,1) both}
+.bubble::after{content:"";position:absolute;left:24px;bottom:-11px;width:18px;height:18px;background:rgba(8,18,44,.92);
+  border-right:2px solid #37b4ff;border-bottom:2px solid #37b4ff;transform:rotate(45deg)}
+@keyframes bubbleIn{from{opacity:0;transform:scale(.5) translateY(14px)}}
 
-  /* locked dim */
-  .node.locked .art img{filter:grayscale(.85) brightness(.5) drop-shadow(0 10px 14px rgba(0,0,0,.5));}
-  .node.locked{cursor:not-allowed;}
+/* ═══ Платформалар ═══ */
+.pf{position:absolute;display:block;text-decoration:none;color:#fff;cursor:pointer;background:none;border:none;font:inherit;
+  transform:translateX(-50%);--c:#37e1ff;--cr:55,225,255}
+.pf-art{position:relative;display:block;width:100%}
+.pf-art img{display:block;width:100%;filter:drop-shadow(0 18px 18px rgba(0,0,0,.5));transition:transform .25s cubic-bezier(.3,1.5,.5,1),filter .25s}
+.pf-art::after{content:"";position:absolute;left:14%;right:14%;bottom:8%;height:26%;border-radius:50%;z-index:-1;
+  background:radial-gradient(ellipse,rgba(var(--cr),.55),transparent 70%);filter:blur(12px);animation:pulse 3s ease-in-out infinite;animation-delay:var(--d,0s)}
+.pf:hover .pf-art img,.pf:focus-visible .pf-art img{transform:translateY(-12px) scale(1.04);filter:drop-shadow(0 26px 22px rgba(0,0,0,.55)) drop-shadow(0 0 18px rgba(var(--cr),.6))}
+.pf:focus-visible{outline:none}
+.pf-num{position:absolute;left:50%;top:-30px;transform:translateX(-50%);width:66px;height:66px;border-radius:50%;z-index:2;
+  display:grid;place-items:center;font-size:30px;font-weight:900;color:#fff;background:#0a1430;border:4px solid var(--c);
+  box-shadow:0 0 18px rgba(var(--cr),.75),inset 0 0 12px rgba(var(--cr),.45)}
+.pf--hero .pf-num{color:#1d1300;background:radial-gradient(circle at 40% 35%,#fff3a8,#ffc21a 70%);border-color:#ffe27a}
+.pf-done{position:absolute;left:calc(50% + 26px);top:-38px;z-index:3;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  background:#2ec865;border:3px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.4)}
+.pf-label{position:relative;z-index:2;display:flex;align-items:center;gap:12px;margin:-46px auto 0;width:max-content;max-width:330px;
+  padding:12px 12px 12px 22px;border-radius:16px;background:rgba(6,14,30,.9);border:2.5px solid var(--c);
+  box-shadow:0 0 18px rgba(var(--cr),.45),0 10px 22px rgba(0,0,0,.45)}
+.pf-text{font-size:20px;font-weight:700;line-height:1.22;text-align:center;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.pf-go{flex-shrink:0;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:var(--c);
+  border:2.5px solid var(--c);transition:background .2s,color .2s}
+.pf-go svg{width:22px;height:22px}
+.pf:hover .pf-go{background:var(--c);color:#06121a}
+.pf-stars{display:flex;justify-content:center;gap:6px;margin-top:8px}
+.pf-stars i{width:16px;height:16px;border-radius:4px;transform:rotate(45deg);background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3)}
+.pf-stars i.on{background:#ffd24a;border-color:#fff3b0;box-shadow:0 0 8px rgba(255,210,74,.8)}
 
-  /* corner badge */
-  .corner{position:absolute;top:8px;right:30px;width:54px;height:54px;border-radius:50%;
-    display:flex;align-items:center;justify-content:center;z-index:3;transition:transform .25s;
-    transform:scale(0);}
-  .node.completed .corner.check,.node.locked .corner.lock{transform:scale(1);}
-  .corner.check{background:radial-gradient(circle at 38% 32%, #7dffa0, #2bbd54 60%, #1a8a3c);
-    box-shadow:0 0 14px rgba(70,224,106,.8), inset 0 -3px 5px rgba(0,0,0,.3), inset 0 3px 3px rgba(255,255,255,.4);
-    border:2px solid rgba(220,255,230,.6);}
-  .corner.lock{background:radial-gradient(circle at 38% 32%, #6f7d8c, #3a4654 60%, #232c36);
-    box-shadow:0 0 12px rgba(0,0,0,.45), inset 0 -3px 5px rgba(0,0,0,.4), inset 0 3px 3px rgba(255,255,255,.18);
-    border:2px solid rgba(180,200,220,.35);}
-  .corner svg{width:28px;height:28px;}
+/* ═══ Терезе ═══ */
+#overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:18px;
+  background:rgba(3,8,20,.66);backdrop-filter:blur(4px)}
+#overlay.show{display:flex}
+.modal{position:relative;width:560px;max-width:100%;border-radius:22px;overflow:hidden;
+  background:linear-gradient(180deg,#10223e,#081428);border:2px solid var(--mc,#37e1ff);box-shadow:0 30px 80px rgba(0,0,0,.7);
+  animation:mIn .3s cubic-bezier(.3,1.4,.5,1)}
+@keyframes mIn{from{transform:translateY(18px) scale(.95);opacity:0}}
+.modal-head{height:200px;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 55%,rgba(var(--mcr,55,225,255),.25),transparent 65%)}
+.modal-head img{height:180px;max-width:80%;object-fit:contain;filter:drop-shadow(0 12px 18px rgba(0,0,0,.5))}
+.modal-body{padding:6px 28px 26px}
+.m-step{font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--mc,#37e1ff)}
+.m-title{font-size:25px;font-weight:900;margin:5px 0 10px;line-height:1.15}
+.m-desc{font-size:15.5px;line-height:1.55;color:#c4d6ea}
+.m-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.chip{font-size:13px;font-weight:700;padding:6px 13px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18)}
+.chip.done{color:#86efac;border-color:rgba(46,200,101,.5);background:rgba(46,200,101,.12)}
+.m-start{display:block;width:100%;margin-top:20px;padding:15px;border:none;border-radius:14px;cursor:pointer;font:inherit;font-size:18px;font-weight:800;
+  color:#06231a;background:linear-gradient(180deg,#7dffb0,#33c75e);box-shadow:0 8px 18px rgba(51,199,94,.4);transition:filter .2s}
+.m-start:hover{filter:brightness(1.07)}
+.m-x{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:12px;cursor:pointer;border:1px solid rgba(255,255,255,.2);
+  background:rgba(0,0,0,.35);color:#dff;font-size:24px;line-height:1}
+.m-x:hover{background:rgba(0,0,0,.55)}
 
-  /* hover — қалқу анимациясы тек меңзегенде */
-  .node:not(.locked):hover .art{animation:float 1.6s ease-in-out infinite;}
-  .node:not(.locked):hover .art img{transform:scale(1.06);
-    filter:drop-shadow(0 16px 20px rgba(0,0,0,.55)) brightness(1.08);}
-  .node:not(.locked):active .art img{transform:scale(.99);}
-
-  /* label */
-  .label{margin-top:-6px;position:relative;z-index:4;max-width:230px;
-    padding:9px 16px;border-radius:13px;text-align:center;
-    background:linear-gradient(180deg, rgba(28,44,40,.92), rgba(14,26,24,.95));
-    border:1.5px solid rgba(120,200,170,.4);
-    box-shadow:0 6px 14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
-    font-weight:700;font-size:18px;line-height:1.18;letter-spacing:.2px;
-    color:#eafff4;text-wrap:balance;transition:border-color .25s, box-shadow .25s;}
-  .node.active .label{border-color:rgba(255,207,72,.75);box-shadow:0 6px 16px rgba(0,0,0,.5),0 0 16px rgba(255,207,72,.3);}
-  .node.locked .label{color:#9fb0b8;border-color:rgba(120,140,150,.3);}
-  .node.completed .label{border-color:rgba(70,224,106,.6);}
-  .label .num{display:inline-block;font-size:13px;font-weight:800;color:var(--gold);
-    letter-spacing:1px;opacity:.9;margin-bottom:2px;}
-
-  /* ---------- top HUD ---------- */
-  .hud{position:absolute;left:0;right:0;top:0;height:96px;z-index:20;
-    display:flex;align-items:flex-start;justify-content:space-between;padding:22px 30px;}
-  .hud-left{display:flex;align-items:center;gap:34px;padding-top:6px;}
-  .brand{font-weight:900;font-size:30px;letter-spacing:.5px;
-    color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.5),0 0 18px rgba(55,225,255,.45);}
-  .nav-link{display:flex;align-items:center;gap:8px;font-weight:600;font-size:19px;color:#cfe7ef;
-    text-decoration:none;cursor:pointer;opacity:.9;transition:opacity .2s,color .2s;}
-  .nav-link:hover{opacity:1;color:#fff;}
-  .nav-link .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);}
-
-  .player{display:flex;align-items:center;gap:13px;
-    background:linear-gradient(180deg, rgba(18,30,42,.82), rgba(10,18,26,.9));
-    border:1.5px solid rgba(80,140,180,.4);border-radius:16px;padding:9px 16px 9px 10px;
-    box-shadow:0 8px 22px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);}
-  .ava{width:50px;height:50px;border-radius:13px;overflow:hidden;flex:0 0 auto;
-    border:2px solid rgba(120,210,255,.55);box-shadow:0 0 12px rgba(55,225,255,.4);
-    background:#13314a;}
-  .ava img{width:135%;height:135%;object-fit:cover;transform:translate(-13%,-6%);}
-  .pmeta{display:flex;flex-direction:column;line-height:1.25;}
-  .score{font-weight:800;font-size:19px;color:var(--gold);text-shadow:0 0 10px rgba(255,207,72,.4);}
-  .score b{font-size:21px;}
-  .chapter{font-size:13px;color:#a9c4d2;font-weight:500;max-width:230px;}
-
-  /* ---------- title banner ---------- */
-  .banner{position:absolute;top:24px;left:50%;transform:translateX(-50%);z-index:15;
-    padding:16px 54px;border-radius:18px;text-align:center;
-    background:linear-gradient(180deg,#2f4a3f,#1b2c26);
-    border:2px solid rgba(120,200,170,.5);
-    box-shadow:0 10px 30px rgba(0,0,0,.55), inset 0 2px 0 rgba(255,255,255,.12), inset 0 -4px 10px rgba(0,0,0,.4),
-      0 0 0 5px rgba(8,16,14,.55), 0 0 34px rgba(55,225,255,.18);}
-  .banner::before,.banner::after{content:"";position:absolute;top:50%;width:18px;height:64px;
-    transform:translateY(-50%);border-radius:5px;background:linear-gradient(180deg,#7fe9ff,#1d7fb0);
-    box-shadow:0 0 14px rgba(55,225,255,.7), inset 0 0 6px rgba(255,255,255,.5);}
-  .banner::before{left:-10px;}
-  .banner::after{right:-10px;}
-  .banner h1{font-weight:900;font-size:36px;line-height:1.05;letter-spacing:.5px;text-transform:uppercase;
-    background:linear-gradient(180deg,#fff3c9 0%,#ffcf48 55%,#e89a14 100%);
-    -webkit-background-clip:text;background-clip:text;color:transparent;
-    -webkit-text-stroke:1px rgba(60,30,0,.35);
-    filter:drop-shadow(0 2px 0 rgba(0,0,0,.45));}
-
-  /* ---------- side & corner chrome ---------- */
-  .side-tab{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:20;
-    width:46px;height:84px;border-radius:0 16px 16px 0;cursor:pointer;
-    background:linear-gradient(180deg, rgba(18,30,42,.9), rgba(10,18,26,.92));
-    border:1.5px solid rgba(80,140,180,.4);border-left:none;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:6px 0 18px rgba(0,0,0,.4);transition:width .2s;text-decoration:none;}
-  .side-tab:hover{width:54px;}
-  .side-tab svg{width:22px;height:22px;}
-  .home-btn{position:absolute;left:18px;bottom:24px;z-index:20;width:62px;height:62px;border-radius:16px;cursor:pointer;
-    background:linear-gradient(180deg, rgba(18,30,42,.9), rgba(10,18,26,.92));
-    border:1.5px solid rgba(80,140,180,.4);display:flex;align-items:center;justify-content:center;
-    box-shadow:0 8px 20px rgba(0,0,0,.45);transition:transform .2s,border-color .2s;text-decoration:none;}
-  .home-btn:hover{transform:translateY(-2px);border-color:rgba(120,210,255,.7);}
-  .home-btn svg{width:26px;height:26px;}
-  .compass{position:absolute;right:26px;bottom:24px;z-index:20;width:66px;height:66px;border-radius:50%;cursor:pointer;
-    background:radial-gradient(circle at 38% 32%, #1a3245, #0c1722);
-    border:2px solid rgba(120,210,255,.5);display:flex;align-items:center;justify-content:center;
-    box-shadow:0 8px 20px rgba(0,0,0,.5), 0 0 18px rgba(55,225,255,.25), inset 0 2px 5px rgba(255,255,255,.1);
-    transition:transform .25s;}
-  .compass:hover{transform:rotate(45deg);}
-  .compass svg{width:34px;height:34px;}
-
-  /* hint */
-  .hint{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:14;
-    font-size:16px;font-weight:500;color:#bcd6e0;letter-spacing:.3px;
-    text-shadow:0 2px 6px rgba(0,0,0,.8);text-align:center;}
-
-  /* ---------- modal ---------- */
-  #overlay{position:absolute;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
-    background:rgba(4,10,14,.62);backdrop-filter:blur(3px);}
-  #overlay.show{display:flex;}
-  .modal{width:560px;max-width:88%;border-radius:22px;overflow:hidden;position:relative;
-    background:linear-gradient(180deg,#16303a,#0c1c24);
-    border:2px solid rgba(120,200,180,.45);
-    box-shadow:0 30px 80px rgba(0,0,0,.7), inset 0 2px 0 rgba(255,255,255,.1), 0 0 40px rgba(55,225,255,.2);
-    transform:translateY(18px) scale(.96);opacity:0;transition:transform .3s, opacity .3s;}
-  #overlay.show .modal{transform:translateY(0) scale(1);opacity:1;}
-  .modal-head{position:relative;height:172px;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(circle at 50% 40%, rgba(55,225,255,.18), transparent 65%);
-    border-bottom:1px solid rgba(120,200,180,.25);}
-  .modal-head img{height:160px;filter:drop-shadow(0 12px 18px rgba(0,0,0,.5));}
-  .modal-body{padding:24px 30px 28px;}
-  .m-step{font-size:13px;font-weight:800;letter-spacing:1.5px;color:var(--cyan);text-transform:uppercase;}
-  .m-title{font-size:26px;font-weight:900;margin:5px 0 12px;line-height:1.1;color:#fff;}
-  .m-desc{font-size:16px;line-height:1.55;color:#c4dbe6;}
-  .m-meta{display:flex;gap:10px;margin:18px 0 4px;flex-wrap:wrap;}
-  .chip{font-size:13px;font-weight:600;padding:6px 13px;border-radius:999px;
-    background:rgba(55,225,255,.1);border:1px solid rgba(55,225,255,.3);color:#bfeeff;}
-  .chip.done{background:rgba(70,224,106,.12);border-color:rgba(70,224,106,.4);color:#bcf5cd;}
-  .m-actions{display:flex;gap:12px;margin-top:22px;}
-  .btn{flex:1;border:none;cursor:pointer;font-family:inherit;font-weight:800;font-size:18px;
-    padding:15px;border-radius:14px;transition:transform .15s, box-shadow .2s, filter .2s;letter-spacing:.3px;}
-  .btn:active{transform:translateY(1px);}
-  .btn-primary{color:#08231a;background:linear-gradient(180deg,#7dffa0,#33c75e);
-    box-shadow:0 8px 18px rgba(51,199,94,.4), inset 0 2px 0 rgba(255,255,255,.5);}
-  .btn-primary:hover{filter:brightness(1.06);box-shadow:0 10px 24px rgba(51,199,94,.55), inset 0 2px 0 rgba(255,255,255,.5);}
-  .btn-ghost{flex:0 0 auto;padding:15px 22px;color:#cfe7ef;background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.15);}
-  .btn-ghost:hover{background:rgba(255,255,255,.12);}
-  .m-close{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:12px;cursor:pointer;z-index:3;
-    background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.18);color:#dff;font-size:22px;
-    display:flex;align-items:center;justify-content:center;transition:background .2s;}
-  .m-close:hover{background:rgba(0,0,0,.5);}
-
-  /* toast */
-  #toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%) translateY(20px);z-index:60;
-    background:rgba(20,30,38,.95);border:1.5px solid rgba(255,120,120,.5);color:#ffd9d9;
-    padding:13px 22px;border-radius:13px;font-weight:600;font-size:16px;opacity:0;pointer-events:none;
-    transition:opacity .3s, transform .3s;box-shadow:0 10px 30px rgba(0,0,0,.5);}
-  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-  .node.shake{animation:shake .45s;}
-  @keyframes shake{0%,100%{transform:translate(-50%,-50%);}20%{transform:translate(-53%,-50%);}40%{transform:translate(-47%,-50%);}60%{transform:translate(-52%,-50%);}80%{transform:translate(-48%,-50%);}}
+/* ═══ Телефон: сахнаның орнына тізім ═══ */
+@media (max-width:760px),(max-height:430px){
+  body{overflow:auto;background-attachment:fixed}
+  #stage{position:static;width:auto;height:auto;transform:none!important;padding:16px 14px 90px}
+  .brand,.hud-r,.banner{position:static;transform:none}
+  .brand-name{font-size:34px}.brand-cap{width:30px;left:-8px;top:-10px}.brand-tag{font-size:10px;letter-spacing:2px}
+  .hud-r{margin:14px 0 0;gap:8px}.coin{height:44px;font-size:18px}.coin svg{width:32px;height:32px}
+  .user{height:44px;font-size:16px}.user img{width:32px;height:32px}.hud-sep{display:none}
+  .banner{margin:20px 0 6px}.banner-box{padding:14px 18px 18px}.banner h1{font-size:25px}.banner-sub{font-size:11px;letter-spacing:1px;padding:6px 14px}
+  .brain{position:relative;left:auto;top:auto;width:62%;margin:0 auto}.brain-ai{font-size:30px}
+  .robot,.bubble{display:none}
+  .pfs{display:grid;grid-template-columns:1fr 1fr;gap:34px 10px;margin-top:20px}
+  .pf{position:relative;left:auto!important;top:auto!important;width:auto!important;transform:none}
+  .pf-num{width:44px;height:44px;font-size:20px;top:-18px;border-width:3px}
+  .pf-label{max-width:100%;margin-top:-24px;padding:8px 8px 8px 12px;gap:6px}.pf-text{font-size:13px}.pf-go{width:28px;height:28px}
+}
 </style>
-<style>.qnav-home{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:50px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);color:#fff;text-decoration:none;font-weight:700;font-size:14px;white-space:nowrap;line-height:1;transition:background .2s}.qnav-home:hover{background:rgba(255,255,255,.26)}
-.hud-actions{display:flex;align-items:center;gap:12px}
-.chip-score{height:54px;padding:0 22px;border-radius:999px;display:flex;align-items:center;gap:10px;background:linear-gradient(45deg,#ffd34d,#ffb300);color:#1f2d3d;font-weight:900;font-size:25px;box-shadow:0 10px 22px rgba(0,0,0,.25)}
-.chip-score b{font-size:26px}
-.chip-ico{width:28px;height:28px;flex-shrink:0}
-.hero-link{cursor:pointer;display:block;position:absolute;left:55px;top:150px;width:200px;z-index:7}
-.hero-link #hero{transition:transform .2s,filter .2s}
-.hero-link:hover #hero{transform:scale(1.05);filter:drop-shadow(0 22px 26px rgba(0,0,0,.6)) brightness(1.08)}
-.t4-badges{display:flex;gap:7px;justify-content:center;margin-top:6px}
-.t4-pip{font-size:32px;line-height:1;filter:grayscale(1);opacity:.3}
-.t4-pip.on{opacity:1;filter:drop-shadow(0 0 9px rgba(255,200,80,.85))}</style>
 </head>
 <body>
-<div id="viewport">
-  <div id="stage" data-screen-label="Квест картасы">
-    <div id="bg"></div>
+{% set S = stars|default({}) %}
+<div id="stage">
 
-    <!-- neon paths (connect nodes: 1 top-left → 2 bottom-left → 3 bottom-center → 4 top-right → 5 bottom-right) -->
-    <svg id="paths" viewBox="0 0 1920 1080" preserveAspectRatio="none">
-      <g class="seg" data-seg="0">
-        <path class="seg-base" d="M707,300 C600,480 430,560 345,720"/>
-        <path class="seg-glow" d="M707,300 C600,480 430,560 345,720"/>
-        <path class="seg-dash" d="M707,300 C600,480 430,560 345,720"/>
-      </g>
-      <g class="seg" data-seg="1">
-        <path class="seg-base" d="M345,720 C540,820 760,805 975,735"/>
-        <path class="seg-glow" d="M345,720 C540,820 760,805 975,735"/>
-        <path class="seg-dash" d="M345,720 C540,820 760,805 975,735"/>
-      </g>
-      <g class="seg" data-seg="2">
-        <path class="seg-base" d="M975,735 C1180,640 1340,470 1500,320"/>
-        <path class="seg-glow" d="M975,735 C1180,640 1340,470 1500,320"/>
-        <path class="seg-dash" d="M975,735 C1180,640 1340,470 1500,320"/>
-      </g>
-      <g class="seg" data-seg="3">
-        <path class="seg-base" d="M1500,320 C1665,440 1675,600 1570,745"/>
-        <path class="seg-glow" d="M1500,320 C1665,440 1675,600 1570,745"/>
-        <path class="seg-dash" d="M1500,320 C1665,440 1675,600 1570,745"/>
-      </g>
-    </svg>
+  <!-- ═══ HUD ═══ -->
+  <a href="/student" class="brand" aria-label="BilimQuest — басты бет">
+    <span class="brand-name">
+      <svg class="brand-cap" viewBox="0 0 48 32" aria-hidden="true"><path d="M24 2L2 11l22 9 22-9z" fill="#fff"/><path d="M11 15.5v7c0 2.6 5.8 5 13 5s13-2.4 13-5v-7l-13 5.3z" fill="#dbe8ff"/><path d="M42 12.6v9.2" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="42" cy="23.6" r="2.4" fill="#ffd54a"/></svg>
+      Bilim<b>Quest</b>
+    </span>
+    <span class="brand-tag">БІЛІМ • ТӘЖІРИБЕ • ЖЕТІСТІК</span>
+  </a>
 
-    <!-- hero → главная -->
-    <a href="/student" class="hero-link" title="Басты бетке оралу" aria-label="Басты бет">
-      <img id="hero" src="{{ url_for('static', filename='img/toqsan4/hero.png') }}" alt="Кейіпкер">
-      <div class="hero-cap"> Басты бет</div>
+  <div class="hud-r">
+    <a href="/rating" class="coin" title="Ұпай — рейтингті ашу">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="17" r="13" fill="#e49a0c"/><circle cx="16" cy="15.5" r="13" fill="#ffc62e"/><circle cx="16" cy="15.5" r="9.3" fill="#ffb31a" stroke="#fff3c2" stroke-opacity=".7" stroke-width="1.4"/><path d="M19.2 11.6c-.8-.9-2-1.4-3.4-1.4-2 0-3.3 1-3.3 2.5 0 3.3 7 1.7 7 5.1 0 1.6-1.5 2.6-3.6 2.6-1.5 0-2.9-.6-3.7-1.6M16 8.6v2M16 21v2" fill="none" stroke="#fff6d8" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>{{ "%.3f"|format(student.score) }}</span>
     </a>
+    <span class="hud-sep"></span>
+    <a href="/my_profile" class="user" title="Жеке парақша">
+      <img src="{{ url_for('static', filename='img/user.png') }}" alt="">
+      <span>{{ student.name }}</span>
+    </a>
+  </div>
 
-    <!-- nodes injected by JS -->
-    <div id="nodes"></div>
+  <!-- ═══ Баннер ═══ -->
+  <div class="banner">
+    <div class="banner-box"><h1>Жасанды интеллект<br>зертханасы</h1></div>
+    <div class="banner-sub">ЗЕРТТЕ • ҮЙРЕН • ҚОЛДАН • БОЛАШАҚТЫ ҚҰР</div>
+  </div>
 
-    <!-- HUD -->
-    <div class="hud">
-      <div class="hud-left">
-        <div class="brand">BilimQuest</div>
-      </div>
-      <div class="hud-actions">
-        <div class="chip-score" title="Кибер-ұпай">
-          <svg class="chip-ico" viewBox="0 0 24 24" fill="none" stroke="#1f2d3d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg>
-          <b id="scoreVal">{{ "%.2f"|format(student.score) }}</b>
-        </div>
-      </div>
+  <!-- ═══ Орталық ═══ -->
+  <div class="brain" aria-hidden="true">
+    <div class="brain-glow"></div>
+    <img src="{{ url_for('static', filename='img/toqsan4/lab/brain.webp') }}" alt="">
+    <span class="brain-ai">AI</span>
+  </div>
+  <div class="robot" aria-hidden="true"><img src="{{ url_for('static', filename='img/toqsan4/lab/robot.webp') }}" alt=""></div>
+  <div class="bubble">Болашақ бүгіннен басталады!</div>
+
+  <!-- ═══ Платформалар ═══ -->
+  <nav class="pfs" id="pfs" aria-label="Ойындар"></nav>
+</div>
+
+<!-- ═══ Ойын терезесі ═══ -->
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal" id="modal">
+    <button class="m-x" id="mX" aria-label="Жабу">&times;</button>
+    <div class="modal-head"><img id="mImg" alt=""></div>
+    <div class="modal-body">
+      <div class="m-step" id="mStep"></div>
+      <div class="m-title" id="mTitle"></div>
+      <div class="m-desc" id="mDesc"></div>
+      <div class="m-meta" id="mMeta"></div>
+      <button class="m-start" id="mStart">Бастау</button>
     </div>
-
-    <!-- title banner -->
-    <div class="banner"><h1>Жасанды интеллект зертханасы</h1></div>
-
-    <!-- chrome -->
-    <div class="compass" title="Карта">
-      <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="none" stroke="#7fe0ff" stroke-width="1.6"/><polygon points="16,5 19,16 16,27 13,16" fill="#ff6a8a"/><polygon points="5,16 16,13 27,16 16,19" fill="#7fe0ff"/><circle cx="16" cy="16" r="2.2" fill="#fff"/></svg>
-    </div>
-
-    <div class="hint">Уақыт порталын ашу үшін блоктарды дұрыс ретпен аяқтаңыз</div>
-
-    <!-- modal -->
-    <div id="overlay">
-      <div class="modal">
-        <button class="m-close" id="mClose">&times;</button>
-        <div class="modal-head"><img id="mImg" alt=""></div>
-        <div class="modal-body">
-          <div class="m-step" id="mStep"></div>
-          <div class="m-title" id="mTitle"></div>
-          <div class="m-desc" id="mDesc"></div>
-          <div class="m-meta" id="mMeta"></div>
-          <div class="m-actions" id="mActions"></div>
-        </div>
-      </div>
-    </div>
-
-    <div id="toast"></div>
   </div>
 </div>
 
 <script>
-/* ====== asset base + real student score ====== */
-const A = "{{ url_for('static', filename='img/toqsan4/') }}";
-const BASE_SCORE = {{ "%.2f"|format(student.score) }};
+const IMG="{{ url_for('static', filename='img/toqsan4/lab/') }}";
+const STARS={{ S|tojson }};
+const ARROW='<svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const CHK='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-/* ====== check-mark svg reused (node corner badges only) ====== */
-const CHK = '<svg viewBox="0 0 24 24" fill="none" stroke="#0a3a18" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>';
-
-/* ====== значки по играм (с сервера) ====== */
-const STARS = {{ stars|default({})|tojson }};
-const ROUTE_GAME = {'/toqsan4/g1':'Эргономика','/toqsan4/g2':'Цифрлық детектив','/toqsan4/g3':'Желілік жүгіруші','/toqsan4/g4':'Кибер-бекініс','/toqsan4/g5':'Файл әлемі'};
-
-/* ====== quest data ====== */
-const NODES = [
-  { id:'ergo',     img:A+'Слой 1.png',     x:700,  y:400, dur:5.2, delay:0, route:'/toqsan4/g1',
-    short:'Компьютерде жұмыс<br>істеу қауіпсіздігі',
-    title:'Компьютерде жұмыс істеу қауіпсіздігі',
-    desc:'Кибер-эргономика: ЖИ-Көмекшіні «емде»! Дұрыс отыру, үзіліс және экран қашықтығы туралы біл, оның денсаулығын 100%-ға жеткіз.',
-    tags:['🎮 Ойын','≈3 мин','+0.10 ⭐'] },
-  { id:'storage',  img:A+'node-storage.png',  x:270,  y:780, dur:4.6, delay:.6, route:'/toqsan4/g2',
-    short:'Ақпараттың цифрлық<br>тасымалдаушылары',
-    title:'Ақпараттың цифрлық тасымалдаушылары',
-    desc:'Цифрлық детектив: жоғалған файлдарды қауіпсіз жеткіз! Тасымалдаушыларды танып, дұрыс таңдау жаса, деректер кристалдарын жина (💎 5).',
-    tags:['🎮 Ойын','3 сахна','+0.20 ⭐'] },
-  { id:'internet', img:A+'node-internet.png', x:980,  y:710, dur:5.6, delay:.3, route:'/toqsan4/g3',
-    short:'Интернеттегі қауіпсіздік<br>және этика',
-    title:'Интернеттегі қауіпсіздік және этика',
-    desc:'Кибер-Тұзақ: Желілік жүгіруші! Фишинг, күмәнді сілтемелер мен алаяқтардан секіріп өт, қауіпсіз сайттарды жина. 🏃‍♂️',
-    tags:['🎮 Раннер','+0.30 ⭐'] },
-  { id:'protect',  img:A+'node-protect.png',  x:1540, y:350, dur:5.0, delay:.9, route:'/toqsan4/g4',
-    short:'Ақпаратты қорғау<br>және парольдер',
-    title:'Ақпаратты қорғау және парольдер',
-    desc:'Кибер-Бекініс (Tower Defense): базаны Пароль, Антивирус, Брандмауэр мұнараларымен қорша да фишинг, троян мен Ransomware толқындарын тойтар! 💎',
-    tags:['🎮 Стратегия','3 толқын','+0.30 ⭐'] },
-  { id:'cloud',    img:A+'node-cloud.png',    x:1680, y:790, dur:4.8, delay:.45, route:'/toqsan4/g5',
-    short:'Бұлтты сақтау<br>және ынтымақтастық',
-    title:'Бұлтты сақтау және ынтымақтастық',
-    desc:'Кибер-Аквариум: Файл Әлемі! Match-3 ойынынан кейін файлдарды папкаларға сұрыпта, бірлесе өңде және дұрыс құқықпен бөліс. 💎',
-    tags:['🎮 Match-3 + Workspace','+0.30 ⭐'] },
+/* x — платформа ортасы, y — үсті, w — ені (1920×1080 сахнасында) */
+const PF=[
+  {num:'', hero:true, img:'p_hero.webp', x:400, y:242, w:320, c:'#ffc21a', cr:'255,194,26', text:'Басты бет', href:'/student'},
+  {num:'01', img:'p_storage.webp',  x:1530, y:290, w:320, c:'#2f8cff', cr:'47,140,255',  game:'Цифрлық детектив', route:'/toqsan4/g2',
+   text:'Ақпараттың<br>тасымалдаушылары', title:'Ақпараттың цифрлық тасымалдаушылары',
+   desc:'Цифрлық детектив: жоғалған файлдарды қауіпсіз жеткіз! Тасымалдаушыларды танып, дұрыс таңдау жаса, деректер кристалдарын жина.', tags:['Ойын','3 сахна','+0.20 ұпай']},
+  {num:'02', img:'p_ergo.webp',     x:290, y:697, w:290, c:'#2ee86b', cr:'46,232,107',  game:'Эргономика', route:'/toqsan4/g1',
+   text:'Компьютерде жұмыс<br>істеу қауіпсіздігі', title:'Компьютерде жұмыс істеу қауіпсіздігі',
+   desc:'Кибер-эргономика: ЖИ-Көмекшіні «емде»! Дұрыс отыру, үзіліс, экран қашықтығы және электр қауіпсіздігі туралы 10 сұраққа жауап бер.', tags:['Ойын','10 сұрақ','+0.10 ұпай']},
+  {num:'03', img:'p_internet.webp', x:740, y:673, w:290, c:'#b46bff', cr:'180,107,255', game:'Желілік жүгіруші', route:'/toqsan4/g3',
+   text:'Интернеттегі<br>қауіпсіздік және этика', title:'Интернеттегі қауіпсіздік және этика',
+   desc:'Кибер-Тұзақ: Желілік жүгіруші! Фишинг, күмәнді сілтемелер мен алаяқтардан секіріп өт, қауіпсіз сайттарды жина.', tags:['Раннер','3 деңгей','+0.30 ұпай']},
+  {num:'04', img:'p_protect.webp',  x:1180, y:682, w:250, c:'#22d3a0', cr:'34,211,160',  game:'Кибер-бекініс', route:'/toqsan4/g4',
+   text:'Ақпаратты қорғау<br>және парольдер', title:'Ақпаратты қорғау және парольдер',
+   desc:'Кибер-Бекініс: базаны Пароль, Антивирус, Брандмауэр мұнараларымен қорша да фишинг, троян мен Ransomware толқындарын тойтар!', tags:['Стратегия','3 толқын','+0.30 ұпай']},
+  {num:'05', img:'p_cloud.webp',    x:1630, y:714, w:290, c:'#37e1ff', cr:'55,225,255',  game:'Файл әлемі', route:'/toqsan4/g5',
+   text:'Бұлттық сақтау<br>және ынтымақтастық', title:'Бұлттық сақтау және ынтымақтастық',
+   desc:'Кибер-Аквариум: Файл Әлемі! Match-3 ойынынан кейін файлдарды папкаларға сұрыпта, бірлесе өңде және дұрыс құқықпен бөліс.', tags:['Match-3 + жұмыс кеңістігі','+0.30 ұпай']},
 ];
+const GAMES=PF.filter(p=>p.game);
 
-const KEY='bilimquest_t4_progress_v1';
-let state = load();
-
-function load(){
-  let s=null;
-  try{ s=JSON.parse(localStorage.getItem(KEY)); }catch(e){}
-  if(!s || !s.status || s.status.length!==NODES.length){
-    s = { status: NODES.map(()=>'active') };
-  }
-  // all blocks are OPEN: keep finished ones marked 'done', everything else is 'active' (never locked)
-  s.status = s.status.map(st => st==='done' ? 'done' : 'active');
-  return s;
-}
-function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-
-/* ====== render nodes ====== */
-const nodesEl=document.getElementById('nodes');
-NODES.forEach((n,i)=>{
-  const b=document.createElement('button');
-  b.className='node';
-  b.dataset.i=i;
-  b.style.left=n.x+'px';
-  b.style.top=n.y+'px';
-  b.style.setProperty('--dur', n.dur+'s');
-  b.style.setProperty('--delay', n.delay+'s');
-  b.innerHTML=`
-    <div class="halo"></div>
-    <div class="art">
-      <div class="ring"></div>
-      <div class="corner check">${CHK}</div>
-      <div class="corner lock"><svg viewBox="0 0 24 24" fill="none" stroke="#cfe0ee" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
-      <img src="${n.img}" alt="${n.title}">
-    </div>
-    <div class="label">${n.short}</div>
-    <div class="t4-badges">${(function(){var sc=STARS[ROUTE_GAME[n.route]]||0,p='';for(var j=0;j<3;j++){p+='<span class="t4-pip'+(j<sc?' on':'')+'">🔩</span>';}return p;})()}</div>`;
-  b.addEventListener('click',()=>openNode(i));
-  nodesEl.appendChild(b);
+const box=document.getElementById('pfs');
+PF.forEach((p,i)=>{
+  const el=document.createElement(p.href?'a':'button'); el.className='pf'+(p.hero?' pf--hero':'');
+  if(p.href) el.href=p.href; else el.type='button';
+  el.style.cssText=`left:${p.x}px;top:${p.y}px;width:${p.w}px;--c:${p.c};--cr:${p.cr};--d:${(i*.4).toFixed(1)}s`;
+  const st=p.game?(STARS[p.game]||0):0, played=p.game&&(p.game in STARS);
+  el.innerHTML=`${p.num?`<span class="pf-num">${p.num}</span>`:''}${played?`<span class="pf-done" title="Өтілді">${CHK}</span>`:''}
+    <span class="pf-art"><img src="${IMG+p.img}" alt=""></span>
+    <span class="pf-label"><span class="pf-text">${p.text}</span><span class="pf-go">${ARROW}</span></span>
+    ${p.game?`<span class="pf-stars" title="Жиналған белгілер: ${st}/3">${[0,1,2].map(k=>`<i class="${k<st?'on':''}"></i>`).join('')}</span>`:''}`;
+  if(p.game) el.addEventListener('click',()=>openGame(p));
+  box.appendChild(el);
 });
-const nodeEls=[...document.querySelectorAll('.node')];
 
-/* ====== apply state to DOM ====== */
-function applyState(){
-  nodeEls.forEach((el,i)=>{ el.classList.remove('done','active','locked','completed');
-    const st=state.status[i];
-    el.classList.add(st==='done'?'completed':st);
-  });
-  document.querySelectorAll('.seg').forEach(s=>{
-    const idx=+s.dataset.seg;
-    if(state.status[idx]==='done') s.classList.add('lit'); else s.classList.remove('lit');
-  });
-  // score is synced with the real account balance (updated by /game_result), no local inflation
-  animateScore(BASE_SCORE);
-}
-let shownScore=null;
-function animateScore(target){
-  const el=document.getElementById('scoreVal');
-  if(shownScore===null){ shownScore=target; el.textContent=target.toFixed(2); return; }
-  const from=shownScore, to=target, t0=performance.now(), dur=600;
-  function step(t){ const k=Math.min(1,(t-t0)/dur); const v=from+(to-from)*(1-Math.pow(1-k,3));
-    el.textContent=v.toFixed(2); if(k<1) requestAnimationFrame(step); else shownScore=to; }
-  requestAnimationFrame(step);
-}
-
-/* ====== modal ====== */
-const overlay=document.getElementById('overlay');
-let openIdx=-1;
-function openNode(i){
-  const st=state.status[i];
-  if(st==='locked'){ const el=nodeEls[i]; el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),460);
-    showToast('Алдымен алдыңғы блокты аяқта'); return; }
-  openIdx=i; const n=NODES[i];
-  document.getElementById('mImg').src=n.img;
-  document.getElementById('mStep').textContent=`Блок ${i+1} / ${NODES.length}`;
-  document.getElementById('mTitle').textContent=n.title;
-  document.getElementById('mDesc').textContent=n.desc;
+/* ═══ терезе ═══ */
+const ov=document.getElementById('overlay'), modal=document.getElementById('modal');
+let cur=null;
+function openGame(p){
+  cur=p;
+  modal.style.setProperty('--mc',p.c); modal.style.setProperty('--mcr',p.cr);
+  document.getElementById('mImg').src=IMG+p.img;
+  document.getElementById('mStep').textContent=`Блок ${GAMES.indexOf(p)+1} / ${GAMES.length}`;
+  document.getElementById('mTitle').textContent=p.title;
+  document.getElementById('mDesc').textContent=p.desc;
   const meta=document.getElementById('mMeta'); meta.innerHTML='';
-  n.tags.forEach(t=>{ const c=document.createElement('span'); c.className='chip'; c.textContent=t; meta.appendChild(c); });
-  if(st==='done'){ const c=document.createElement('span'); c.className='chip done'; c.textContent='✓ Аяқталды'; meta.appendChild(c); }
-  const act=document.getElementById('mActions'); act.innerHTML='';
-  const primary=document.createElement('button'); primary.className='btn btn-primary';
-  primary.textContent = st==='done' ? 'Қайта өту' : 'Бастау';
-  primary.onclick=()=>startBlock(i);
-  act.appendChild(primary);
-  overlay.classList.add('show');
+  p.tags.forEach(t=>{const c=document.createElement('span'); c.className='chip'; c.textContent=t; meta.appendChild(c);});
+  const played=p.game in STARS;
+  if(played){const c=document.createElement('span'); c.className='chip done'; c.textContent='✓ Аяқталды'; meta.appendChild(c);}
+  document.getElementById('mStart').textContent=played?'Қайта өту':'Бастау';
+  ov.classList.add('show');
 }
-function closeModal(){ overlay.classList.remove('show'); openIdx=-1; }
-document.getElementById('mClose').onclick=closeModal;
-overlay.addEventListener('click',e=>{ if(e.target===overlay) closeModal(); });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+function close(){ ov.classList.remove('show'); cur=null; }
+document.getElementById('mStart').onclick=()=>{ if(cur) location.href=cur.route; };
+document.getElementById('mX').onclick=close;
+ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
 
-/* startBlock: if the block has a real game page, go there.
-   Otherwise (no game yet) simulate completion to demo the progression. */
-function startBlock(i){
-  const n=NODES[i];
-  if(n.route){ window.location.href=n.route; return; }
-  if(state.status[i]!=='done'){
-    state.status[i]='done';
-    if(i+1<NODES.length && state.status[i+1]==='locked') state.status[i+1]='active';
-    save(); applyState(); celebrate(i);
-  }
-  closeModal();
-}
-
-/* ====== fx ====== */
-const toast=document.getElementById('toast');
-let toastT;
-function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(toastT);
-  toastT=setTimeout(()=>toast.classList.remove('show'),1900); }
-function celebrate(i){
-  const el=nodeEls[i]; const r=el.querySelector('.art');
-  r.animate([{transform:'scale(1)'},{transform:'scale(1.18)'},{transform:'scale(1)'}],{duration:520,easing:'ease-out'});
-  showToast('Блок аяқталды!');
-}
-
-applyState();
-
-/* ====== fit-to-viewport scaling ====== */
+/* ═══ сахнаны экранға пропорционалды сыйғызу ═══ */
 const stage=document.getElementById('stage');
-function fit(){ stage.style.transform='scale('+(innerWidth/1920)+','+(innerHeight/1080)+')'; }
-window.addEventListener('resize',fit); fit();
-
-/* reset helper (dev): localStorage.removeItem('bilimquest_t4_progress_v1') */
+function fit(){
+  if(innerWidth<=760||innerHeight<=430){ stage.style.transform=''; return; }
+  const s=Math.min(innerWidth/1920, innerHeight/1080);
+  stage.style.transform=`translate(-50%,-50%) scale(${s})`;
+}
+addEventListener('resize',fit); fit();
 </script>
 </body>
 </html>
