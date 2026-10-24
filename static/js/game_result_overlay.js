@@ -107,6 +107,13 @@
   font-family: 'Nunito','Open Sans',sans-serif; transition: background .2s;
 }
 #gro-replay:hover { background: rgba(255,255,255,.16); }
+#gro-next {
+  display: block; width: 100%; margin-top: 10px; border: none; border-radius: 50px;
+  padding: 14px 22px; font-size: 1rem; font-weight: 900; cursor: pointer; color: #06231a;
+  background: linear-gradient(135deg,#8dffb0,#2ec865); box-shadow: 0 8px 20px rgba(46,200,101,.35);
+  font-family: 'Nunito','Open Sans',sans-serif; transition: filter .2s;
+}
+#gro-next:hover { filter: brightness(1.06); }
 `;
 
   function inject() {
@@ -151,7 +158,7 @@
       <div id="gro-card">
         <div id="gro-title">Ойын аяқталды!</div>
         <div id="gro-stars">${starsHTML}</div>
-        <div id="gro-earned-lab">Бұл ойында: ${tier} значок</div>
+        <div id="gro-earned-lab">Бұл ойында: ${tier} белгіше</div>
         <div id="gro-stats">
           <div class="gro-stat">
             <div class="gro-stat-label">Бұл ойын</div>
@@ -171,9 +178,14 @@
           <button id="gro-replay">🔄 Қайта ойнау</button>
           <button id="gro-btn">Артқа</button>
         </div>
+        ${(window.__bqNext && window.__bqNext.url) ? '<button id="gro-next">Келесі ойын →</button>' : ''}
       </div>`;
 
     document.body.appendChild(backdrop);
+
+    // тоқсан ішіндегі келесі ойынға өту (_game_nav.html → window.__bqNext)
+    const nextBtn = document.getElementById('gro-next');
+    if (nextBtn) nextBtn.addEventListener('click', function () { window.location.href = window.__bqNext.url; });
 
     document.getElementById('gro-replay').addEventListener('click', function () {
       backdrop.remove();

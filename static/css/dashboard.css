@@ -43,13 +43,14 @@ body::before{
 }
 .d-logo{font-size:26px;font-weight:800;letter-spacing:.2px;text-decoration:none;color:#fff}
 .d-actions{display:flex;align-items:center;gap:10px}
+/* ұпай — басты беттегідей: күңгірт көк капсула + алтын тиын */
 .d-score{
-  height:38px;padding:0 15px;border-radius:999px;
-  display:flex;align-items:center;gap:7px;text-decoration:none;
-  font-weight:700;font-size:14px;color:#1c2b45;
-  background:linear-gradient(45deg,var(--gold-a),var(--gold-b));
-  box-shadow:0 6px 18px rgba(0,0,0,.18);
+  height:40px;padding:0 16px 0 6px;border-radius:999px;
+  display:flex;align-items:center;gap:8px;text-decoration:none;
+  font-weight:800;font-size:15px;color:#fff;font-variant-numeric:tabular-nums;
+  background:rgba(8,24,110,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);
 }
+.d-score .coin-ic{filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}
 .d-back{
   height:38px;padding:0 15px;border-radius:999px;
   display:flex;align-items:center;gap:7px;text-decoration:none;

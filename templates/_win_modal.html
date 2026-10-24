@@ -58,6 +58,9 @@
 .bq-replay{flex:0 0 auto;padding:15px 18px;color:#cfc8f0;background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.14);font-size:15px}
 .bq-replay:hover{background:rgba(255,255,255,.12)}
+.bq-nextgame{display:block;width:100%;margin-top:10px;padding:15px 24px;color:#06231a;background:linear-gradient(135deg,#8dffb0,#2ec865);box-shadow:0 8px 20px rgba(46,200,101,.35)}
+.bq-nextgame:hover{filter:brightness(1.06)}
+.bq-nextgame[hidden]{display:none}
 
 .bq-confetti{position:fixed;top:-20px;z-index:1010;pointer-events:none;animation:bq-fall linear forwards}
 @keyframes bq-fall{to{transform:translateY(105vh) rotate(540deg);opacity:.4}}
@@ -92,6 +95,7 @@
       <button class="bq-btn bq-replay" id="bqReplay">🔄 Қайта ойнау</button>
       <button class="bq-btn bq-back" id="bqBack">Артқа</button>
     </div>
+    <button class="bq-btn bq-nextgame" id="bqNextGame" hidden>Келесі ойын →</button>
   </div>
 </div>
 
@@ -147,7 +151,7 @@
       let slots='';
       for(let i=0;i<3;i++){ slots += '<span class="slot'+(i<tier?'':' off')+'">'+ic+'</span>'; }
       earnedEl.innerHTML = slots;
-      earnedLab.textContent = 'Бұл ойында: ' + tier + ' значок';
+      earnedLab.textContent = 'Бұл ойында: ' + tier + ' белгіше';
     }
 
     if(denied){
@@ -171,6 +175,9 @@
     }
 
     backUrl = opts.backUrl || (reward && reward.back) || '/student';
+    // тоқсан ішінде келесі ойын болса — модульге оралмай өтуге болады (_game_nav.html)
+    const nx=window.__bqNext, nb=document.getElementById('bqNextGame');
+    if(nx && nx.url){ nb.hidden=false; nb.title='Келесі ойын: '+nx.title; nb.onclick=function(){ window.location.href=nx.url; }; }
     document.getElementById('bqVeil').classList.add('on');
     bqConfetti();
   }

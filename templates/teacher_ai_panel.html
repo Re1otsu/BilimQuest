@@ -185,7 +185,7 @@
           <div class="card-ic">⚠️</div>
           <div>
             <div class="card-title">Қауіп тобын болжау</div>
-            <div class="card-sub">Артта қалу қаупі бар оқушылар + көмек шаралары</div>
+            <div class="card-sub">Артта қалу қаупі бар білім алушылар + көмек шаралары</div>
           </div>
         </div>
         <div class="card-btn-row"><button class="card-btn" data-kind="at-risk">Болжау ▶</button></div>
@@ -209,7 +209,7 @@
           <div class="card-ic">📝</div>
           <div>
             <div class="card-title">Ата-анаға хат</div>
-            <div class="card-sub">Нақты оқушы бойынша жылы әрі сыпайы хабарлама</div>
+            <div class="card-sub">Нақты білім алушы бойынша жылы әрі сыпайы хабарлама</div>
           </div>
         </div>
         <select class="stu-sel" id="stuSel"></select>
@@ -250,7 +250,7 @@
       const list = STUDENTS[classSel.value] || [];
       stuSel.innerHTML = list.length
         ? list.map(s => `<option value="${s.id}">${s.name}</option>`).join('')
-        : '<option value="">— оқушы жоқ —</option>';
+        : '<option value="">— білім алушы жоқ —</option>';
     }
     classSel.addEventListener('change', fillStudents);
     fillStudents();
@@ -279,7 +279,7 @@
     async function run(kind){
       if(kind === 'parent' && !stuSel.value){
         mTitle.textContent = '📝 Ата-анаға хат';
-        mBody.innerHTML = '<p>Алдымен оқушыны таңдаңыз.</p>';
+        mBody.innerHTML = '<p>Алдымен білім алушыны таңдаңыз.</p>';
         setFootDisabled(true); openModal(); return;
       }
       lastRun = kind;

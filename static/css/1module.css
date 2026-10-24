@@ -55,11 +55,13 @@ body::before{
   justify-content: center;
   width:9vw;
   height: 7vh;
-  background:#ffc82c; 
-  color:#1f2d3d; 
+  background:rgba(12,30,110,.78);   /* басты беттегідей: күңгірт көк капсула + алтын тиын */
+  color:#fff; 
   border-radius:5em; 
   font-weight:800;
-  box-shadow: 0 4px 12px #0002;
+  font-variant-numeric:tabular-nums;
+  border:1px solid rgba(255,255,255,.18);
+  box-shadow: 0 4px 12px #0004;
 }
 
 /* ====== ПОЛОТНО КАРТЫ ====== */

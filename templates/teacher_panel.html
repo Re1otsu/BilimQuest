@@ -30,7 +30,7 @@
         </select>
         <a href="#" class="is-active" aria-current="true">Класс бойынша</a>
         <a href="#">Тақырып бойынша</a>
-        <a href="#">Студенттер бойынша</a>
+        <a href="#">Білім алушылар бойынша</a>
         <a href="/teacher" class="back-btn">← Басты бетке</a>
       </nav>
 
@@ -49,17 +49,17 @@
         <div class="kpi-card">
           <span class="kpi-label">Орташа меңгеру</span>
           <span class="kpi-value">{{ _avg|round(0)|int }}<span class="unit">%</span></span>
-          <span class="kpi-sub">барлық тараулар бойынша</span>
+          <span class="kpi-sub">барлық Блум деңгейлері бойынша</span>
         </div>
         <div class="kpi-card">
           <span class="kpi-label">Ең жоғары нәтиже</span>
           <span class="kpi-value">{{ _max|round(0)|int }}<span class="unit">%</span></span>
-          <span class="kpi-sub">үздік тарау</span>
+          <span class="kpi-sub">үздік деңгей</span>
         </div>
         <div class="kpi-card">
-          <span class="kpi-label">Тараулар саны</span>
+          <span class="kpi-label">Блум деңгейлері</span>
           <span class="kpi-value">{{ labels|length if labels else 0 }}</span>
-          <span class="kpi-sub">талданған бөлім</span>
+          <span class="kpi-sub">талданған деңгей</span>
         </div>
         <div class="kpi-card">
           <span class="kpi-label">Таңдалған сынып</span>
@@ -76,7 +76,7 @@
                 {% if labels and scores %}
                 <div class="chart-wrap">
                   <canvas id="classChart" role="img"
-                          aria-label="Тараулар бойынша сәтті меңгеру пайызын көрсететін бағаналы диаграмма"></canvas>
+                          aria-label="Блум деңгейлері бойынша сыныптың меңгеру пайызын көрсететін бағаналы диаграмма"></canvas>
                 </div>
                 <p class="sr-only">
                   {% for l in labels %}{{ l }}: {{ scores[loop.index0] }}%{% if not loop.last %}, {% endif %}{% endfor %}
@@ -125,7 +125,7 @@
                   });
                 </script>
                 {% else %}
-                <div class="chart-empty">Әзірге деректер жоқ.<br>Оқушылар тапсырмаларды орындағанда осы жерде көрсетіледі.</div>
+                <div class="chart-empty">Әзірге деректер жоқ.<br>Білім алушылар тапсырмаларды орындағанда осы жерде көрсетіледі.</div>
                 {% endif %}
             </div>
 
@@ -192,11 +192,11 @@
         </div>
 
         <div class="line2">
-                <a href="/rating" class="diagram-link" aria-label="Студенттер рейтингіне өту">
+                <a href="/rating" class="diagram-link" aria-label="Білім алушылар рейтингіне өту">
                     <div class="diagram3">
-                        <h3>Студенттер бойынша рейтинг</h3>
+                        <h3>Білім алушылар бойынша рейтинг</h3>
                         <div class="rating-body">
-                          <p>Оқушылардың жалпы рейтингі мен үздіктерін толық көру үшін басыңыз.</p>
+                          <p>Білім алушылардың жалпы рейтингі мен үздіктерін толық көру үшін басыңыз.</p>
                           <img src="{{ url_for('static', filename='img/rating2.png') }}" alt="">
                         </div>
                     </div>

@@ -209,13 +209,13 @@
 }
 
 /* игровые действия: подсказка / разбор ошибок */
-.bq-actions{
+#bq-chat .bq-actions{
   display:none; gap:8px;
   padding:10px 16px 0;
   background:#fafcff;
 }
-.bq-actions.show{ display:flex; flex-wrap:wrap; }
-.bq-action{
+#bq-chat .bq-actions.show{ display:flex; flex-wrap:wrap; }
+#bq-chat .bq-action{
   flex:1; min-width:140px;
   border:none; border-radius:12px;
   background:var(--bq-grad); color:#fff;
@@ -225,8 +225,8 @@
   box-shadow:0 4px 12px rgba(79,142,247,.28);
   transition:filter .15s ease, transform .15s ease;
 }
-.bq-action:hover{ filter:brightness(1.08); transform:translateY(-1px); }
-.bq-action:focus-visible{ outline:2px solid var(--bq-primary); outline-offset:2px; }
+#bq-chat .bq-action:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+#bq-chat .bq-action:focus-visible{ outline:2px solid var(--bq-primary); outline-offset:2px; }
 
 /* ===== responsive ===== */
 @media (max-width: 480px){

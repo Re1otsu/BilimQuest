@@ -120,7 +120,7 @@
     if (t) t.remove();
   }
   function save() {
-    try { sessionStorage.setItem(STORE_KEY, JSON.stringify(history.slice(-16))); } catch (e) {}
+    try { sessionStorage.setItem(STORE_KEY, JSON.stringify(history.slice(-30))); } catch (e) {}
   }
   function load() {
     try { return JSON.parse(sessionStorage.getItem(STORE_KEY) || "[]"); } catch (e) { return []; }
@@ -150,7 +150,7 @@
       if (root.contains(el)) return;
       push(el.getAttribute("placeholder") || el.getAttribute("alt"));
     });
-    return parts.join(" | ").slice(0, 900);
+    return parts.join(" | ").slice(0, 3000);
   }
 
   function renderChips() {
@@ -287,7 +287,7 @@
     } else {
       history.push({ role: "user", text });
       url = "/api/chat";
-      payload = { message: text, history: history.slice(-10), page: location.pathname, page_text: collectGameContext() };
+      payload = { message: text, history: history.slice(-20), page: location.pathname, page_text: collectGameContext() };
       save();
     }
 

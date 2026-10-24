@@ -97,6 +97,7 @@ python create_teacher.py
 | `DATABASE_URL` | да | Строка подключения PostgreSQL (`postgres://` автоматически переписывается в `postgresql://`) |
 | `ANTHROPIC_API_KEY` | для ИИ-функций | Ключ Anthropic API для BilimAI и ИИ-панели |
 | `AI_CHAT_ENABLED` | нет | `true` — включить чат BilimAI (по умолчанию выключен) |
+| `AI_MODEL` | нет | модель ИИ (по умолчанию `claude-haiku-5-5`) |
 | `TEACHER_INVITE_CODE` | да | Код, который нужно ввести на `/register_teacher`, чтобы зарегистрироваться как учитель. Без этой переменной регистрация учителей отключена. |
 
 Пример `.env`:

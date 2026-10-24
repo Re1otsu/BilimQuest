@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ page_title }} — BilimQuest</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Мұғалім порталының стилінде (teacher.css айнымалылары) */
+    .a-top{display:flex;align-items:center;gap:12px;margin-bottom:var(--gap)}
+    .a-back{display:inline-flex;align-items:center;gap:6px;height:42px;padding:0 16px;border-radius:999px;text-decoration:none;
+      font-weight:700;font-size:14px;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3)}
+    .a-back:hover{background:rgba(255,255,255,.26)}
+    .a-head{background:var(--color-surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:22px 24px;margin-bottom:16px}
+    .a-head h1{margin:0;font-size:24px;font-weight:800;color:var(--ink)}
+    .a-head p{margin:6px 0 0;color:var(--text-muted);font-size:14.5px}
+
+    .a-bar{position:sticky;top:10px;z-index:5;display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;margin-bottom:14px;
+      padding:12px 16px;border-radius:var(--radius-sm);background:var(--color-surface);box-shadow:var(--shadow-md);border:1px solid var(--color-border)}
+    .a-all{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:14.5px;cursor:pointer;user-select:none}
+    .a-count{color:var(--text-muted);font-size:14px}
+    .a-count b{color:var(--color-primary)}
+    .a-filters{display:flex;gap:6px;flex-wrap:wrap}
+    .a-chip{height:32px;padding:0 13px;border-radius:999px;border:1px solid var(--color-border);background:#fff;cursor:pointer;
+      font:inherit;font-size:13px;font-weight:700;color:var(--ink)}
+    .a-chip.on{background:var(--color-primary);border-color:var(--color-primary);color:#fff}
+    .a-dl{margin-left:auto;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 20px;border:none;border-radius:999px;cursor:pointer;
+      font:inherit;font-size:14.5px;font-weight:800;color:#fff;background:linear-gradient(90deg,#1E40AF,#3B82F6);box-shadow:0 6px 16px rgba(30,64,175,.3)}
+    .a-dl:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+    .a-dl svg{width:18px;height:18px}
+
+    .a-list{display:grid;gap:10px;list-style:none;margin:0;padding:0}
+    .a-item{display:grid;grid-template-columns:auto auto 1fr auto;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--radius-sm);
+      background:var(--color-surface);border:1.5px solid transparent;box-shadow:var(--shadow-sm);transition:border-color .15s,background .15s}
+    .a-item.sel{border-color:var(--color-secondary);background:#F5F9FF}
+    .a-item[hidden]{display:none}
+    .a-cb{width:20px;height:20px;accent-color:var(--color-primary);cursor:pointer}
+    .a-ic{width:46px;height:54px;border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff;
+      background:linear-gradient(160deg,#ef4444,#b91c1c);box-shadow:0 3px 8px rgba(185,28,28,.25);position:relative}
+    .a-ic::before{content:"";position:absolute;right:0;top:0;border-style:solid;border-width:0 12px 12px 0;
+      border-color:transparent var(--color-bg) rgba(255,255,255,.5) transparent;border-top-right-radius:8px}
+    .a-main{min-width:0;cursor:pointer}
+    .a-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+    .a-tag{font-size:11.5px;font-weight:800;padding:2px 9px;border-radius:999px;background:var(--color-muted);color:var(--color-primary)}
+    .a-tag.k-Куәлік{background:#FEF3C7;color:#92400E}
+    .a-tag.k-Сертификат{background:#DCFCE7;color:#166534}
+    .a-tag.k-Жинақ{background:#EDE9FE;color:#5B21B6}
+    .a-title{font-size:15.5px;font-weight:700;line-height:1.35;color:var(--ink)}
+    .a-src{margin-top:3px;font-size:13px;color:var(--text-muted);line-height:1.4}
+    .a-act{display:flex;gap:8px}
+    .a-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:999px;text-decoration:none;white-space:nowrap;
+      font-size:13.5px;font-weight:700;border:1px solid var(--color-border);color:var(--color-primary);background:#fff}
+    .a-btn:hover{background:var(--color-muted)}
+    .a-btn.dl{color:#fff;background:var(--color-primary);border-color:var(--color-primary)}
+    .a-btn.dl:hover{background:#1b3a9e}
+    .a-btn svg{width:16px;height:16px}
+    @media (max-width:720px){
+      .a-item{grid-template-columns:auto 1fr;grid-template-areas:"cb main" "act act";gap:10px 12px}
+      .a-cb{grid-area:cb}.a-ic{display:none}.a-main{grid-area:main}.a-act{grid-area:act;justify-content:flex-end}
+      .a-dl{margin-left:0;width:100%;justify-content:center}
+    }
+  </style>
+</head>
+<body class="portal-body">
+<div class="portal-shell">
+
+  <header class="portal-topbar">
+    <div class="portal-title"><span>BilimQuest</span></div>
+    <a href="/teacher" class="a-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Порталға оралу
+    </a>
+  </header>
+
+  <section class="a-head">
+    <h1>{{ page_title }}</h1>
+    <p>{{ page_desc }}</p>
+  </section>
+
+  {% if docs %}
+  <form class="a-bar" action="/articles/zip" method="get" id="zipForm">
+    <label class="a-all"><input type="checkbox" class="a-cb" id="selAll"> Барлығын таңдау</label>
+    <span class="a-count">Таңдалды: <b id="selN">0</b> / {{ docs|length }} · <span id="selSize">0 МБ</span></span>
+    <div class="a-filters" role="group" aria-label="Түрі бойынша сүзгі">
+      <button type="button" class="a-chip on" data-k="">Барлығы</button>
+      {% for k in docs|map(attribute='kind')|unique %}<button type="button" class="a-chip" data-k="{{ k }}">{{ k }}</button>{% endfor %}
+    </div>
+    <button type="submit" class="a-dl" id="dlBtn" disabled>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Таңдалғандарды жүктеу (ZIP)
+    </button>
+  </form>
+  {% endif %}
+
+  <ul class="a-list">
+    {% for d in docs %}
+    <li class="a-item" data-kind="{{ d.kind }}" data-size="{{ d.size }}">
+      <input type="checkbox" class="a-cb doc-cb" name="id" value="{{ d.id }}" form="zipForm" aria-label="{{ d.title }}">
+      <div class="a-ic" aria-hidden="true">PDF</div>
+      <div class="a-main">
+        <div class="a-tags">
+          <span class="a-tag k-{{ d.kind }}">{{ d.kind }}</span>
+          <span class="a-tag">{{ d.lang }}</span>
+          <span class="a-tag">{{ d.size }}</span>
+        </div>
+        <div class="a-title">{{ d.title }}</div>
+        <div class="a-src">{{ d.source }}</div>
+      </div>
+      <div class="a-act">
+        <a class="a-btn" href="/articles/file/{{ d.id }}?view=1" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg>
+          Ашу
+        </a>
+        <a class="a-btn dl" href="/articles/file/{{ d.id }}">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Жүктеу
+        </a>
+      </div>
+    </li>
+    {% else %}
+    <li class="a-item"><div class="a-main" style="grid-column:1/-1;cursor:default;padding:18px 4px;text-align:center;color:var(--text-muted)">Материалдар жақында қосылады.</div></li>
+    {% endfor %}
+  </ul>
+</div>
+
+<script>
+(function(){
+  const cbs=[...document.querySelectorAll('.doc-cb')], all=document.getElementById('selAll');
+  const n=document.getElementById('selN'), sz=document.getElementById('selSize'), btn=document.getElementById('dlBtn');
+  const mb=s=>{ const v=parseFloat(String(s).replace(',','.')); return /КБ/.test(s)? v/1024 : v; };
+  const visible=()=>cbs.filter(c=>!c.closest('.a-item').hidden);
+  function sync(){
+    const sel=cbs.filter(c=>c.checked);
+    cbs.forEach(c=>c.closest('.a-item').classList.toggle('sel',c.checked));
+    n.textContent=sel.length;
+    sz.textContent=sel.reduce((t,c)=>t+mb(c.closest('.a-item').dataset.size),0).toFixed(1)+' МБ';
+    btn.disabled=!sel.length;
+    const vis=visible(); all.checked=vis.length>0 && vis.every(c=>c.checked);
+    all.indeterminate=!all.checked && vis.some(c=>c.checked);
+  }
+  cbs.forEach(c=>c.addEventListener('change',sync));
+  all.addEventListener('change',()=>{ visible().forEach(c=>c.checked=all.checked); sync(); });
+  // жолдың мәтініне басса да белгіленеді
+  document.querySelectorAll('.a-main').forEach(m=>m.addEventListener('click',()=>{
+    const c=m.closest('.a-item').querySelector('.doc-cb'); if(c){ c.checked=!c.checked; sync(); }
+  }));
+  // түрі бойынша сүзгі
+  document.querySelectorAll('.a-chip').forEach(ch=>ch.addEventListener('click',()=>{
+    document.querySelectorAll('.a-chip').forEach(x=>x.classList.toggle('on',x===ch));
+    const k=ch.dataset.k;
+    document.querySelectorAll('.a-item[data-kind]').forEach(it=>{ it.hidden = !!k && it.dataset.kind!==k; });
+    sync();
+  }));
+  sync();
+})();
+</script>
+</body>
+</html>

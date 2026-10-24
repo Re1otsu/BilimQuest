@@ -87,7 +87,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
 .s-mod-num{position:absolute;left:9.5%;top:4.6%;font-size:8.2cqw;font-weight:800;color:var(--num);opacity:.9}
 .s-mod-title{position:absolute;left:9.5%;right:8%;top:14.2%;font-size:9.4cqw;font-weight:800;line-height:1.12;
   text-shadow:0 2px 10px rgba(0,0,40,.22)}
-.s-mod--4 .s-mod-title{font-size:8.6cqw}
+.s-mod--4 .s-mod-title{font-size:7.9cqw}
 .s-mod-go{position:absolute;right:5.4%;bottom:3.4%;width:19.5cqw;height:19.5cqw;border-radius:50%;display:grid;place-items:center;
   color:#fff;background:var(--go);box-shadow:0 6px 16px rgba(0,0,40,.25),inset 0 1px 0 rgba(255,255,255,.25);transition:transform .2s ease}
 .s-mod-go svg{width:48%;height:48%}

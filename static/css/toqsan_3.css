@@ -27,10 +27,12 @@ body::before {
 .p-actions{ display:flex; align-items:center; gap:12px; }
 .p-score{
   height: 54px;
-  padding: 0 22px;
+  padding: 0 22px 0 10px;
   border-radius: 999px;
-  background: linear-gradient(45deg, #ffd34d, #ffb300);
-  color:#1f2d3d;
+  background: rgba(12,30,110,.78);   /* басты беттегідей: күңгірт көк капсула + алтын тиын */
+  border: 1px solid rgba(255,255,255,.18);
+  color:#fff;
+  font-variant-numeric: tabular-nums;
   font-weight: 900;
   font-size: 25px;
   display:flex;

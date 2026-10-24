@@ -126,3 +126,8 @@
   .r-pod{padding-bottom:14px}
   .r-pod-sub{margin-bottom:0}
 }
+
+/* жалпы ұпай — басқа беттердегідей тиынмен */
+.r-coin{vertical-align:-3px;margin-right:2px}
+.r-score{display:inline-flex;align-items:center;justify-content:flex-end;gap:3px}
+.r-pod-sub .r-coin{vertical-align:-3px}

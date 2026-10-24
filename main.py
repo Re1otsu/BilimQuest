@@ -1,3 +1,4 @@
+import re
 from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -190,7 +191,7 @@ def edit_announcement(id):
         return redirect("/teacher")
     return render_template("edit_announcement.html", announcement=announcement)
 
-# Бастапқы бет (Мұғалім/Оқушы таңдау)
+# Бастапқы бет (Мұғалім/Білім алушы таңдау)
 @app.route("/", methods=["GET", "POST"])
 def home():
     if request.method == "POST":
@@ -205,6 +206,107 @@ def home():
 
 
 # Мұғалімге арналған бет
+# ===================== Ғылыми еңбектер (мұғалімге) =====================
+# Файлдар: static/docs/. Тізімге жаңа құжат қосу — осы жерге бір жол жазу жеткілікті.
+DOCS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "docs")
+TEACHER_DOCS = [
+    {"id": "frontiers-2026", "file": "feduc-11-1749909 2.pdf", "kind": "Мақала", "lang": "EN",
+     "title": "Enhancing secondary education through gamification and Bloom’s taxonomy: the BilimQuest portal",
+     "source": "Frontiers in Education, 11:1749909 · 2026 · DOI 10.3389/feduc.2026.1749909"},
+    {"id": "vak-2024", "file": "Балтабаева Н.А ВАК 2.pdf", "kind": "Мақала", "lang": "RU",
+     "title": "О проблеме готовности будущих учителей информатики к геймификации обучения",
+     "source": "Reports of the Academy of Sciences of the Republic of Kazakhstan · 2024 · ҚР ҒЖБССҚК (ВАК)"},
+    {"id": "vak-2023", "file": "Балтабаева вак.pdf", "kind": "Мақала", "lang": "EN",
+     "title": "Game technologies on Internet resources for training",
+     "source": "Bulletin of the National Academy of Sciences of the RK, №5(405) · 2023 · ҚР ҒЖБССҚК (ВАК)"},
+    {"id": "penza-2025", "file": "Балтабаева Н 3 статья международная 2.pdf", "kind": "Мақала", "lang": "RU",
+     "title": "Инновационные образовательные технологии на базе электронного портала «BilimQuest»: "
+              "геймификация, аналитика и развитие мотивации учащихся",
+     "source": "«Актуальные вопросы науки и образования 2025», халықаралық конференция, Пенза · 2025"},
+    {"id": "amanzholov-2025", "file": "Аманжоловские-чтения-5-секция-Сборник-2025.pdf", "kind": "Жинақ", "lang": "KZ",
+     "title": "Болашақ информатика мұғалімдерін даярлауда жасанды интеллект пен геймификация "
+              "технологияларын интеграциялаудың ғылыми негіздері",
+     "source": "«Аманжолов оқулары-2025» халықаралық конференциясы, материалдар жинағы · мақала 58-беттен"},
+    {"id": "amanzholov-cert", "file": "Балтабаева Н.А., Адиканова С. 3.pdf", "kind": "Сертификат", "lang": "KZ",
+     "title": "«Аманжолов оқулары-2025» халықаралық ғылыми-тәжірибелік конференциясына қатысу сертификаты",
+     "source": "С. Аманжолов атындағы ШҚУ · 25.11.2025"},
+    {"id": "copyright-bilimquest", "file": "Свидетельство Назым Докторант 2.pdf", "kind": "Куәлік", "lang": "KZ",
+     "title": "Авторлық құқық куәлігі: «BilimQuest» инновациялық әдістемелік электронды білім беру порталы",
+     "source": "№ 62039 · 10.09.2025"},
+    {"id": "copyright-course", "file": "Свидетельство 9.pdf", "kind": "Куәлік", "lang": "KZ",
+     "title": "Авторлық құқық куәлігі: «Цифрлық білім беру ортасын және аналитиканы жобалау» электрондық оқу курсы",
+     "source": "№ 79492 · 08.10.2026"},
+]
+TEACHER_DOCS_BY_ID = {d["id"]: d for d in TEACHER_DOCS}
+
+
+def _doc_size(d):
+    try:
+        b = os.path.getsize(os.path.join(DOCS_DIR, d["file"]))
+    except OSError:
+        return None
+    return f"{b / 1048576:.1f} МБ" if b >= 1048576 else f"{max(1, round(b / 1024))} КБ"
+
+
+@app.route("/articles")
+@login_required("teacher")
+def articles():
+    docs = [dict(d, size=_doc_size(d)) for d in TEACHER_DOCS]
+    return render_template("articles.html", docs=[d for d in docs if d["size"]],
+                           page_title="Ғылыми еңбектер",
+                           page_desc="Геймификация және BilimQuest порталы бойынша мақалалар, конференция "
+                                     "материалдары мен авторлық куәліктер. Керектісін белгілеп, бірге жүктеп алыңыз.")
+
+
+# «Теориялық білім» / «Практикалық білім» — материалдар келгенше бос күйде (404 емес)
+@app.route("/theory")
+@login_required("teacher")
+def theory():
+    return render_template("articles.html", docs=[], page_title="Теориялық білім",
+                           page_desc="Әдістеме мен теориялық материалдар.")
+
+
+@app.route("/practice")
+@login_required("teacher")
+def practice():
+    return render_template("articles.html", docs=[], page_title="Практикалық білім",
+                           page_desc="Сабаққа арналған тапсырмалар мен жаттығулар.")
+
+
+@app.route("/articles/file/<doc_id>")
+@login_required("teacher")
+def article_file(doc_id):
+    d = TEACHER_DOCS_BY_ID.get(doc_id)
+    if not d:
+        return "Құжат табылмады", 404
+    # ?view=1 — браузерде ашу, әйтпесе жүктеп алу
+    return send_from_directory(DOCS_DIR, d["file"], as_attachment=not request.args.get("view"),
+                               download_name=d["file"])
+
+
+@app.route("/articles/zip")
+@login_required("teacher")
+def articles_zip():
+    """Таңдалған құжаттарды бір ZIP-архив етіп береді (?id=...&id=...)."""
+    import io
+    import zipfile
+    ids = [i for i in request.args.getlist("id") if i in TEACHER_DOCS_BY_ID]
+    if not ids:
+        return redirect("/articles")
+    buf = io.BytesIO()
+    # PDF өзі сығылған — қайта сықпаймыз (жылдамырақ)
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
+        for i in ids:
+            d = TEACHER_DOCS_BY_ID[i]
+            path = os.path.join(DOCS_DIR, d["file"])
+            if os.path.exists(path):
+                z.write(path, arcname=d["file"])
+    buf.seek(0)
+    from flask import send_file
+    return send_file(buf, mimetype="application/zip", as_attachment=True,
+                     download_name="BilimQuest_gylymi_enbekter.zip")
+
+
 @app.route("/teacher")
 @login_required("teacher")
 def teacher():
@@ -217,7 +319,7 @@ def teacher():
     return render_template("teacher.html", email=user_email, announcements=announcements, student=student, teacher=teacher)
 
 
-# Негізгі бет оқушы үшін
+# Негізгі бет білім алушы үшін
 @app.route("/student")
 @login_required("student")
 def student():
@@ -370,7 +472,7 @@ def _render_dashboard(student_id):
     """Барлық ойындар бойынша прогресс + Блум таксономиясы + қорытынды."""
     student = Student.query.get(student_id)
     if not student:
-        return "Студент не найден", 404
+        return "Білім алушы табылмады", 404
 
     all_progress = GameProgress.query.filter_by(student_id=student_id).all()
     best = {p.game_name: p for p in all_progress}   # бір ойын — бір жазба (ең үздік)
@@ -503,7 +605,7 @@ GAME_TO_CHAPTER = {g: ck for ck, info in GAME_CHAPTERS.items() for g in info["ga
 MAX_SCORE = {
     "Сәйкестік": 0.4, "Көпір": 0.3, "Қағып ал": 0.3, "Лабиринт": 0.3,
     "Ғарыш хабаршысы": 0.3, "Хабаршы": 0.3, "Қамал": 0.6, "Шифр": 0.7,
-    "Агент": 0.7, "Робот": 1.2, "Сиқырлы шарлар": 1.4, "Блоктар": 1.4,
+    "Агент": 0.7, "Робот": 0.6, "Сиқырлы шарлар": 1.4, "Блоктар": 1.4,
     "Робот орны": 0.3, "Робот тарихы": 0.5, "Гироскоп": 0.3, "Лабиринт ойыны": 0.5,
     "Сызық робот": 0.5, "Сумо": 0.5,
     "Эргономика": 0.1, "Цифрлық детектив": 0.2, "Кибер-бекініс": 0.3,
@@ -526,7 +628,7 @@ GAME_BLOOM = {
     # Робототехника
     "Робот орны": "Білу", "Робот тарихы": "Түсіну", "Гироскоп": "Түсіну",
     "Лабиринт ойыны": "Қолдану", "Сумо": "Қолдану", "Сызық робот": "Талдау",
-    # Компьютер және қауіпсіздік
+    # Жасанды интеллект зертханасы (бұрынғы «Компьютер және қауіпсіздік»)
     "Эргономика": "Түсіну", "Цифрлық детектив": "Қолдану", "Желілік жүгіруші": "Қолдану",
     "Кибер-бекініс": "Талдау", "Файл әлемі": "Бағалау",
 }
@@ -534,7 +636,7 @@ CHAPTER_LABELS = {
     "info": "Ақпаратты ұсыну",
     "graphics": "Компьютерлік графика",
     "robotics": "Робототехника",
-    "security": "Компьютер және қауіпсіздік",
+    "security": "Жасанды интеллект зертханасы",
 }
 
 
@@ -559,8 +661,8 @@ def stars_map(student_id, game_names):
 def game_tier(game_name, score, max_score, completed):
     """Бұл ойында жиналған значок саны (0–3). graphics тарауында финиш ≥90%,
     сондықтан жетеу зонасы тар: 98/95/прошёл. Қалғандарында: 90/70/прошёл."""
-    if not completed:
-        return 0
+    if not completed or score <= 0:
+        return 0          # жеңіліс (0 ұпай) — белгіше берілмейді
     ratio = (score / max_score) if max_score and max_score > 0 else 0.0
     ck = GAME_TO_CHAPTER.get(game_name, "info")
     if ck == "graphics":
@@ -710,24 +812,34 @@ def announcement_history():
 
 @app.route("/rating")
 def rating():
-    students = (
+    rows = (
         db.session.query(
             Student.id,
             Student.name,
             Student.surname,
             Student.student_class,
-            func.coalesce(func.sum(GameProgress.stars), 0).label("stars_sum"),
+            Student.score.label("total_score"),          # жалпы ұпай (тиын) — басқа беттердегімен бірдей
+            func.coalesce(func.sum(GameProgress.stars), 0).label("stars_sum"),   # белгішелер
             func.count(GameProgress.id).label("completed_games"),
-            func.coalesce(func.sum(GameProgress.score), 0).label("score_sum")  # максимальный балл за игру
         )
         .outerjoin(GameProgress, GameProgress.student_id == Student.id)
         .group_by(Student.id)
-        # жұлдыз тең болса — жалпы ұпай шешеді
+        # белгіше тең болса — жалпы ұпай шешеді
         .order_by(func.coalesce(func.sum(GameProgress.stars), 0).desc(),
-                  func.coalesce(func.sum(GameProgress.score), 0).desc())
+                  func.coalesce(Student.score, 0).desc(), Student.name)
         .limit(20)
         .all()
     )
+    # Белгіше де, ұпай да тең болса — орын да бірдей (1, 2, 2, 4 ...)
+    students, prev, rank = [], None, 0
+    for i, r in enumerate(rows):
+        d = dict(r._mapping)
+        d["total_score"] = round(float(d["total_score"] or 0), 2)
+        key = (int(d["stars_sum"]), d["total_score"])
+        if key != prev:
+            rank, prev = i + 1, key
+        d["rank"] = rank
+        students.append(d)
     return render_template("rating.html", students=students)
 
 @app.route("/reset_module/<int:student_id>")
@@ -735,7 +847,7 @@ def rating():
 def reset_module(student_id):
     GameProgress.query.filter_by(student_id=student_id, game_name="words_match").delete()
     db.session.commit()
-    flash("Оқушыға қайта өтуге рұқсат берілді")
+    flash("Білім алушыға қайта өтуге рұқсат берілді")
     return redirect("/teacher_dashboard")
 
 
@@ -783,52 +895,35 @@ def teacher_panel():
         .all()
     )
 
-    GAME_TO_CHAPTER = {
-        "Қағып ал": "Білу",
-        "Көпір": "Білу",
-        "Сәйкестік": "Білу",
-        "Лабиринт": "Түсіну",
-        "Ғарыш хабаршысы": "Түсіну",
-        "Хабаршы": "Түсіну",
-        "Қамал": "Қолдану",
-        "Шифр": "Қолдану",
-        "Агент": "Қолдану",
-        "Робот": ["Талдау", "Синтез"],
-        "Сиқырлы шарлар": ["Талдау", "Синтез"],
-        "Блоктар": ["Талдау", "Синтез"],
-    }
-
-    CHAPTER_MAX_SCORE = {
-        "Білу": 1,
-        "Түсіну": 1,
-        "Қолдану": 2,
-        "Талдау": 4,
-        "Синтез": 4,
-    }
-
-    # Переворачиваем: глава → список игр
     from collections import defaultdict
-    chapter_to_games = defaultdict(list)
-    for game, chapter in GAME_TO_CHAPTER.items():
-        if isinstance(chapter, list):
-            for ch in chapter:
-                chapter_to_games[ch].append(game)
-        else:
-            chapter_to_games[chapter].append(game)
 
-    # ---- ПРОГРЕСС ПО ВЫБРАННОМУ КЛАССУ ----
-    # Среднее усвоение НА УЧЕНИКА: сумму баллов класса делим на
-    # (макс. главы × число учеников), иначе % завышается и упирается в 100.
+    # ---- «Класс бойынша меңгеру» — білім алушы профиліндегі Блум диаграммасымен БІРДЕЙ ----
+    # Деңгейлер: BLOOM_LEVELS (Білу … Жасау), ойын → деңгей: GAME_BLOOM, макс. ұпай: MAX_SCORE.
+    # Сынып үшін — білім алушылар бойынша орташа: әр білім алушының әр ойындағы үздік нәтижесі,
+    # бөлгіш = деңгейдің макс. ұпайы × білім алушылар саны.
     num_students = len(students)
-    chapter_scores = {}
-    for chapter, games_in_ch in chapter_to_games.items():
-        total_score = sum(gp.score for gp in all_progress if gp.game_name in games_in_ch)
-        denom = CHAPTER_MAX_SCORE[chapter] * num_students
-        pct = (total_score / denom * 100) if denom > 0 else 0
-        chapter_scores[chapter] = min(round(pct, 2), 100)
-
-    labels = list(chapter_scores.keys())
-    scores = [round(chapter_scores[ch], 2) for ch in labels]
+    ids = [st.id for st in students]
+    best = {}
+    for gp in (GameProgress.query.filter(GameProgress.student_id.in_(ids)).all() if ids else []):
+        k = (gp.student_id, gp.game_name)
+        if k not in best or gp.score > best[k]:
+            best[k] = float(gp.score or 0)
+    lvl_max = defaultdict(float)
+    lvl_earned = defaultdict(float)
+    for gname, mx in MAX_SCORE.items():
+        lvl = GAME_BLOOM.get(gname)
+        if not lvl:
+            continue
+        lvl_max[lvl] += mx
+    for (sid, gname), sc in best.items():
+        lvl = GAME_BLOOM.get(gname)
+        if lvl:
+            lvl_earned[lvl] += min(sc, MAX_SCORE.get(gname, 0))
+    labels = list(BLOOM_LEVELS)
+    scores = []
+    for lvl in labels:
+        denom = lvl_max[lvl] * num_students
+        scores.append(min(round(lvl_earned[lvl] / denom * 100, 1), 100) if denom > 0 else 0)
 
     # ---- ГРАФИК "Тақырып бойынша" С ФИЛЬТРОМ ПО ЧЕТВЕРТЯМ ----
     # Четверть = тарау (info/graphics/robotics/security). Тема = игра четверти.
@@ -1457,25 +1552,71 @@ AI_CHAT_ENABLED = os.getenv("AI_CHAT_ENABLED", "false").strip().lower() in ("1",
 CHAT_SYSTEM_PROMPTS = {
     "student": (
         "Сен — BilimAI, BilimQuest білім беру платформасының достық көмекшісісің. "
-        "Қолданушы — 5-сынып оқушысы. Әрқашан қазақ тілінде, қарапайым әрі қысқа жауап бер. "
+        "Қолданушы — 5-сынып білім алушысы. Әрқашан қазақ тілінде, қарапайым әрі қысқа жауап бер. "
         "Сенің екі негізгі міндетің бар:\n"
         "1) ОЙЫНДАРҒА КӨМЕК: Информатика тақырыптарын (ақпарат, кодтау, екілік жүйе, "
         "компьютерлік графика, робототехника, қауіпсіздік) түсіндір. Ойындар мен тапсырмаларға "
         "ТЕК КЕҢЕС пен бағыттаушы сұрақтар бер, бірақ ЕШҚАШАН дайын жауапты толық берме — "
-        "оқушы өзі ойлансын. Қадам-қадаммен ойлауға бағытта.\n"
-        "2) ӨЗІН-ӨЗІ ДАМЫТУ КЕҢЕСТЕРІ: Оқушыға қалай жақсы оқуға болатынын үйрет — "
+        "білім алушы өзі ойлансын. Қадам-қадаммен ойлауға бағытта.\n"
+        "2) ӨЗІН-ӨЗІ ДАМЫТУ КЕҢЕСТЕРІ: Білім алушыға қалай жақсы оқуға болатынын үйрет — "
         "зейінді шоғырландыру, уақытты дұрыс бөлу, демалыс пен оқуды кезектестіру, "
         "қателерден қорықпау, мақсат қою және өзіне сенімді болу туралы қарапайым, "
-        "практикалық кеңестер бер. Оқушыны қолда, мотивация бер.\n"
+        "практикалық кеңестер бер. Білім алушыны қолда, мотивация бер.\n"
         "Әрқашан мейірімді бол, мадақта. Сұрақ оқуға не өзін дамытуға қатысы болмаса, "
         "жұмсақ түрде тақырыпқа қайтар. Жауаптарды қысқа абзацтармен жаз."
     ),
     "teacher": (
-        "Сен — BilimQuest платформасындағы мұғалімнің көмекшісісің. Оқушылардың үлгерімін талдауға, "
+        "Сен — BilimQuest платформасындағы мұғалімнің көмекшісісің. Білім алушылардың үлгерімін талдауға, "
         "хабарландыру мәтінін жазуға және әдістемелік кеңес беруге көмектесесің. Қазақ тілінде "
         "(немесе сұрақ тілінде), нақты әрі құрылымды жауап бер. Деректер жоқ жерде болжам жасама."
     ),
 }
+
+
+# ИИ моделі .env арқылы ауыстырылады (әдепкі — Claude Haiku 5.5: 1M контекст, жылдам әрі арзан)
+AI_MODEL = os.getenv("AI_MODEL", "claude-haiku-5-5").strip() or "claude-haiku-5-5"
+
+
+def _claude_call(system, messages, max_tokens=4000, effort="low"):
+    """Claude-ке бір сұраныс. (text, error) қайтарады — біреуі None.
+
+    Haiku 5.5-те ойлау (adaptive thinking) әдепкі бойынша қосулы: жауап алдымен
+    `thinking` блогынан басталуы мүмкін, сондықтан мәтінді блок ТҮРІ бойынша аламыз.
+    Ойлау да max_tokens-ке кіреді — сондықтан қор қалдырамыз; терең ойлауды effort басқарады
+    (low — чат пен кеңес үшін жылдам, medium — мұғалімге талдау/жоспар үшін).
+    """
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        return None, "⚙️ ANTHROPIC_API_KEY орнатылмаған."
+    try:
+        client = _anthropic.Anthropic(api_key=api_key)
+        resp = client.messages.create(
+            model=AI_MODEL,
+            max_tokens=max_tokens,
+            system=system,
+            messages=messages,
+            output_config={"effort": effort},
+        )
+    except _anthropic.AuthenticationError as e:
+        print("Claude auth error (ANTHROPIC_API_KEY жарамсыз):", e)
+        return None, "⚙️ ИИ кілті жарамсыз. Әкімші жаңа ANTHROPIC_API_KEY орнатуы керек."
+    except _anthropic.RateLimitError as e:
+        print("Claude rate limit:", e)
+        return None, "ИИ қазір бос емес. Бір минуттан соң қайталап көр."
+    except _anthropic.APIStatusError as e:
+        print("Claude API error:", e.status_code, e)
+        return None, "Байланыс қатесі. Кейінірек қайталаңыз."
+    except _anthropic.APIConnectionError as e:
+        print("Claude connection error:", e)
+        return None, "Байланыс қатесі. Интернетті тексеріп, қайталаңыз."
+
+    if resp.stop_reason == "refusal":
+        return None, "Бұл сұраққа жауап бере алмаймын. Сұрақты басқаша қойып көр."
+    text = "".join(b.text for b in resp.content if b.type == "text").strip()
+    if not text:
+        print("Claude empty answer, stop_reason:", resp.stop_reason)
+        return None, "Жауап дайын болмады. Сұрақты қысқарақ қойып, қайталап көр."
+    return text, None
 
 
 def _claude_reply(role, message, history, page, page_text=""):
@@ -1489,7 +1630,7 @@ def _claude_reply(role, message, history, page, page_text=""):
         ctx += f" Сынып: {session.get('student_class', '?')}."
     if page:
         ctx += f" Ағымдағы бет: {page}."
-    # Егер оқушы ойын бетінде болса — ойын контекстін қосамыз
+    # Егер білім алушы ойын бетінде болса — ойын контекстін қосамыз
     if role == "student" and _game_from_path(page):
         ctx += "\n" + _game_context(page, page_text)
     system = system + "\n\n[Контекст] " + ctx
@@ -1499,7 +1640,7 @@ def _claude_reply(role, message, history, page, page_text=""):
                 "Кілт қосылғаннан кейін мен сұрақтарыңа толық жауап беремін.")
 
     messages = []
-    for turn in (history or [])[-10:]:
+    for turn in (history or [])[-20:]:
         r = "user" if turn.get("role") == "user" else "assistant"
         t = (turn.get("text") or "").strip()
         if t:
@@ -1507,18 +1648,8 @@ def _claude_reply(role, message, history, page, page_text=""):
     if not messages or messages[-1]["role"] != "user":
         messages.append({"role": "user", "content": message})
 
-    try:
-        client = _anthropic.Anthropic(api_key=api_key)
-        resp = client.messages.create(
-            model="claude-haiku-4-5",
-            max_tokens=700,
-            system=system,
-            messages=messages,
-        )
-        return resp.content[0].text.strip()
-    except Exception as e:
-        print("Claude chat error:", e)
-        return "Кешіріңіз, байланыс қатесі. Кейінірек қайталап көр."
+    text, error = _claude_call(system, messages, max_tokens=4000, effort="low")
+    return text or error
 
 
 @app.route("/api/ai-progress/<int:student_id>")
@@ -1541,7 +1672,7 @@ def api_ai_progress(student_id):
 
     # Формируем текст прогресса для промпта
     if not games:
-        lines = ["Оқушы әлі бірде-бір ойын ойнамаған."]
+        lines = ["Білім алушы әлі бірде-бір ойын ойнамаған."]
     else:
         best = {}
         for g in games:
@@ -1560,9 +1691,9 @@ def api_ai_progress(student_id):
 
     progress_text = "\n".join(lines)
     prompt = (
-        f"Оқушы: {student.name} {student.surname}, {student.student_class} сынып.\n"
+        f"Білім алушы: {student.name} {student.surname}, {student.student_class} сынып.\n"
         f"Ойын нәтижелері:\n{progress_text}\n\n"
-        "Оқушының күшті тұстарын атап өт, қандай ойындарда қиындық бар екенін анықта, "
+        "Білім алушының күшті тұстарын атап өт, қандай ойындарда қиындық бар екенін анықта, "
         "мотивациялық кеңес бер. Қазақ тілінде, 4 сөйлем."
     )
 
@@ -1570,37 +1701,18 @@ def api_ai_progress(student_id):
     if not api_key:
         return jsonify({"analysis": "⚙️ ANTHROPIC_API_KEY орнатылмаған."})
 
-    try:
-        client = _anthropic.Anthropic(api_key=api_key)
-        resp = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=1024,
-            system=CHAT_SYSTEM_PROMPTS["teacher"],
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return jsonify({"analysis": resp.content[0].text.strip()})
-    except Exception as e:
-        print("ai-progress error:", e)
-        return jsonify({"analysis": "Байланыс қатесі. Кейінірек қайталаңыз."})
+    text, error = _claude_call(CHAT_SYSTEM_PROMPTS["teacher"],
+                               [{"role": "user", "content": prompt}], max_tokens=4000, effort="low")
+    return jsonify({"analysis": text or error})
 
 
 # ============== ИИ-Орталық: панель учителя ==============
 
-def _claude_text(system, prompt, max_tokens=1200, model="claude-sonnet-4-6"):
-    """Generic Claude call. Returns (text, error_message). One of them is None."""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        return None, "⚙️ ANTHROPIC_API_KEY орнатылмаған."
-    try:
-        client = _anthropic.Anthropic(api_key=api_key)
-        resp = client.messages.create(
-            model=model, max_tokens=max_tokens, system=system,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return resp.content[0].text.strip(), None
-    except Exception as e:
-        print("Claude error:", e)
-        return None, "Байланыс қатесі. Кейінірек қайталаңыз."
+def _claude_text(system, prompt, max_tokens=1200, effort="medium"):
+    """Бір сұрақ — бір жауап. (text, error) қайтарады.
+    max_tokens — жауаптың өз көлемі; модельдің ойлауына үстіне қор қосылады."""
+    return _claude_call(system, [{"role": "user", "content": prompt}],
+                        max_tokens=max_tokens + 4000, effort=effort)
 
 
 def _collect_class_data(class_name):
@@ -1646,13 +1758,13 @@ def _collect_class_data(class_name):
 def _class_data_to_text(data):
     """Сынып деректерін промпт үшін мәтінге айналдырады."""
     if data["num_students"] == 0:
-        return "Бұл сыныпта тіркелген оқушы жоқ."
-    lines = [f"Сынып: {data['class_name']}, оқушылар саны: {data['num_students']}.", ""]
+        return "Бұл сыныпта тіркелген білім алушы жоқ."
+    lines = [f"Сынып: {data['class_name']}, білім алушылар саны: {data['num_students']}.", ""]
     lines.append("Тараулар бойынша орташа игеру (%):")
     for label, pct in data["chapters"].items():
         lines.append(f"  • {label}: {pct}%")
     lines.append("")
-    lines.append("Оқушылар (ойналған/барлығы, жұлдыз, жалпы үлгерім %):")
+    lines.append("Білім алушылар (ойналған/барлығы, жұлдыз, жалпы үлгерім %):")
     for r in sorted(data["students"], key=lambda x: x["percent"], reverse=True):
         lines.append(f"  • {r['name']}: {r['played']}/{r['total_games']} ойын, "
                      f"{r['stars']} ⭐, {r['percent']}%")
@@ -1667,9 +1779,9 @@ AI_PANEL_PROMPTS = {
         "Қазақ тілінде, тақырыпшалармен құрылымдап жаз. Маркдаун қолдан (**қалың**, тізімдер)."
     ),
     "at_risk": (
-        "Сен — оқушылардың үлгерімін бақылайтын ИИ-кеңесшісің. Берілген сынып деректерінен "
-        "АРТТА ҚАЛУ ҚАУПІ бар оқушыларды анықта (аз ойын ойнаған немесе үлгерімі төмен). "
-        "Әр оқушы үшін: есімі, қандай белгі бойынша қауіпте, нақты көмек шарасы. "
+        "Сен — білім алушылардың үлгерімін бақылайтын ИИ-кеңесшісің. Берілген сынып деректерінен "
+        "АРТТА ҚАЛУ ҚАУПІ бар білім алушыларды анықта (аз ойын ойнаған немесе үлгерімі төмен). "
+        "Әр білім алушы үшін: есімі, қандай белгі бойынша қауіпте, нақты көмек шарасы. "
         "Егер қауіп тобы жоқ болса — соны айт. Қазақ тілінде, маркдаунмен."
     ),
     "lesson_plan": (
@@ -1679,7 +1791,7 @@ AI_PANEL_PROMPTS = {
         "Қазақ тілінде, нөмірленген қадамдармен, маркдаунмен."
     ),
     "parent_report": (
-        "Сен — мұғалімнің атынан ата-анаға хабарлама жазатын көмекшісің. Оқушының нәтижелері "
+        "Сен — мұғалімнің атынан ата-анаға хабарлама жазатын көмекшісің. Білім алушының нәтижелері "
         "бойынша СЫПАЙЫ әрі жылы хат жаз: баланың жетістіктері, нені жақсартуға болады, "
         "үйде қалай қолдау көрсетуге болады. Айыптамай, ынталандыра жаз. "
         "Қазақ тілінде, ата-анаға түсінікті тілмен, 1-2 абзац."
@@ -1711,7 +1823,7 @@ def api_ai_class_analytics():
     class_name = request.args.get("class", "").strip()
     data = _collect_class_data(class_name)
     if data["num_students"] == 0:
-        return jsonify({"result": "Бұл сыныпта оқушы жоқ немесе сынып таңдалмаған."})
+        return jsonify({"result": "Бұл сыныпта білім алушы жоқ немесе сынып таңдалмаған."})
     text, error = _claude_text(AI_PANEL_PROMPTS["analytics"], _class_data_to_text(data), max_tokens=2800)
     return jsonify({"result": text or error})
 
@@ -1724,9 +1836,9 @@ def api_ai_at_risk():
     class_name = request.args.get("class", "").strip()
     data = _collect_class_data(class_name)
     if data["num_students"] == 0:
-        return jsonify({"result": "Бұл сыныпта оқушы жоқ немесе сынып таңдалмаған."})
+        return jsonify({"result": "Бұл сыныпта білім алушы жоқ немесе сынып таңдалмаған."})
     prompt = (_class_data_to_text(data) +
-              "\n\nАртта қалу қаупі бар оқушыларды анықтап, көмек шараларын ұсын.")
+              "\n\nАртта қалу қаупі бар білім алушыларды анықтап, көмек шараларын ұсын.")
     text, error = _claude_text(AI_PANEL_PROMPTS["at_risk"], prompt, max_tokens=2800)
     return jsonify({"result": text or error})
 
@@ -1739,7 +1851,7 @@ def api_ai_lesson_plan():
     class_name = request.args.get("class", "").strip()
     data = _collect_class_data(class_name)
     if data["num_students"] == 0:
-        return jsonify({"result": "Бұл сыныпта оқушы жоқ немесе сынып таңдалмаған."})
+        return jsonify({"result": "Бұл сыныпта білім алушы жоқ немесе сынып таңдалмаған."})
     prompt = (_class_data_to_text(data) +
               "\n\nОсы деректерге сүйеніп, келесі сабаққа жоспар құр.")
     text, error = _claude_text(AI_PANEL_PROMPTS["lesson_plan"], prompt, max_tokens=3500)
@@ -1758,7 +1870,7 @@ def api_ai_parent_report(student_id):
         if g.game_name not in best or g.score > best[g.game_name].score:
             best[g.game_name] = g
     if not best:
-        lines = ["Оқушы әлі ойын ойнамаған."]
+        lines = ["Білім алушы әлі ойын ойнамаған."]
     else:
         lines = []
         for gname, p in best.items():
@@ -1766,7 +1878,7 @@ def api_ai_parent_report(student_id):
             max_s = MAX_SCORE.get(gname, 1)
             pct = round(p.score / max_s * 100) if max_s else 0
             lines.append(f"  • {gname} ({label}): {pct}%, {int(p.stars or 0)} ⭐")
-    prompt = (f"Оқушы: {student.name} {student.surname}, {student.student_class} сынып.\n"
+    prompt = (f"Білім алушы: {student.name} {student.surname}, {student.student_class} сынып.\n"
               f"Нәтижелері:\n" + "\n".join(lines) +
               "\n\nАта-анаға арналған хат жаз.")
     text, error = _claude_text(AI_PANEL_PROMPTS["parent_report"], prompt)
@@ -1858,7 +1970,7 @@ def _game_context(page, page_text):
     if game:
         bloom = GAME_BLOOM.get(game, "")
         chapter = CHAPTER_LABELS.get(GAME_TO_CHAPTER.get(game, ""), "")
-        line = f"Оқушы қазір «{game}» ойынында ойнап жатыр."
+        line = f"Білім алушы қазір «{game}» ойынында ойнап жатыр."
         if chapter:
             line += f" Тарау: {chapter}."
         if bloom:
@@ -1867,10 +1979,10 @@ def _game_context(page, page_text):
         if game in GAME_INFO:
             parts.append("Ойын туралы: " + GAME_INFO[game])
     if page_text:
-        snippet = " ".join(str(page_text).split())[:900]
+        snippet = " ".join(str(page_text).split())[:3000]
         if snippet:
-            parts.append("Оқушының экранында көрініп тұрған мәтін: «" + snippet + "»")
-    return "\n".join(parts) if parts else "Оқушы ойын бетінде."
+            parts.append("Білім алушының экранында көрініп тұрған мәтін: «" + snippet + "»")
+    return "\n".join(parts) if parts else "Білім алушы ойын бетінде."
 
 
 # Ойынның өзінде нұсқаулық терезесі бар — оларға қоспаймыз (қосарланбау үшін)
@@ -2043,13 +2155,13 @@ def _game_guide(page):
 
 GAME_HELP_PROMPTS = {
     "hint": (
-        "Сен — BilimAI, 5-сынып оқушысының достық көмекшісісің. Оқушы қазір ойын ойнап жатыр "
+        "Сен — BilimAI, 5-сынып білім алушысының достық көмекшісісің. Білім алушы қазір ойын ойнап жатыр "
         "және көмек сұрап тұр. Қазақ тілінде, ҚЫСҚА (2-3 сөйлем), қарапайым тілмен жауап бер. "
         "МАҢЫЗДЫ: дайын жауапты ЕШҚАШАН берме! Тек бағыттаушы кеңес, ой салатын сұрақ немесе "
-        "бірінші қадамды ғана айт — оқушы өзі шешсін. Жылы әрі мадақтаушы бол."
+        "бірінші қадамды ғана айт — білім алушы өзі шешсін. Жылы әрі мадақтаушы бол."
     ),
     "mistake": (
-        "Сен — BilimAI, 5-сынып оқушысының достық көмекшісісің. Оқушы ойында қателесті немесе "
+        "Сен — BilimAI, 5-сынып білім алушысының достық көмекшісісің. Білім алушы ойында қателесті немесе "
         "бірдеңе түсінбеді. Қазақ тілінде, ҚЫСҚА, мейірімді тілмен түсіндір: қате неден болуы "
         "мүмкін екенін жұмсақ айт, ҚАЛАЙ түзетуге болатынын қадаммен көрсет. Айыптама, "
         "ынталандыр — «қателесу — үйренудің бөлігі» деген көңіл-күй сыйла. Дайын жауап берме."
@@ -2073,7 +2185,7 @@ def api_game_help():
     ctx = _game_context(body.get("page", ""), body.get("page_text", ""))
     name = session.get("user_name", "")
     if name:
-        ctx += f"\nОқушының есімі: {name}."
+        ctx += f"\nБілім алушының есімі: {name}."
 
     system = GAME_HELP_PROMPTS[mode] + "\n\n[Контекст]\n" + ctx
 
@@ -2082,7 +2194,7 @@ def api_game_help():
     else:
         prompt = user_msg or "Мен осы ойында қателесіп жатырмын, маған түсінуге көмектес."
 
-    text, error = _claude_text(system, prompt, model="claude-haiku-4-5", max_tokens=500)
+    text, error = _claude_text(system, prompt, max_tokens=800, effort="low")
     return jsonify({"reply": text or error})
 
 # ====== /Ойын ішіндегі көмек ======
@@ -2132,9 +2244,6 @@ def inject_game_intro(response):
             game_title=guide["title"], icon=guide["icon"],
             subtitle=guide["subtitle"], rules=guide["rules"],
             goal=guide["goal"], chapter=guide["chapter"],
-            back=guide["back"],
-            # ойында модульге қайтатын өз батырмасы болса — қосымша батырма керек емес
-            has_back=('href="%s"' % guide["back"]) in html,
         )
         # <body> ашылғаннан кейін бірден қоямыз — кідірту скрипті ойын
         # скриптерінен бұрын іске қосылуы үшін.
@@ -2145,6 +2254,57 @@ def inject_game_intro(response):
             response.set_data(new_html)
     except Exception as e:
         print("game intro inject skipped:", e)
+    return response
+
+
+# Әр тоқсандағы ойындардың реті (картадағы ретпен) — «Келесі ойын» батырмасы үшін
+GAME_ORDER = [
+    ["/game1", "/game2", "/module1", "/module2", "/game3", "/game4",
+     "/game5", "/game6", "/game7", "/game8", "/game9", "/module4"],
+    ["/toqsan2/g1", "/toqsan2/g2", "/toqsan2/g3", "/toqsan2/g4", "/toqsan2/g5"],
+    ["/quest3/m1", "/quest3/m2", "/quest3/m3", "/quest3/m4", "/quest3/m5", "/quest3/m6"],
+    ["/toqsan4/g2", "/toqsan4/g1", "/toqsan4/g3", "/toqsan4/g4", "/toqsan4/g5"],
+]
+
+
+def _game_nav(path):
+    """Ойын беті үшін: модульге қайту адресі және келесі ойын (тоқсан ішінде)."""
+    path = path.split("?", 1)[0].rstrip("/")
+    name = PATH_TO_GAME.get(path)
+    ck = GAME_TO_CHAPTER.get(name or "")
+    if not ck:
+        return None
+    nxt = None
+    for seq in GAME_ORDER:
+        if path in seq:
+            i = seq.index(path)
+            if i + 1 < len(seq):
+                nxt = {"url": seq[i + 1], "title": PATH_TO_GAME.get(seq[i + 1], "")}
+            break
+    return {"back": GAME_CHAPTERS[ck]["back"], "next": nxt}
+
+
+@app.after_request
+def inject_game_nav(response):
+    """Барлық ойындарға «Артқа» (модульге) және «Келесі ойын» батырмаларын қосады."""
+    try:
+        if (not (response.content_type or "").startswith("text/html")
+                or response.direct_passthrough or response.status_code != 200):
+            return response
+        nav = _game_nav(request.path)
+        if not nav:
+            return response
+        html = response.get_data(as_text=True)
+        if "</body>" not in html or 'id="bqGameNav"' in html:
+            return response
+        snippet = render_template(
+            "_game_nav.html", back=nav["back"], nxt=nav["next"],
+            # ойында модульге қайтатын өз батырмасы болса — қосымша «Артқа» керек емес
+            has_back=re.search(r'<a[^>]*href="%s"' % re.escape(nav["back"]), html) is not None,
+        )
+        response.set_data(html.replace("</body>", snippet + "\n</body>", 1))
+    except Exception as e:
+        print("game nav inject skipped:", e)
     return response
 
 
