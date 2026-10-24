@@ -141,7 +141,7 @@ choicesEl.addEventListener("click", (e) => {
 
 function endGame() {
   const finalScoreValue = mistakes >= 2 ? 0 : 0.3;
-  finalScore.textContent = `Ұпай: ${finalScoreValue.toFixed(2)}`;
+  finalScore.textContent = `Ұпай: ${(finalScoreValue / 0.3 * 10).toFixed(2)} / 10`;
 
   starContainer.innerHTML = "";
   if(finalScoreValue === 0.3){

@@ -131,13 +131,19 @@ class GameProgress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey("student.id"))
     game_name = db.Column(db.String(100), nullable=False)
-    score = db.Column(db.Float, default=0)   # лучше float, т.к. 0.3 балла
+    score = db.Column(db.Float, default=0)   # 10 ұпайлық шкала (0–10)
     stars = db.Column(db.Integer, default=0) # ⭐ счётчик звёзд
     completed = db.Column(db.Boolean, default=False)
     attempt = db.Column(db.Integer, nullable=False, default=1)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     student = db.relationship('Student', backref='games')
+
+
+class AppMeta(db.Model):
+    """Бір реттік деректер көшірулерінің белгісі (мысалы, 10 ұпайлық шкалаға көшу)."""
+    key = db.Column(db.String(64), primary_key=True)
+    value = db.Column(db.String(255), nullable=True)
 
 class GameAccess(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -481,22 +487,8 @@ def _render_dashboard(student_id):
         p = best.get(gname)
         return min(float(p.score), MAX_SCORE.get(gname, 0)) if p else 0.0
 
-    # ── Блум таксономиясы (барлық ойын бойынша) ──
-    bloom = {lvl: {"earned": 0.0, "max": 0.0} for lvl in BLOOM_LEVELS}
-    for gname, mx in MAX_SCORE.items():
-        lvl = GAME_BLOOM.get(gname)
-        if not lvl:
-            continue
-        bloom[lvl]["max"] += mx
-        bloom[lvl]["earned"] += earned_of(gname)
-    chapters_progress = {
-        lvl: {
-            "score": round(d["earned"], 2),
-            "max_score": round(d["max"], 2),
-            "percent": round(d["earned"] / d["max"] * 100, 1) if d["max"] > 0 else 0,
-        }
-        for lvl, d in bloom.items()
-    }
+    # ── Блум таксономиясы: тек ойналған ойындар бойынша, ойналмаса — «дерек жоқ» ──
+    chapters_progress = bloom_breakdown({g: float(p.score or 0) for g, p in best.items()})
 
     # ── Тарау (тоқсан) прогрессі ──
     chapters_progress_display = {}
@@ -602,7 +594,10 @@ GAME_CHAPTERS = {
 GAME_TO_CHAPTER = {g: ck for ck, info in GAME_CHAPTERS.items() for g in info["games"]}
 
 # Ойынның максимал ұпайы (барлық ойын — бір жерде)
-MAX_SCORE = {
+# Барлық ойын 10 ұпайлық шкала бойынша бағаланады. Ойындар өз ішкі ұпайын жібереді
+# (мысалы 0.3 / 0.3) — сервер оны 10 ұпайға айналдырады: score10 = шикі / GAME_RAW_MAX × 10.
+SCORE_SCALE = 10.0
+GAME_RAW_MAX = {
     "Сәйкестік": 0.4, "Көпір": 0.3, "Қағып ал": 0.3, "Лабиринт": 0.3,
     "Ғарыш хабаршысы": 0.3, "Хабаршы": 0.3, "Қамал": 0.6, "Шифр": 0.7,
     "Агент": 0.7, "Робот": 0.6, "Сиқырлы шарлар": 1.4, "Блоктар": 1.4,
@@ -613,25 +608,89 @@ MAX_SCORE = {
     "Пиксель шебері": 0.5, "Фотолаб": 0.5, "Лазер жолы": 0.5,
     "Вектор ядро": 0.5, "Графика текетірес": 0.6,
 }
+# Сақталған және көрсетілетін ұпайлар — бәрі 10-нан
+MAX_SCORE = {g: SCORE_SCALE for g in GAME_RAW_MAX}
 
-# Блум таксономиясы: әр ойын → танымдық деңгей
+
+def to_scale10(game_name, raw_score):
+    """Ойынның шикі ұпайын 10 ұпайлық шкалаға айналдырады (0–10, 2 таңба)."""
+    raw_max = GAME_RAW_MAX.get(game_name)
+    if not raw_max:
+        return None
+    raw = max(0.0, min(float(raw_score or 0), raw_max))
+    return round(raw / raw_max * SCORE_SCALE, 2)
+
+# Блум таксономиясы: әр ойынның деңгейлері (тапсырыс берушінің «Блум рубрикасы, 28 ойын»,
+# 2-кесте). Ойынның ұпайы оның деңгейлеріне ТЕҢ бөлінеді (рубриканың 4-бөлімі, 1-ереже).
 BLOOM_LEVELS = ["Білу", "Түсіну", "Қолдану", "Талдау", "Бағалау", "Жасау"]
-GAME_BLOOM = {
-    # Ақпаратты ұсыну
-    "Қағып ал": "Білу", "Көпір": "Білу", "Сәйкестік": "Білу",
-    "Лабиринт": "Түсіну", "Ғарыш хабаршысы": "Түсіну", "Хабаршы": "Түсіну",
-    "Қамал": "Қолдану", "Шифр": "Қолдану", "Агент": "Қолдану",
-    "Робот": "Талдау", "Сиқырлы шарлар": "Бағалау", "Блоктар": "Жасау",
-    # Компьютерлік графика
-    "Пиксель шебері": "Қолдану", "Фотолаб": "Қолдану",
-    "Вектор ядро": "Жасау", "Лазер жолы": "Жасау", "Графика текетірес": "Бағалау",
-    # Робототехника
-    "Робот орны": "Білу", "Робот тарихы": "Түсіну", "Гироскоп": "Түсіну",
-    "Лабиринт ойыны": "Қолдану", "Сумо": "Қолдану", "Сызық робот": "Талдау",
-    # Жасанды интеллект зертханасы (бұрынғы «Компьютер және қауіпсіздік»)
-    "Эргономика": "Түсіну", "Цифрлық детектив": "Қолдану", "Желілік жүгіруші": "Қолдану",
-    "Кибер-бекініс": "Талдау", "Файл әлемі": "Бағалау",
+GAME_BLOOM_LEVELS = {
+    # 1-бөлім. Ақпаратты ұсыну
+    "Қағып ал": ["Білу"],
+    "Сәйкестік": ["Түсіну"],
+    "Көпір": ["Түсіну"],
+    "Лабиринт": ["Түсіну", "Қолдану"],
+    "Ғарыш хабаршысы": ["Қолдану"],
+    "Хабаршы": ["Қолдану", "Талдау"],
+    "Қамал": ["Қолдану"],
+    "Шифр": ["Қолдану"],
+    "Агент": ["Қолдану", "Талдау"],
+    "Робот": ["Қолдану", "Талдау"],
+    "Сиқырлы шарлар": ["Қолдану"],
+    "Блоктар": ["Қолдану", "Талдау"],
+    # 2-бөлім. Компьютерлік графика
+    "Пиксель шебері": ["Түсіну", "Қолдану"],
+    "Фотолаб": ["Қолдану", "Бағалау"],
+    "Лазер жолы": ["Қолдану", "Жасау"],
+    "Вектор ядро": ["Талдау", "Жасау"],
+    "Графика текетірес": ["Талдау"],
+    # 3-бөлім. Робототехника
+    "Робот орны": ["Түсіну"],
+    "Робот тарихы": ["Білу", "Талдау"],
+    "Гироскоп": ["Қолдану", "Талдау"],      # 2-фазада Ki керек екенін өзі анықтайды
+    "Лабиринт ойыны": ["Қолдану", "Жасау"],
+    "Сызық робот": ["Қолдану", "Талдау"],
+    "Сумо": ["Қолдану", "Бағалау"],
+    # 4-бөлім. Жасанды интеллект зертханасы
+    "Эргономика": ["Түсіну", "Бағалау"],
+    "Цифрлық детектив": ["Білу", "Қолдану", "Бағалау"],
+    "Желілік жүгіруші": ["Түсіну", "Қолдану"],
+    "Кибер-бекініс": ["Қолдану", "Бағалау", "Жасау"],
+    "Файл әлемі": ["Қолдану", "Бағалау"],
 }
+# Қысқа көрсету үшін (ойын тарихы, ИИ контексі): «Қолдану / Талдау»
+GAME_BLOOM = {g: " / ".join(lv) for g, lv in GAME_BLOOM_LEVELS.items()}
+
+
+def bloom_breakdown(best_scores):
+    """Блум деңгейлері бойынша ұпай мен пайыз (рубриканың 4-бөлімі).
+
+    best_scores: {ойын: ең үздік ұпай} — ТЕК ойналған ойындар.
+    Ойын ұпайы мен максимумы оның деңгейлеріне тең бөлінеді. Деңгей пайызы =
+    жиналған ұпай / ойналған ойындардың максимумы. Бірде-бір ойын ойналмаса — percent=None
+    («дерек жоқ»), сонда «ойнамаған» мен «нашар орындаған» шатаспайды.
+    """
+    agg = {lvl: {"earned": 0.0, "max": 0.0, "games": 0} for lvl in BLOOM_LEVELS}
+    for gname, score in best_scores.items():
+        levels = GAME_BLOOM_LEVELS.get(gname)
+        mx = MAX_SCORE.get(gname, 0)
+        if not levels or mx <= 0:
+            continue
+        share = 1.0 / len(levels)
+        for lvl in levels:
+            agg[lvl]["earned"] += min(float(score), mx) * share
+            agg[lvl]["max"] += mx * share
+            agg[lvl]["games"] += 1
+    return {
+        lvl: {
+            "score": round(d["earned"], 3),
+            "max_score": round(d["max"], 3),
+            "games": d["games"],
+            "percent": round(d["earned"] / d["max"] * 100, 1) if d["max"] > 0 else None,
+        }
+        for lvl, d in agg.items()
+    }
+
+
 CHAPTER_LABELS = {
     "info": "Ақпаратты ұсыну",
     "graphics": "Компьютерлік графика",
@@ -659,18 +718,12 @@ def stars_map(student_id, game_names):
 
 
 def game_tier(game_name, score, max_score, completed):
-    """Бұл ойында жиналған значок саны (0–3). graphics тарауында финиш ≥90%,
-    сондықтан жетеу зонасы тар: 98/95/прошёл. Қалғандарында: 90/70/прошёл."""
+    """Белгіше саны (0–3), 10 ұпайлық шкала бойынша: 9–10 → 3, 7–8 → 2, 1–6 → 1, 0 → 0."""
     if not completed or score <= 0:
         return 0          # жеңіліс (0 ұпай) — белгіше берілмейді
-    ratio = (score / max_score) if max_score and max_score > 0 else 0.0
-    ck = GAME_TO_CHAPTER.get(game_name, "info")
-    if ck == "graphics":
-        if ratio >= 0.98: return 3
-        if ratio >= 0.95: return 2
-        return 1
-    if ratio >= 0.90: return 3
-    if ratio >= 0.70: return 2
+    s10 = (score / max_score * SCORE_SCALE) if max_score and max_score > 0 else 0.0
+    if s10 >= 9: return 3
+    if s10 >= 7: return 2
     return 1
 
 
@@ -716,10 +769,10 @@ def game_result():
     stars = int(data.get("stars", 0))
     completed = bool(data.get("completed", True))
 
-    max_score = MAX_SCORE.get(game_name)
-    if max_score is None:
+    score = to_scale10(game_name, score)     # ойынның шикі ұпайы → 10 ұпай
+    if score is None:
         return {"error": "Unknown game"}, 400
-    score = min(score, max_score)
+    max_score = SCORE_SCALE
     stars = game_tier(game_name, score, max_score, completed)   # 0–3 значок
 
     # бір ойынға — бір жазба; attempt = өту саны
@@ -898,9 +951,8 @@ def teacher_panel():
     from collections import defaultdict
 
     # ---- «Класс бойынша меңгеру» — білім алушы профиліндегі Блум диаграммасымен БІРДЕЙ ----
-    # Деңгейлер: BLOOM_LEVELS (Білу … Жасау), ойын → деңгей: GAME_BLOOM, макс. ұпай: MAX_SCORE.
-    # Сынып үшін — білім алушылар бойынша орташа: әр білім алушының әр ойындағы үздік нәтижесі,
-    # бөлгіш = деңгейдің макс. ұпайы × білім алушылар саны.
+    # Әр білім алушының әр ойындағы ең үздік нәтижесі; ойын ұпайы деңгейлеріне тең бөлінеді;
+    # пайыз тек ойналған ойындар бойынша; сыныпта ешкім ойнамаған деңгей — «дерек жоқ» (None).
     num_students = len(students)
     ids = [st.id for st in students]
     best = {}
@@ -908,22 +960,18 @@ def teacher_panel():
         k = (gp.student_id, gp.game_name)
         if k not in best or gp.score > best[k]:
             best[k] = float(gp.score or 0)
-    lvl_max = defaultdict(float)
     lvl_earned = defaultdict(float)
-    for gname, mx in MAX_SCORE.items():
-        lvl = GAME_BLOOM.get(gname)
-        if not lvl:
-            continue
-        lvl_max[lvl] += mx
+    lvl_max = defaultdict(float)
     for (sid, gname), sc in best.items():
-        lvl = GAME_BLOOM.get(gname)
-        if lvl:
-            lvl_earned[lvl] += min(sc, MAX_SCORE.get(gname, 0))
+        levels = GAME_BLOOM_LEVELS.get(gname)
+        mx = MAX_SCORE.get(gname, 0)
+        if not levels or mx <= 0:
+            continue
+        for lvl in levels:
+            lvl_earned[lvl] += min(sc, mx) / len(levels)
+            lvl_max[lvl] += mx / len(levels)
     labels = list(BLOOM_LEVELS)
-    scores = []
-    for lvl in labels:
-        denom = lvl_max[lvl] * num_students
-        scores.append(min(round(lvl_earned[lvl] / denom * 100, 1), 100) if denom > 0 else 0)
+    scores = [round(lvl_earned[l] / lvl_max[l] * 100, 1) if lvl_max[l] > 0 else None for l in labels]
 
     # ---- ГРАФИК "Тақырып бойынша" С ФИЛЬТРОМ ПО ЧЕТВЕРТЯМ ----
     # Четверть = тарау (info/graphics/robotics/security). Тема = игра четверти.
@@ -2345,6 +2393,41 @@ def inject_chapter_complete(response):
     except Exception as e:
         print("chapter finale inject skipped:", e)
     return response
+
+
+def migrate_to_scale10():
+    """Бір рет: ескі ұпайларды (0.05 / 0.3 …) 10 ұпайлық шкалаға көшіру.
+
+    Әр жазба: score10 = ескі ұпай / GAME_RAW_MAX × 10; белгіше жаңа ережемен қайта есептеледі;
+    білім алушының жалпы ұпайы = оның ойындарындағы 10 ұпайлық нәтижелердің қосындысы.
+    AppMeta белгісі сол транзакцияда жазылады — бірнеше worker бір уақытта іске қосылса да,
+    көшіру тек бір рет орындалады (екіншісі primary key қақтығысына тап болып, өткізіп жібереді).
+    """
+    from sqlalchemy.exc import IntegrityError
+    with app.app_context():
+        if db.session.get(AppMeta, "score_scale_10"):
+            return
+        try:
+            db.session.add(AppMeta(key="score_scale_10", value=datetime.utcnow().isoformat()))
+            db.session.flush()
+        except IntegrityError:
+            db.session.rollback()
+            return
+        totals = {}
+        for gp in GameProgress.query.all():
+            s10 = to_scale10(gp.game_name, gp.score)
+            if s10 is None:          # белгісіз ойын (ескі сынақ жазбасы) — жалпы ұпайға кірмейді
+                continue
+            gp.score = s10
+            gp.stars = game_tier(gp.game_name, s10, SCORE_SCALE, bool(gp.completed))
+            totals[gp.student_id] = totals.get(gp.student_id, 0.0) + s10
+        for st in Student.query.all():
+            st.score = round(totals.get(st.id, 0.0), 2)
+        db.session.commit()
+        print(f"[migrate] 10 ұпайлық шкалаға көшірілді: {len(totals)} білім алушы")
+
+
+migrate_to_scale10()
 
 
 if __name__ == "__main__":

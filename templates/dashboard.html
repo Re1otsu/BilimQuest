@@ -244,15 +244,18 @@ function wrapLabel(s, max){
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(drawCharts);
 
 const GRID = 'rgba(30,79,168,.22)';
+const BLOOM = {{ chapters_progress.items()|map('list')|list|tojson }}.map(([level,d])=>({level, percent:d.percent, games:d.games}));
 function drawCharts(){
 /* ═══ Bloom — радар ═══ */
 const rctx = document.getElementById('bloomRadar').getContext('2d');
 new Chart(rctx, {
   type:'radar',
   data:{
-    labels:[{% for chapter in chapters_progress.keys() %}'{{ chapter }}',{% endfor %}],
+    /* ойналмаған деңгей — «дерек жоқ» (0% емес): нүкте салынбайды, белгіде жазылады */
+    labels:BLOOM.map(b=>b.percent===null?[b.level,'(дерек жоқ)']:b.level),
     datasets:[{
-      data:[{% for chapter, data in chapters_progress.items() %}{{ data.percent }},{% endfor %}],
+      data:BLOOM.map(b=>b.percent),
+      spanGaps:true,
       fill:true, backgroundColor:'rgba(47,121,255,.18)',
       borderColor:'#2f79ff', borderWidth:2,
       pointBackgroundColor:'#2f79ff', pointBorderColor:'#fff',
@@ -271,7 +274,7 @@ new Chart(rctx, {
     }},
     plugins:{ legend:{display:false},
       tooltip:{ backgroundColor:'#1c2b45', padding:10, displayColors:false,
-                callbacks:{ label:c=>c.parsed.r + '%' } } }
+                callbacks:{ label:c=>{ const b=BLOOM[c.dataIndex]; return c.parsed.r + '%  · ' + b.games + ' ойын'; } } } }
   }
 });
 

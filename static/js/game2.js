@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showGameOver() {
     stopTimer();
     const finalScoreValue = hadMistake ? 0 : score;
-    finalScore.textContent = `Ұпай: ${finalScoreValue.toFixed(2)}`;
+    finalScore.textContent = `Ұпай: ${(finalScoreValue / 0.3 * 10).toFixed(2)} / 10`;
 
     const starContainer = document.getElementById("star-container");
     starContainer.innerHTML = "";

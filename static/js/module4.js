@@ -321,7 +321,7 @@ async function sendProgress() {
 
   // отображение результата
   const percentage = Math.round((normalizedScore / maxTotalScore) * 100);
-  document.getElementById("final-score").textContent = `Ұпай: ${normalizedScore.toFixed(2)}`;
+  document.getElementById("final-score").textContent = `Ұпай: ${(normalizedScore / 1.4 * 10).toFixed(2)} / 10`;
 
   // добавление звезды
   const starContainer = document.getElementById("star-container");

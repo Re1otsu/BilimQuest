@@ -192,6 +192,7 @@ body{background:
     <div class="cert-txt">
       <b>Қауіпсіздік СЕРТИФИКАТЫ ЖҮКТЕЛДІ</b>
       <div>Сен ЖИ-Көмекшінің денсаулығын 100%-ға қалпына келтірдің!</div>
+      <div id="certNote" style="margin-top:4px;color:#ffd970;font-weight:700"></div>
     </div>
   </div>
 
@@ -208,7 +209,7 @@ body{background:
 
   <!-- finish -->
   <div class="finish" id="finishBar">
-    <button class="finish-btn" onclick="finishGame()">✓ Аяқтау — картаға оралу (+0.10 ұпай)</button>
+    <button class="finish-btn" id="finishBtn" onclick="finishGame()">✓ Аяқтау — картаға оралу</button>
   </div>
 
 </div>
@@ -216,11 +217,23 @@ body{background:
 <script>
 /* ════════════════════════════════════════════════════════════
    1-ОЙЫН: Кибер-эргономика — ЖИ Көмекшіні емдеу
-   Дұрыс жауап → ЖИ денсаулығы 85% → 100%. +0.10 ұпай.
+   Дұрыс жауап → ЖИ денсаулығы 85% → 100%. Ұпай 10 ұпайлық шкала бойынша (сервер есептейді).
 ════════════════════════════════════════════════════════════ */
 
 let hp = 85;
 let won = false;
+/* Рубрика (тапсырыс берушінің 3-кестесі): қате таңдаулар саналады.
+   3 жетон — бәрі бірінші әрекетте дұрыс; 2 — «қауіпті» жоқ, 1–2 «жартылай қате»;
+   1 — кемінде бір «қауіпті» немесе 2-ден көп «жартылай қате». */
+let softCount = 0, dangerCount = 0;
+function ergoTokens(){
+  if(dangerCount===0 && softCount===0) return 3;
+  if(dangerCount===0 && softCount<=2) return 2;
+  return 1;
+}
+// Серверде белгіше ұпай үлесімен есептеледі (≥90% → 3, ≥70% → 2, қалғаны → 1),
+// сондықтан жетонды сол шектерге дәл түсетін ұпайға айналдырамыз.
+const ERGO_SCORE = {3:0.10, 2:0.07, 1:0.04};
 let selected = -1;
 let answeredCorrect = false;
 
@@ -364,12 +377,14 @@ function submitAnswer(){
       setTimeout(winSequence,500);
     }
   } else if(o.kind==='danger'){
+    dangerCount++;
     el.classList.add('wrong');
     dangerFlash();
     buzz();
     setTimeout(()=>{ el.classList.remove('wrong','sel'); },700);
     selected=-1; document.getElementById('answerBtn').disabled=true;
   } else { /* soft */
+    softCount++;
     el.classList.add('wrong'); buzz();
     setTimeout(()=>{ el.classList.remove('wrong','sel'); },600);
     selected=-1; document.getElementById('answerBtn').disabled=true;
@@ -400,6 +415,12 @@ function winSequence(){
   if(won) return; won=true;
   document.getElementById('cert').classList.add('show');
   document.getElementById('finishBar').classList.add('show');
+  const tk=ergoTokens();
+  document.getElementById('certNote').textContent =
+    tk===3 ? 'Барлық жауап бірінші әрекетте дұрыс — 3 белгіше!'
+    : tk===2 ? `«Қауіпті» таңдау жоқ, ${softCount} «жартылай қате» — 2 белгіше.`
+    : `${dangerCount ? dangerCount+' «қауіпті» таңдау' : softCount+' «жартылай қате»'} болды — 1 белгіше. Қайта өтіп көр!`;
+  document.getElementById('finishBtn').textContent = `✓ Аяқтау — картаға оралу (+${Math.round(ERGO_SCORE[tk]/0.1*10)} ұпай)`;
   confetti();
   // celebrate chat line
   setTimeout(()=>aiSay('🎉 Жүйем қалпына келді — 100%! Рахмет, бас инженер! Маған тағы сұрақ қойсаң, көбірек кеңес беремін.'),700);
@@ -467,7 +488,8 @@ function finishGame(){
     localStorage.setItem(k,JSON.stringify(s));
   }catch(e){}
   // бірыңғай нәтиже терезесі (ұпай + тарау жетоны + артқа)
-  bqFinish({game_name:'Эргономика', score:0.1, stars:1, backUrl:'/toqsan_4'});
+  const tk=ergoTokens();
+  bqFinish({game_name:'Эргономика', score:ERGO_SCORE[tk], stars:tk, backUrl:'/toqsan_4'});
 }
 
 /* ── FX ── */

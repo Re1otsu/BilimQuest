@@ -227,7 +227,7 @@ function endGame(){
     finalStars = (score >= maxScore) ? 1 : 0;
   }
 
-  finalScoreEl.textContent = `Ұпай: ${finalScore.toFixed(2)}`;
+  finalScoreEl.textContent = `Ұпай: ${(finalScore / 1.4 * 10).toFixed(2)} / 10`;
   starContainer.innerHTML = "";
   if(finalStars === 1){
     const star = document.createElement("img");

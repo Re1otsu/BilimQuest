@@ -103,7 +103,7 @@ function endGame() {
       starContainer.appendChild(star);
   }
 
-  document.getElementById('final-score').textContent = `Ұпай: ${finalScore.toFixed(2)}`;
+  document.getElementById('final-score').textContent = `Ұпай: ${(finalScore / 0.6 * 10).toFixed(2)} / 10`;
 
   fetch("/game_result", {
     method:"POST",

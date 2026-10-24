@@ -42,7 +42,7 @@
       </script>
 
       <!-- KPI cards -->
-      {% set _scores = scores if scores else [] %}
+      {% set _scores = (scores if scores else [])|reject('none')|list %}
       {% set _avg = ((_scores|sum) / (_scores|length)) if _scores|length > 0 else 0 %}
       {% set _max = (_scores|max) if _scores|length > 0 else 0 %}
       <section class="kpi-row" aria-label="Негізгі көрсеткіштер">
@@ -73,13 +73,13 @@
         <div class="line1">
             <div class="diagram1">
                 <h3>Класс бойынша меңгеру (%)</h3>
-                {% if labels and scores %}
+                {% if labels and (scores|reject('none')|list) %}
                 <div class="chart-wrap">
                   <canvas id="classChart" role="img"
                           aria-label="Блум деңгейлері бойынша сыныптың меңгеру пайызын көрсететін бағаналы диаграмма"></canvas>
                 </div>
                 <p class="sr-only">
-                  {% for l in labels %}{{ l }}: {{ scores[loop.index0] }}%{% if not loop.last %}, {% endif %}{% endfor %}
+                  {% for l in labels %}{{ l }}: {{ ('%s%%'|format(scores[loop.index0])) if scores[loop.index0] is not none else 'дерек жоқ' }}{% if not loop.last %}, {% endif %}{% endfor %}
                 </p>
                 <script>
                   Chart.register(ChartDataLabels);
@@ -87,7 +87,8 @@
                   new Chart(document.getElementById('classChart'), {
                     type: 'bar',
                     data: {
-                      labels: {{ labels|tojson }},
+                      /* сыныпта ешкім ойнамаған деңгей — «дерек жоқ» (0% емес) */
+                      labels: {{ labels|tojson }}.map((l,i)=>{{ scores|tojson }}[i]===null?[l,'(дерек жоқ)']:l),
                       datasets: [{
                         label: 'Сәтті меңгеру',
                         data: {{ scores|tojson }},
@@ -118,7 +119,7 @@
                         datalabels: {
                           anchor: 'end', align: 'end', offset: 2,
                           color: '#1E3A8A', font: { weight: 'bold', size: 11 },
-                          formatter: v => v + '%'
+                          formatter: v => v === null ? '' : v + '%'
                         }
                       }
                     }

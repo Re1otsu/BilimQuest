@@ -84,7 +84,7 @@ function checkGameEnd() {
 }
 
 function showGameOver() {
-  finalScore.textContent = `Ұпай: ${score.toFixed(2)}`;
+  finalScore.textContent = `Ұпай: ${(score / 0.3 * 10).toFixed(2)} / 10`;
 
   let stars = (score === maxScore) ? 1 : 0;
   const starElement = document.getElementById("star");

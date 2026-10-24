@@ -125,7 +125,7 @@ function endGame() {
     starContainer.appendChild(star);
   }
 
-  finalScoreEl.textContent = `Ұпай: ${finalScore.toFixed(2)}`;
+  finalScoreEl.textContent = `Ұпай: ${(finalScore / 0.7 * 10).toFixed(2)} / 10`;
 
   // Отправка на сервер
   fetch("/game_result", {
