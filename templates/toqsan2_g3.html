@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Laser Path — Қисық бетімен жұмыс</title>
+<title>Лазер жолы — Қисық бетімен жұмыс</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -125,7 +125,7 @@ svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshai
   <header class="hdr">
     <div class="hdr-title">
       <div class="hdr-shield">📐</div>
-      <div>Laser Path<br><span style="font-weight:600;font-size:12.5px;color:#8fc9b9">Қисық бетімен жұмыс · Безье қисықтары</span></div>
+      <div>Лазер жолы<br><span style="font-weight:600;font-size:12.5px;color:#8fc9b9">Қисық бетімен жұмыс · Безье қисықтары</span></div>
     </div>
     <div class="hdr-right">
       <div class="hdr-star">⭐ <span id="scoreTop">{{ "%.2f"|format(student.score) }}</span></div>
@@ -135,7 +135,7 @@ svg#stage{display:block;width:100%;height:auto;touch-action:none;cursor:crosshai
 
   <div class="meters">
     <div class="meter">
-      <div class="meter-top acc-top"><span>🎯 Дәлдік (Accuracy) — кемінде 90%</span><b id="accNum">0%</b></div>
+      <div class="meter-top acc-top"><span>🎯 Дәлдік — кемінде 90%</span><b id="accNum">0%</b></div>
       <div class="track"><div class="fill acc-fill" id="accFill"></div></div>
     </div>
     <div class="meter">
@@ -419,8 +419,8 @@ function onNodeDown(e,i){
     nodes[i].type = nodes[i].type==='corner'?'smooth':'corner';
     selIdx=i; render();
     kronos(nodes[i].type==='corner'
-      ? 'Бұл нүкте енді <b>бұрышты (Corner)</b> — сызық осы жерде сынады, түзу болады. 📐'
-      : 'Бұл нүкте <b>тегіс (Smooth)</b> — тұтқалары арқылы әдемі доға жасайды. 🔄');
+      ? 'Бұл нүкте енді <b>бұрышты</b> — сызық осы жерде сынады, түзу болады. 📐'
+      : 'Бұл нүкте <b>тегіс</b> — тұтқалары арқылы әдемі доға жасайды. 🔄');
     return;
   }
   selIdx=i;

@@ -19,7 +19,7 @@ function formatTime(s) {
 function updateTimerDisplay() {
   const el = document.getElementById('timer');
   if (!el) return;
-  el.textContent = `Таймер: ${formatTime(timeLeft)}`;
+  el.textContent = `Уақыт: ${formatTime(timeLeft)}`;
   if (timeLeft <= 10) el.classList.add('low');
   else el.classList.remove('low');
 }
@@ -155,14 +155,14 @@ function renderBoard() {
 
   // Обновим счёт
   const scoreEl = document.getElementById("score");
-  if (scoreEl) scoreEl.textContent = `Очки: ${score}`;
+  if (scoreEl) scoreEl.textContent = `Ұпай: ${score}`;
 }
 
 // обновление отображения очков (если использовал кастомный HUD)
 function updateScoreDisplay() {
   const scoreEl = document.getElementById('score');
   if (!scoreEl) return;
-  scoreEl.textContent = `Очки: ${score}`;
+  scoreEl.textContent = `Ұпай: ${score}`;
   // небольшой визуальный эффект, если есть класс .score-badge
   const badge = scoreEl.closest('.score-badge') || scoreEl;
   badge.classList.remove('pop');

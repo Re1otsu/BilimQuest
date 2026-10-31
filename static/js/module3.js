@@ -32,7 +32,7 @@ function updateScreen() {
     updateTimerDisplay();
     // обновляем очки (если у тебя отдельный элемент)
     const scoreEl = document.getElementById("score");
-    if (scoreEl) scoreEl.textContent = `Очки: ${totalScore}`;
+    if (scoreEl) scoreEl.textContent = `Ұпай: ${totalScore}`;
 }
 
 // ====================== level control ======================
@@ -96,7 +96,7 @@ function submitCode() {
         currentLevel++;
 
         if (currentLevel < levels.length) {
-            alert(`Келесі деңгейге өттіңіз! Деңгейге: ${reward} ұпай (штрафтар: ${penalty}).`);
+            alert(`Келесі деңгейге өттіңіз! Деңгейге: ${reward} ұпай (айыппұлдар: ${penalty}).`);
             message.textContent = "";
             userInput = "";
             startLevel(currentLevel);
@@ -110,7 +110,7 @@ function submitCode() {
             const wrongPenalty = 5; // штраф за неправильный ввод
             levelPenalties[currentLevel] += wrongPenalty;
 
-            alert(`Код қате! Жиналған штраф ${wrongPenalty} ұпай. Жалпы штраф: ${levelPenalties[currentLevel]}`);
+            alert(`Код қате! Жиналған айыппұл ${wrongPenalty} ұпай. Жалпы айыппұл: ${levelPenalties[currentLevel]}`);
             // При этом мы НЕ списываем очки сразу, списание будет при успешном завершении уровня
         }
 }

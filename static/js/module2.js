@@ -108,7 +108,7 @@ function showGameOver() {
 
 // --- Обновление счёта ---
 function updateScore() {
-    scoreDisplay.textContent = `Сіздің баллыңыз: ${score.toFixed(2)}`;
+    scoreDisplay.textContent = `Сіздің ұпайыңыз: ${score.toFixed(2)}`;
 }
 
 // --- Создание сетки ---

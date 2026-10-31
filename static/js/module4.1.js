@@ -90,7 +90,7 @@ function renderBoard() {
         }
     }
 
-    document.getElementById("score").textContent = `Очки: ${score}`;
+    document.getElementById("score").textContent = `Ұпай: ${score}`;
 }
 
 // Перемещение персонажа
@@ -131,7 +131,7 @@ function moveCharacter(dx, dy) {
                     targets = targets.filter(t => t !== target);
                 } else {
                     if (!firstWarningShown) {
-                        alert("Нельзя ставить блоки на неправильные места!");
+                        alert("Блоктарды қате орынға қоюға болмайды!");
                         firstWarningShown = true;
                     } else {
                         alert("Блок возвращается на исходное место!");
@@ -158,7 +158,7 @@ function moveCharacter(dx, dy) {
     renderBoard();
 
     if (checkWin()) {
-        setTimeout(() => alert("Поздравляем! Уровень завершен!"), 100);
+        setTimeout(() => alert("Құттықтаймыз! Деңгей аяқталды!"), 100);
         sendProgress();
     }
 }

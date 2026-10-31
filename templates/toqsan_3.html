@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Puzzle World</title>
+  <title>Робототехника</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
@@ -51,7 +51,7 @@
     <div class="q-fireflies" data-path="#route1" data-count="10" data-speed="0.18"></div>
 
     <a class="p-hero" href="/student" aria-label="Артқа">
-    <img src="{{ url_for('static', filename='img/researcher2.png') }}" alt="Hero">
+    <img src="{{ url_for('static', filename='img/researcher2.png') }}" alt="Кейіпкер">
     <div class="p-hero-title">Басты бет</div>
     </a>
 
@@ -124,7 +124,7 @@
 
     <!-- n5: Сызық робот -->
     <a class="p-node{% if completed['Сызық робот'] %} p-done{% endif %}" id="n5" href="{{ url_for('quest3_m5') }}"
-       data-desc="Line-follower роботты Kp, Kd және жылдамдықпен бапта. 3 трасса!"
+       data-desc="Сызық бойынша жүретін роботты Kp, Kd және жылдамдықпен бапта. 3 трасса!"
        data-tags="🎮 Ойын|📈 Баптау|10 ұпайға дейін"
        aria-label="Сызық робот">
       <div class="p-platform">

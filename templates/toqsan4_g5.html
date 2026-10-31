@@ -201,7 +201,7 @@ body{background:
         <div class="todo-title">📋 Тапсырмалар</div>
         <div class="task" id="t1"><div class="chk">✓</div><div><div class="task-txt">Барлық файлды сұрыпта</div><div class="task-sub"><span id="sortCount">0</span> / 6 папкаға орналасты</div></div></div>
         <div class="task" id="t2"><div class="chk">✓</div><div><div class="task-txt">Презентацияны бірлесе өңде</div><div class="task-sub">.pptx → ✏️ басып қатені түзет</div></div></div>
-        <div class="task" id="t3"><div class="chk">✓</div><div><div class="task-txt">Файлды бөліс (Share)</div><div class="task-sub">👥 → дұрыс құқық бер</div></div></div>
+        <div class="task" id="t3"><div class="chk">✓</div><div><div class="task-txt">Файлды бөліс</div><div class="task-sub">👥 → дұрыс құқық бер</div></div></div>
       </div>
       <div class="ws-kr"><div class="ico">🤖</div><div class="txt" id="wsKr">Файлды дұрыс папкаға қойсаң — комбо өседі! Қатарынан дұрыс сұрыпта.</div></div>
     </div>
@@ -213,7 +213,7 @@ body{background:
   <div class="modal-h">✏️ Diploma_Presentation.pptx <span class="x" onclick="closeEdit()">×</span></div>
   <div class="modal-b">
     <div class="slide"><h3>Менің жобам</h3><div class="typo" id="slideTypo">«<span class="bad" id="typoWord">Компютер</span> — болашақтың құралы»</div></div>
-    <button class="edit-btn" id="editFixBtn" onclick="fixTypo()">✏️ Қатені түзету (Edit)</button>
+    <button class="edit-btn" id="editFixBtn" onclick="fixTypo()">✏️ Қатені түзету</button>
   </div>
 </div></div>
 
@@ -368,7 +368,7 @@ function allGoalsDone(){ return Object.values(goals).every(v=>v<=0); }
 function checkPhaseEnd(){
   if(allGoalsDone()){ kron('🎉 Керемет! Барлық мақсат орындалды — жұмыс кеңістігі ашылды!'); setTimeout(toWorkspace,1100); }
   else if(moves<=0){ kron('⏳ Қозғалыс бітті. Жұмыс кеңістігіне өтейік!'); setTimeout(toWorkspace,1100); }
-  else if(goals[0]>0&&Math.random()<.35) kron('💪 Тағы ☁️ Cloud иконкаларын жина — бұлттық энергия керек!');
+  else if(goals[0]>0&&Math.random()<.35) kron('💪 Тағы ☁️ бұлт белгішелерін жина — бұлттық энергия керек!');
 }
 
 /* ════ WORKSPACE ════ */
@@ -467,9 +467,9 @@ function fixTypo(){
 
 /* share */
 const PERMS=[
-  {t:'Тек оқу (Viewer)',e:'👁️',ok:false,fb:'Бұл құқықпен досың тек қарай алады, бірақ көмектесе алмайды.'},
-  {t:'Пікір жазу (Commenter)',e:'💬',ok:false,fb:'Пікір жаза алады, бірақ слайдты өзгерте алмайды.'},
-  {t:'Редакциялау (Editor)',e:'✏️',ok:true,fb:'Мінсіз! Енді досың да бұл файлды сенімен бір уақытта өз үйінен өңдей алады! 💎 +1'},
+  {t:'Тек оқу',e:'👁️',ok:false,fb:'Бұл құқықпен досың тек қарай алады, бірақ көмектесе алмайды.'},
+  {t:'Пікір жазу',e:'💬',ok:false,fb:'Пікір жаза алады, бірақ слайдты өзгерте алмайды.'},
+  {t:'Редакциялау',e:'✏️',ok:true,fb:'Мінсіз! Енді досың да бұл файлды сенімен бір уақытта өз үйінен өңдей алады! 💎 +1'},
 ];
 function openShare(){ const list=document.getElementById('permList'); list.innerHTML='';
   PERMS.forEach(p=>{ const b=document.createElement('div'); b.className='perm-opt'; b.innerHTML=`<span class="pe">${p.e}</span><span>${p.t}</span>`; b.onclick=()=>pickPerm(b,p); list.appendChild(b); });
@@ -480,7 +480,7 @@ function pickPerm(el,p){
   if(p.ok){ shared=true; el.classList.add('ok'); crystals++; updateCrys(); blip(740); markTask('t3');
     wsKron('🤖 '+p.fb); setTimeout(closeShare,1200); checkWsEnd(); }
   else { mistakes++; el.classList.add('bad'); setTimeout(()=>el.classList.remove('bad'),450); blip(200);
-    wsKron('⚠️ '+p.fb+' Безендіруге көмектесу үшін «Редакциялау (Editor)» керек.'); }
+    wsKron('⚠️ '+p.fb+' Безендіруге көмектесу үшін «Редакциялау» керек.'); }
 }
 
 function markTask(id){ document.getElementById(id).classList.add('done'); }

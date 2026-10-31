@@ -279,7 +279,7 @@ async function ailab(){
   for(let i=0;i<6;i++){ const o=-50+i*20; [[o,-72,o,-62],[o,62,o,72],[-72,o,-62,o],[62,o,72,o]].forEach(([a,b,c,d])=>el('line',{x1:C[0]+a,y1:C[1]+b,x2:C[0]+c,y2:C[1]+d,stroke:'#7e8fc8','stroke-width':4,'stroke-linecap':'round'},chip)); }
   el('rect',{x:C[0]-62,y:C[1]-62,width:124,height:124,rx:14,fill:'url(#aChip)',stroke:'#5ef2ff','stroke-width':2.5},chip);
   const core=el('circle',{cx:C[0],cy:C[1],r:34,fill:'url(#aCore)',opacity:.15,filter:'url(#aGlow)'},chip);
-  const ai=el('text',{x:C[0],y:C[1]+12,'text-anchor':'middle','font-size':38,'font-weight':900,'font-family':'Exo 2,Nunito,sans-serif',fill:'#0b1140',opacity:0},chip); ai.textContent='AI';
+  const ai=el('text',{x:C[0],y:C[1]+12,'text-anchor':'middle','font-size':38,'font-weight':900,'font-family':'Exo 2,Nunito,sans-serif',fill:'#0b1140',opacity:0},chip); ai.textContent='ЖИ';
   // жолдар кезекпен жанады
   for(let i=0;i<5;i++){ const g=nodeG[i];
     g.querySelector('circle').setAttribute('stroke','#5ef2ff'); g.querySelector('path').setAttribute('stroke','#5ef2ff');

@@ -126,7 +126,7 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;bac
 <div class="hud">
   <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
   <a href="{{ url_for('quest3_m4') }}" class="hud-back prev">← М4</a>
-  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Mission</span><span class="hud-val cyan">5 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Миссия</span><span class="hud-val cyan">5 / 6</span></div>
   <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
   <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">03:00</span></div>
 </div>
@@ -713,7 +713,7 @@ function showResult(win, stars, score, hold, cleanWin){
     `• <b style="color:#38bdf8">Kp</b> — сызыққа бұрылу күші. Аз болса бұрылыста шығады, көп болса зигзаг.<br>`+
     `• <b style="color:#fb923c">Kd</b> — зигзагты басатын демпфер (қатенің өзгеру жылдамдығына әсер етеді).<br>`+
     `• <b style="color:#34d399">Жылдамдық</b> — жылдам робот бұрылысқа үлгермейді. <b>Жылдам ≠ дәл!</b><br>`+
-    `Нақты жарыс роботтары (line-follower) дәл осылай 5 датчикпен жұмыс істейді.`;
+    `Нақты жарыс роботтары дәл осылай 5 датчикпен жұмыс істейді.`;
   const sr=document.getElementById('resStars'); sr.innerHTML='';
   for(let i=1;i<=3;i++){const s=document.createElement('span');s.className='star-icon';s.textContent='⭐';sr.appendChild(s);if(i<=stars)setTimeout(()=>s.classList.add('lit'),i*200);}
   const row=document.getElementById('rBtnRow'); row.innerHTML='';

@@ -25,10 +25,10 @@
         <label for="classSelect" class="sr-only">Сыныпты таңдаңыз</label>
         <select id="classSelect">
             {% for cls in class_list %}
-              <option value="{{ cls }}" {% if selected_class == cls %}selected{% endif %}>Сынып-{{ cls }}</option>
+              <option value="{{ cls }}" {% if selected_class == cls %}selected{% endif %}>{{ cls }} сынып</option>
             {% endfor %}
         </select>
-        <a href="#" class="is-active" aria-current="true">Класс бойынша</a>
+        <a href="#" class="is-active" aria-current="true">Сынып бойынша</a>
         <a href="#">Тақырып бойынша</a>
         <a href="#">Білім алушылар бойынша</a>
         <a href="/teacher" class="back-btn">← Басты бетке</a>
@@ -72,7 +72,7 @@
 
         <div class="line1">
             <div class="diagram1">
-                <h3>Класс бойынша меңгеру (%)</h3>
+                <h3>Сынып бойынша меңгеру (%)</h3>
                 {% if labels and (scores|reject('none')|list) %}
                 <div class="chart-wrap">
                   <canvas id="classChart" role="img"
@@ -160,7 +160,7 @@
                   data: {
                     labels: {{ labels_all|tojson }},
                     datasets: [{
-                      label: 'Орташа балл',
+                      label: 'Орташа ұпай',
                       data: {{ scores_all|tojson }},
                       backgroundColor: 'rgba(59, 130, 246, 0.85)',
                       hoverBackgroundColor: 'rgba(59, 130, 246, 1)',

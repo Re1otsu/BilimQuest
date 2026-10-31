@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateTimer() {
-    timerEl.textContent = `Таймер: ${formatTime(timeLeft)}`;
+    timerEl.textContent = `Уақыт: ${formatTime(timeLeft)}`;
     if (timeLeft <= 10) timerEl.classList.add("low");
   }
 

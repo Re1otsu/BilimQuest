@@ -35,10 +35,10 @@ modalTimer.classList.add('modal-timer');
 modal.querySelector('.modal-content').prepend(modalTimer);
 
 function startTimer() {
-  modalTimer.textContent = `Уақыт: ${timeLeft}s`;
+  modalTimer.textContent = `Уақыт: ${timeLeft} с`;
   timerInterval = setInterval(() => {
     timeLeft--;
-    modalTimer.textContent = `Уақыт: ${timeLeft}s`;
+    modalTimer.textContent = `Уақыт: ${timeLeft} с`;
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
       alert("⏰ Уақыт аяқталды!");

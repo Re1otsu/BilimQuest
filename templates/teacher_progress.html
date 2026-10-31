@@ -38,13 +38,13 @@
                 {% for student in progress_data %}
                 <tr>
                     <td>{{ student.name }}</td>
-                    <td>{{ student.student_class }}</td>
+                    <td>{{ student.student_class }} сынып</td>
                     <td>{{ student.score }}</td>
                     <td>{{ student.correct_tasks }}</td>
                     <td>
                         {% for game in student.games %}
                             <div class="game-row">
-                                <span>{{ game.game_name }}: {{ game.score }} балл – {% if game.completed %}✅{% else %}❌{% endif %}</span>
+                                <span>{{ game.game_name }}: {{ game.score }} ұпай – {% if game.completed %}✅{% else %}❌{% endif %}</span>
                                 <form method="POST" action="/reset_module_score">
                                     <input type="hidden" name="student_id" value="{{ student.id }}">
                                     <input type="hidden" name="game_name" value="{{ game.game_name }}">

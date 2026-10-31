@@ -456,7 +456,7 @@ body::before{
 <div class="hud">
   <a href="/toqsan_3" class="hud-back mod">⊞ Модуль</a>
   <a href="{{ url_for('quest3_m2') }}" class="hud-back prev">← М2</a>
-  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Mission</span><span class="hud-val cyan">3 / 6</span></div>
+  <div class="hud-seg"><span class="hud-icon">🧭</span><span class="hud-label">Миссия</span><span class="hud-val cyan">3 / 6</span></div>
   <div class="hud-seg"><span class="hud-icon">⭐</span><span class="hud-label">Ұпай:</span><span class="hud-val gold" id="hudScore">0</span></div>
   <div class="hud-seg"><span class="hud-icon">🧩</span><span class="hud-label">Тұрақтылық</span><span class="hud-val cyan" id="hudProg">0%</span></div>
   <div class="hud-seg"><span class="hud-icon">🕐</span><span class="hud-label">Уақыт:</span><span class="hud-val hud-timer" id="hudTimer">02:30</span></div>
@@ -568,19 +568,19 @@ body::before{
           <div class="gring inner"></div>
           <div class="gimbal-core" id="gimbalCore">🛰️</div>
         </div>
-        <div class="gyro-axis yaw">YAW</div>
-        <div class="gyro-axis pitch">PITCH</div>
-        <div class="gyro-axis roll">ROLL</div>
+        <div class="gyro-axis yaw">БҰРЫЛУ</div>
+        <div class="gyro-axis pitch">ЕҢКЕЮ</div>
+        <div class="gyro-axis roll">АУНАУ</div>
       </div>
 
       <!--── Raw sensor data ──-->
       <div class="rawdata">
         <div class="raw-cell">
-          <div class="raw-k">Yaw</div>
+          <div class="raw-k">Бұрылу</div>
           <div class="raw-v" id="rawYaw">0°</div>
         </div>
         <div class="raw-cell">
-          <div class="raw-k">Pitch</div>
+          <div class="raw-k">Еңкею</div>
           <div class="raw-v" id="rawPitch">0°</div>
         </div>
         <div class="raw-cell">
@@ -593,7 +593,7 @@ body::before{
       <div class="graph-wrap">
         <canvas id="graphCanvas"></canvas>
         <div class="graph-top">
-          <span class="graph-label">Pitch графигі (сенсор)</span>
+          <span class="graph-label">Еңкею графигі (сенсор)</span>
           <span class="status-tag bad" id="statusTag">Тұрақсыз</span>
         </div>
       </div>

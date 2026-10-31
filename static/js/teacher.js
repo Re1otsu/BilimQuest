@@ -38,7 +38,7 @@ const ctx2 = document.getElementById('topicChart');
 new Chart(ctx2, {
   type: 'doughnut',
   data: {
-    labels: ['Information Encryption', 'Computer Graphics', 'Robotics'],
+    labels: ['Ақпаратты шифрлау', 'Компьютерлік графика', 'Робототехника'],
     datasets: [{
       data: [65, 54, 82],
       backgroundColor: ['#1e4fa8', '#4db6ff', '#82c91e']

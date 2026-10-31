@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>PhotoLab — Түстер лабораториясы</title>
+<title>Фотолаб — Түстер лабораториясы</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -150,7 +150,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bor
   <header class="hdr">
     <div class="hdr-title">
       <div class="hdr-shield">📸</div>
-      <div>PhotoLab<br><span style="font-weight:600;font-size:12.5px;color:#8fc9b9">Түстер лабораториясы · Түсті түзету</span></div>
+      <div>Фотолаб<br><span style="font-weight:600;font-size:12.5px;color:#8fc9b9">Түстер лабораториясы · Түсті түзету</span></div>
     </div>
     <div class="hdr-right">
       <div class="hdr-star">⭐ <span id="scoreTop">{{ "%.2f"|format(student.score) }}</span></div>
@@ -159,7 +159,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bor
   </header>
 
   <div class="acc">
-    <div class="acc-top"><span>📊 Дәлдік (Accuracy) — эталонға сәйкестендір, кемінде 90%</span><b id="accNum">0%</b></div>
+    <div class="acc-top"><span>📊 Дәлдік — эталонға сәйкестендір, кемінде 90%</span><b id="accNum">0%</b></div>
     <div class="acc-track"><div class="acc-fill" id="accFill"></div></div>
   </div>
 
@@ -214,9 +214,9 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bor
       <div class="card">
         <div class="card-head"><span class="dot"></span> 🧪 Сүзгілер (Фильтрлер)</div>
         <div class="filters" id="filters">
-          <div class="flt" data-f="blur"><span class="ic">💧</span> Бұлдырату (Blur)</div>
-          <div class="flt" data-f="sharpen"><span class="ic">🔺</span> Айқындау (Sharpen)</div>
-          <div class="flt" data-f="denoise"><span class="ic">🪄</span> Шуылды жою (Denoise)</div>
+          <div class="flt" data-f="blur"><span class="ic">💧</span> Бұлдырату</div>
+          <div class="flt" data-f="sharpen"><span class="ic">🔺</span> Айқындау</div>
+          <div class="flt" data-f="denoise"><span class="ic">🪄</span> Шуылды жою</div>
           <div class="flt" data-f="none"><span class="ic">🚫</span> Сүзгісіз</div>
         </div>
       </div>
@@ -365,9 +365,9 @@ document.querySelectorAll(".flt").forEach(f=>f.onclick=()=>{
   document.querySelectorAll(".flt").forEach(x=>x.classList.remove("active"));
   f.classList.add("active");
   st.filter=f.dataset.f;
-  if(st.filter==="blur"){ kronos('Абайла! <b>Blur</b> суретті бұлдыратады — шуылды жасырғанмен, детальдарды да жоғалтады. Шуылды <b>«Шуылды жою»</b> сүзгісімен таза тазала! 💧'); }
-  else if(st.filter==="sharpen"){ kronos('<b>Sharpen</b> шекараларды айқындайды, бірақ цифрлық шуылды одан да күшейтіп жіберуі мүмкін. 🔺'); }
-  else if(st.filter==="denoise"){ kronos('Тамаша! <b>Шуылды жою (Denoise)</b> артефактілерді кетірді — сурет тазарды. 🪄'); }
+  if(st.filter==="blur"){ kronos('Абайла! <b>Бұлдырату</b> суретті бұлдыратады — шуылды жасырғанмен, детальдарды да жоғалтады. Шуылды <b>«Шуылды жою»</b> сүзгісімен таза тазала! 💧'); }
+  else if(st.filter==="sharpen"){ kronos('<b>Айқындау</b> шекараларды айқындайды, бірақ цифрлық шуылды одан да күшейтіп жіберуі мүмкін. 🔺'); }
+  else if(st.filter==="denoise"){ kronos('Тамаша! <b>Шуылды жою</b> артефактілерді кетірді — сурет тазарды. 🪄'); }
   update();
 });
 

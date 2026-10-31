@@ -77,7 +77,7 @@
         <div class="r-ava lg" style="--av:{{ av_colors[s.id % 4] }}">{{ initials(s) }}</div>
         <div class="r-pod-name">{{ s.name }} {{ s.surname or '' }}</div>
         <div class="r-pod-meta">
-          <span class="r-cls">{{ s.student_class }}</span>
+          <span class="r-cls">{{ s.student_class }} сынып</span>
           {% if me %}<span class="r-me">Сен</span>{% endif %}
         </div>
         <div class="r-pod-stars" title="Белгішелер">{{ star(20,'#ffb400') }}<b>{{ s.stars_sum|int }}</b></div>
@@ -102,7 +102,7 @@
           <span class="r-ava" style="--av:{{ av_colors[s.id % 4] }}">{{ initials(s) }}</span>
           <span class="r-who-txt">
             <span class="r-name">{{ s.name }} {{ s.surname or '' }}{% if me %} <span class="r-me">Сен</span>{% endif %}</span>
-            <span class="r-cls">{{ s.student_class }}</span>
+            <span class="r-cls">{{ s.student_class }} сынып</span>
           </span>
         </span>
         <span class="r-c-stars">

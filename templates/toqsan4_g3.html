@@ -129,7 +129,7 @@ body #bq-chat .bq-pet-bubble::after{display:none}
       </div>
       <div>
         <div class="ag-name">АГЕНТ <span class="ag-lvl" id="lvlLabel">Деңгей 1/3</span></div>
-        <div class="hp-row"><span class="hp-lab">HP</span><div class="hpbar"><div class="hpfill" id="hpFill"></div></div></div>
+        <div class="hp-row"><span class="hp-lab">ӨМІР</span><div class="hpbar"><div class="hpfill" id="hpFill"></div></div></div>
       </div>
     </div>
     </div>
@@ -339,7 +339,7 @@ function update(dt){
       if(pR>eL&&pL<eR && pB>GY-HB_CLEAR && player.inv<=0){
         e.hit=true; hp=Math.max(0,hp-20); mistakes++; streak=0; player.inv=1.1; player.vy=-7.5; player.onGround=false;
         shake=7; sfx(170,60,'sawtooth',.26,.2); kronSay('Ой! Тұзаққа түстің — көк жебелерге жеткенде секір!','bad');
-        burst(player.x,player.y-30,'#ff4f7a',14); floatText(player.x,player.y-86,'−20 HP','#ff6b8a'); updateHUD();
+        burst(player.x,player.y-30,'#ff4f7a',14); floatText(player.x,player.y-86,'−20 өмір','#ff6b8a'); updateHUD();
         if(hp<=0) endGame(false);
       }
     } else if(e.type==='safe'&&!e.taken){
@@ -902,7 +902,7 @@ function endGame(win){
   let crys,title,ic,text;
   if(win&&mistakes===0){crys=3;ic=IC_TROPHY;title='Кибер-Чемпион!';text=`Ғажап! 3 деңгейді бірде-бір тұзаққа түспей өттің (${GOAL} қауіпсіз сайт). Сен интернет қауіптерін мінсіз танисың!`;}
   else if(win){crys=2;ic=IC_SHIELD;title='Қырағы Агент!';text=`Барлық 3 деңгей өтілді (${GOAL} сайт)! ${mistakes} тұзаққа түстің — Кронос ескерткенде ертерек секір. Үздік стрик: ${bestStreak}.`;}
-  else{crys=collected>=6?1:0;ic=IC_RETRY;title='Тағы байқап көр';text=`${collected}/${GOAL} жиналды (Деңгей ${level}/3). HP бітті! Кроностың ескертулерін тыңдап, тұзақтан секіруге үйрен.`;}
+  else{crys=collected>=6?1:0;ic=IC_RETRY;title='Тағы байқап көр';text=`${collected}/${GOAL} жиналды (Деңгей ${level}/3). Өмір бітті! Кроностың ескертулерін тыңдап, тұзақтан секіруге үйрен.`;}
   crystals=Math.max(crystals,crys);
   const ri=document.getElementById('rIc'); ri.innerHTML=ic; ri.className='ic '+(win?'win':'lose');
   document.getElementById('rTitle').textContent=title;
