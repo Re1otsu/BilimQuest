@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Фишинг сүзгісі — ЖИ зертханасы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7ecff;background:#07101f}
+body{min-height:100vh}body{background:radial-gradient(ellipse 100% 55% at 50% -5%,rgba(120,50,190,.32),transparent 60%),radial-gradient(ellipse 90% 60% at 50% 110%,rgba(0,110,170,.2),transparent 60%),#07101f;
+  padding:60px 14px 20px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:760px;display:flex;flex-direction:column;gap:12px}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hdr h1{font-size:21px;font-weight:900}
+.stat{padding:8px 13px;border-radius:12px;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:#d9b8ff;background:rgba(24,18,62,.92);border:1.5px solid rgba(180,107,255,.45)}
+.card{background:linear-gradient(180deg,rgba(20,22,62,.93),rgba(11,14,42,.97));border:1.5px solid rgba(140,110,230,.34);border-radius:18px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.badge{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.5px;padding:5px 13px;border-radius:20px;background:#4a2a9a;color:#efe6ff}
+.bloom{font-size:12px;font-weight:700;color:#b5a6e8;margin:7px 0 12px}
+.step{font-size:13px;font-weight:700;color:#aebbe8;margin-bottom:8px}
+.mail{padding:18px 18px 20px;border-radius:14px;background:#f4f7ff;color:#14203c;font-size:17px;font-weight:600;line-height:1.45;min-height:112px;box-shadow:0 8px 20px rgba(0,0,0,.35)}
+.mail small{display:block;margin-bottom:6px;font-size:12px;font-weight:800;color:#6a7797;letter-spacing:.4px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}
+.btn{display:block;width:100%;min-height:52px;padding:13px;border:none;border-radius:13px;cursor:pointer;font:inherit;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(180deg,#8a5cf6,#6238d6);transition:filter .15s}
+.btn:hover:not(:disabled){filter:brightness(1.1)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.phish{background:linear-gradient(180deg,#ff6b78,#d42f45)}
+.btn.safe{color:#06231a;background:linear-gradient(180deg,#7dffb0,#33c75e)}
+.btn.ghost{color:#dfe6ff;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.22)}
+.mt{margin-top:13px}
+.lead{font-size:15px;line-height:1.5;color:#cdd8f5;margin-bottom:12px}
+.words{display:flex;flex-wrap:wrap;gap:8px;min-height:40px}
+.w{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:6px 7px 6px 13px;border-radius:999px;font-size:14.5px;font-weight:700;color:#efe6ff;background:rgba(138,92,246,.26);border:1.5px solid rgba(180,140,255,.5)}
+.w.mine{background:rgba(55,225,255,.17);border-color:rgba(55,225,255,.6)}
+.w button{width:26px;height:26px;border:none;border-radius:50%;cursor:pointer;color:#fff;font-size:15px;line-height:1;background:rgba(255,255,255,.16)}
+.w button:hover{background:#d42f45}
+.add{display:flex;gap:8px;margin-top:12px}
+.add input{flex:1;min-width:0;min-height:46px;padding:10px 13px;border-radius:12px;border:1.5px solid rgba(140,110,230,.45);background:rgba(10,14,40,.85);color:#e7ecff;font:inherit;font-size:15px;outline:none}
+.add input:focus{border-color:#b98cff}
+.add .btn{width:auto;min-width:96px;min-height:46px;padding:10px 16px}
+.hint{font-size:13px;color:#aebbe8;margin-top:7px}
+.test{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin-bottom:7px;font-size:14.5px;font-weight:600;line-height:1.35;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12)}
+.test.ok{border-color:#46e06a}.test.bad{border-color:#ef4444}
+.test span{flex:1}
+.test b{flex-shrink:0;font-size:12.5px;font-weight:800;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.1)}
+.acc{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-radius:14px;margin-bottom:12px;font-size:17px;font-weight:800;background:rgba(138,92,246,.2);border:1.5px solid rgba(180,140,255,.5)}
+.acc i{font-style:normal;font-size:26px;color:#ffd24a;font-variant-numeric:tabular-nums}
+.start{text-align:center;padding:26px 20px}
+.start img{width:130px;margin-bottom:8px}
+.start p{font-size:17px;font-weight:600;line-height:1.5;margin-bottom:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hdr">
+    <h1>Фишинг сүзгісі</h1>
+    <div class="stat">Балл: <span id="pts">0</span> / 10</div>
+  </div>
+  <div class="card" id="scene"></div>
+</div>
+
+<script src="{{ url_for('static', filename='js/kronos.js') }}?v=3"></script>
+<script>
+/* ════════════════════════════════════════════════════════════
+   Фишинг сүзгісі — білім алушы Кроносты фишингті табуға үйретеді.
+   Блум: қолдану 4 (8 хатты белгілеу), жасау 6 (ЖИ-ді үйрету және сынау).
+════════════════════════════════════════════════════════════ */
+const MAILS=[
+  {text:'Сіз ұтыс ойынында телефон ұттыңыз! Сыйлықты алу үшін құпиясөзіңізді жіберіңіз.',isPhish:true},
+  {text:'Ертең информатика сабағы 2-кабинетте өтеді. Мұғалім.',isPhish:false},
+  {text:'Аккаунтыңыз бұғатталды! Шұғыл түрде мына сілтемеге өтіп, деректеріңізді енгізіңіз.',isPhish:true},
+  {text:'Сынып жиналысы жұма күні сағат 15:00-де.',isPhish:false},
+  {text:'Тегін ойын валютасы! Ата-анаңның картасының нөмірін жазсаң болғаны.',isPhish:true},
+  {text:'Кітапхана жаңа кітаптар алды. Кіріп көріңдер!',isPhish:false},
+  {text:'Банк: картаңыздағы күдікті операцияны тоқтату үшін SMS-кодты бізге жіберіңіз.',isPhish:true},
+  {text:'Олимпиаданың нәтижелері мектеп сайтында жарияланды.',isPhish:false},
+];
+const TESTS=[
+  {text:'Шұғыл! Құпиясөзіңізді растамасаңыз, аккаунтыңыз жойылады.',isPhish:true},
+  {text:'Ертеңгі экскурсияға су мен тамақ ала келіңдер.',isPhish:false},
+  {text:'Сіз тегін планшет ұттыңыз! Картаның нөмірін енгізіңіз.',isPhish:true},
+  {text:'Дене шынықтыру сабағы спорт залда өтеді.',isPhish:false},
+  {text:'Жеңілдік кодын алу үшін SMS-кодты жіберіңіз.',isPhish:true},
+  {text:'Мектеп кітапханасы сенбіде жабық.',isPhish:false},
+];
+const DICT=["ұттыңыз","ұттың","құпиясөз","шұғыл","карта","код","тегін","сілтеме","бұғатталды"];
+const MAX_OWN=2;
+
+let idx=0, labelPts=0, labeled=[], learned=[], own=[], retrained=false, testRes=null;
+const el=document.getElementById('scene');
+const pts=()=>{ document.getElementById('pts').textContent=String(labelPts+(testRes?testRes.points:0)).replace('.',','); };
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ── Кроностың «үйрену» алгоритмі ── */
+function trainKronos(data){
+  learned=DICT.filter(w=>data.some(m=>m.isPhish&&m.text.toLowerCase().includes(w)));
+  own=[];
+}
+const words=()=>[...learned,...own];
+const classify=text=>words().some(w=>text.toLowerCase().includes(w));
+function testKronos(tests){
+  const res=tests.map(t=>({...t,said:classify(t.text)}));
+  const correct=res.filter(t=>t.said===t.isPhish).length;
+  return {res,correct,accuracy:Math.round(correct/tests.length*100),points:{6:6,5:5,4:4,3:2}[correct]||0};
+}
+
+function start(){
+  el.innerHTML=`<div class="start"><img src="/static/img/toqsan4/lab/robot.webp" alt="Кронос">
+    <p>Кронос: «Мен фишингті ажырата алмаймын. Маған мысал көрсетіп, үйретші!»</p>
+    <button class="btn" id="go">Бастау</button></div>`;
+  document.getElementById('go').onclick=showMail;
+}
+
+/* 1-кезең: мысалдарды белгілеу (қолдану, 4 балл) */
+function showMail(){
+  const m=MAILS[idx];
+  el.innerHTML=`<span class="badge">1-КЕЗЕҢ: Мысалдарды белгілеу</span><div class="bloom">Блум: Қолдану · 4 балл</div>
+    <div class="step">${idx+1}-хат / ${MAILS.length}</div>
+    <div class="mail"><small>Жаңа хат</small>${m.text}</div>
+    <div class="two"><button class="btn phish" id="p">Фишинг</button><button class="btn safe" id="s">Қауіпсіз</button></div>`;
+  const mark=isPhish=>{
+    labeled.push({text:m.text,isPhish});
+    if(isPhish===m.isPhish){ labelPts+=.5; pts(); }
+    if(++idx<MAILS.length) showMail(); else toTrain();
+  };
+  document.getElementById('p').onclick=()=>mark(true);
+  document.getElementById('s').onclick=()=>mark(false);
+}
+function toTrain(){
+  el.innerHTML=`<span class="badge">2-КЕЗЕҢ: ЖИ-ді үйрету</span><div class="bloom">Блум: Жасау · 6 балл</div>
+    <p class="lead">Барлық хат белгіленді. Кронос сен «Фишинг» деп белгілеген хаттардан кілт сөздерді жинайды.</p>
+    <button class="btn" id="t">Кроносты үйрету</button>`;
+  document.getElementById('t').onclick=()=>{ trainKronos(labeled); wordsView(); };
+}
+
+/* 2-кезең: кілт сөздер тізімін өңдеу */
+function wordsView(){
+  el.innerHTML=`<span class="badge">2-КЕЗЕҢ: ЖИ-ді үйрету</span><div class="bloom">Блум: Жасау · 6 балл</div>
+    <p class="lead">Кроностың үйренген сөздері. Артық сөзді алып таста немесе ${MAX_OWN} сөзге дейін өзің қос.${retrained?' Бұл соңғы түзету.':''}</p>
+    <div class="words" id="ws"></div>
+    <div class="add"><input id="inp" type="text" maxlength="20" placeholder="Жаңа кілт сөз" aria-label="Жаңа кілт сөз"><button class="btn ghost" id="add">Қосу</button></div>
+    <div class="hint" id="hint"></div>
+    <button class="btn mt" id="run">Кроносты сынау</button>`;
+  drawWords();
+  const inp=document.getElementById('inp'), add=()=>{
+    const v=inp.value.trim().toLowerCase(), h=document.getElementById('hint');
+    if(!v){ return; }
+    if(own.length>=MAX_OWN){ h.textContent=`Ең көбі ${MAX_OWN} сөз қосуға болады.`; return; }
+    if(words().includes(v)){ h.textContent='Бұл сөз тізімде бар.'; return; }
+    own.push(v); inp.value=''; h.textContent=''; drawWords();
+  };
+  document.getElementById('add').onclick=add;
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') add(); });
+  document.getElementById('run').onclick=runTest;
+}
+function drawWords(){
+  const box=document.getElementById('ws'); box.innerHTML='';
+  if(!words().length) box.innerHTML='<div class="hint">Тізім бос: Кронос ештеңе үйренбеді.</div>';
+  const chip=(w,list,mine)=>{
+    const c=document.createElement('span'); c.className='w'+(mine?' mine':''); c.innerHTML=esc(w)+'<button type="button" aria-label="Алып тастау">×</button>';
+    c.querySelector('button').onclick=()=>{ list.splice(list.indexOf(w),1); drawWords(); };
+    box.appendChild(c);
+  };
+  learned.forEach(w=>chip(w,learned,false)); own.forEach(w=>chip(w,own,true));
+}
+
+/* Сынақ: Кронос жаңа 6 хатты өзі тексереді */
+function runTest(){
+  testRes=testKronos(TESTS); pts();
+  const r=testRes, perfect=r.correct===TESTS.length;
+  el.innerHTML=`<span class="badge">2-КЕЗЕҢ: ЖИ-ді сынау</span><div class="bloom">Блум: Жасау · 6 балл</div>
+    <div class="acc"><span>Кронос: 6 хаттың ${r.correct}-ін дұрыс таптым</span><i>${r.accuracy}%</i></div>
+    ${r.res.map(t=>`<div class="test ${t.said===t.isPhish?'ok':'bad'}"><span>${t.text}</span><b>${t.said?'Фишинг':'Қауіпсіз'}</b></div>`).join('')}
+    <div id="act"></div>`;
+  const act=document.getElementById('act');
+  if(!perfect&&!retrained){
+    act.innerHTML=`<div class="two"><button class="btn ghost" id="re">Тізімді түзету</button><button class="btn" id="fin">Аяқтау</button></div>`;
+    document.getElementById('re').onclick=()=>{ retrained=true; wordsView(); };
+  } else {
+    act.innerHTML=`<button class="btn mt" id="fin">Аяқтау</button>`;
+  }
+  document.getElementById('fin').onclick=finish;
+}
+
+function finish(){
+  const p=testRes.points;
+  bqFinish({game_name:'Фишинг сүзгісі', score:labelPts+p, bloom:{koldanu:labelPts,jasau:p}, bloom_max:{koldanu:4,jasau:6},
+    kronos:`Менің дәлдігім ${testRes.accuracy}%. ЖИ-дің сапасы оны үйреткен деректердің сапасына тәуелді.`,
+    title:'Кронос үйренді!', backUrl:'/toqsan_4'});
+}
+pts(); start();
+</script>
+{% include '_win_modal.html' %}
+</body>
+</html>

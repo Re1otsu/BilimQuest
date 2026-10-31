@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Кибер-эргономика — ЖИ Көмекшіні емдеу</title>
+<title>Эргономика — ЖИ зертханасы</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100%;font-family:'Rubik',system-ui,'Segoe UI',Roboto,sans-serif;color:#e7ecff;
   background:#070b1e;-webkit-font-smoothing:antialiased}
-body{background:
+body{min-height:100vh}body{background:
   radial-gradient(ellipse 110% 60% at 50% -5%,rgba(60,40,160,.45),transparent 60%),
   radial-gradient(ellipse 80% 50% at 50% 110%,rgba(0,80,180,.25),transparent 60%),
   #070b1e;
@@ -54,7 +54,7 @@ body{background:
 .q-img{border-radius:13px;overflow:hidden;border:1.5px solid rgba(90,120,210,.3);margin-bottom:14px;
   background:radial-gradient(circle at 50% 35%,rgba(40,60,140,.5),rgba(8,12,34,.9));
   aspect-ratio:16/9;display:flex;align-items:center;justify-content:center}
-.q-img img{width:74%;height:74%;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5))}
+.q-img img{width:88%;height:92%;object-fit:contain;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5))}
 
 /* ── options ── */
 .options{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
@@ -148,6 +148,25 @@ body{background:
 /* confetti */
 .confetti{position:fixed;top:-12px;z-index:100;pointer-events:none;animation:cFall linear forwards}
 @keyframes cFall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:.9}}
+.cam{display:none;background:linear-gradient(180deg,rgba(16,24,60,.95),rgba(10,15,42,.98));border:1.5px solid rgba(90,160,255,.4);border-radius:18px;padding:16px}
+.cam.show{display:block}
+.cam h3{font-size:17px;font-weight:900;margin-bottom:4px}
+.cam p{font-size:14px;line-height:1.45;color:#cdd8f5;margin-bottom:10px}
+.cam-view{position:relative;width:100%;max-width:470px;margin:0 auto;border-radius:14px;overflow:hidden;background:#dfeaf7}
+.cam-view svg{display:block;width:100%;height:auto}
+.spot{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #2f79ff;background:rgba(255,255,255,.75);cursor:pointer;font:inherit;font-size:14px;font-weight:900;color:#1e4fa8;padding:0}
+.spot:disabled{cursor:default}
+.spot.err{border-color:#ef4444;background:#ef4444;color:#fff}
+.spot.ok{border-color:#2ec865;background:#2ec865;color:#fff}
+.cam-list{display:flex;flex-direction:column;gap:6px;margin-top:11px;font-size:14px;font-weight:600}
+.cam-list div{padding:8px 11px;border-radius:10px;background:rgba(255,255,255,.06)}
+.cam-btn{display:none;width:100%;min-height:48px;margin-top:12px;border:none;border-radius:12px;cursor:pointer;font:inherit;font-size:15px;font-weight:800;color:#06231a;background:linear-gradient(180deg,#7dffb0,#33c75e)}
+.cam-btn.show{display:block}
+.stages{display:flex;gap:8px;flex-wrap:wrap}
+.stages span{flex:1;min-width:200px;padding:8px 12px;border-radius:10px;font-size:13px;font-weight:800;text-align:center;color:#9fb0e8;background:rgba(255,255,255,.06)}
+.stages span.on{color:#fff;background:linear-gradient(90deg,#3b4cc0,#2f8cff)}
+.stages span.done{color:#7dffa0}
+body{padding-top:60px!important}
 </style>
 </head>
 <body>
@@ -157,21 +176,17 @@ body{background:
 
   <!-- header -->
   <div class="hdr">
-    <div class="hdr-title"><span class="hdr-shield">🛡️</span>Компьютерде жұмыс істеу қауіпсіздігі</div>
-    <div class="hdr-star"><span class="st">⭐</span><span id="scoreVal">{{ "%.2f"|format(student.score) }}</span></div>
+    <div class="hdr-title"><span class="hdr-shield">🛡️</span>Эргономика</div>
+    <div class="hdr-star">Балл: <span id="scoreVal">0</span> / 10</div>
   </div>
 
-  <!-- AI health bar -->
-  <div class="health">
-    <div class="health-top"><span>🤖 ЖИ-Көмекшінің денсаулығы</span><b id="hpPct">85%</b></div>
-    <div class="health-track"><div class="health-fill" id="hpFill"></div></div>
-  </div>
+  <div class="stages"><span class="on" id="st1">1-кезең: ЖИ-камера · Талдау 4</span><span id="st2">2-кезең: Сұрақтар · Бағалау 6</span></div>
 
   <!-- question -->
-  <div class="card">
+  <div class="card" id="qCard" style="display:none">
     <span class="badge" id="qBadge">СҰРАҚ 1/10</span>
     <div class="q-text" id="qText">Компьютер алдында үзіліссіз қанша уақыт отыруға болады?</div>
-    <div class="q-img"><img src="{{ url_for('static', filename='img/toqsan4/node-safe.png') }}" alt="Компьютер алдындағы бала"></div>
+    <div class="q-img"><img id="qImg" alt=""></div>
     <div class="options" id="options"></div>
     <button class="answer-btn" id="answerBtn" disabled>▶ Жауап беру</button>
   </div>
@@ -186,14 +201,26 @@ body{background:
     <button class="snd" id="fbSnd" title="Тыңдау">🔊</button>
   </div>
 
-  <!-- certificate -->
-  <div class="cert" id="cert">
-    <div class="cert-badge">🔐</div>
-    <div class="cert-txt">
-      <b>Қауіпсіздік СЕРТИФИКАТЫ ЖҮКТЕЛДІ</b>
-      <div>Сен ЖИ-Көмекшінің денсаулығын 100%-ға қалпына келтірдің!</div>
-      <div id="certNote" style="margin-top:4px;color:#ffd970;font-weight:700"></div>
+  <!-- ЖИ-камера: Кронос 5 қатенің 3-ін ғана табады -->
+  <div class="cam" id="cam">
+    <h3>ЖИ-камера: отырыс тексерісі</h3>
+    <p id="camTxt">Қызыл нүктелер — Кронос тапқан қателер. Көк нүктелерге де қара.</p>
+    <div class="cam-view" id="camView">
+      <svg viewBox="0 0 620 380" role="img" aria-label="Компьютер алдында отырған бала">
+        <rect width="620" height="380" fill="#e4eefa"/><rect y="330" width="620" height="50" fill="#b9c8dc"/>
+        <rect x="70" y="40" width="96" height="120" rx="6" fill="#fff"/><path d="M118 40v120M70 100h96" stroke="#b9c8dc" stroke-width="4"/>
+        <rect x="330" y="214" width="250" height="14" rx="4" fill="#9a6b43"/><rect x="346" y="228" width="12" height="102" fill="#7a5233"/><rect x="552" y="228" width="12" height="102" fill="#7a5233"/>
+        <rect x="372" y="150" width="92" height="56" rx="5" fill="#2a3550"/><rect x="379" y="156" width="78" height="44" fill="#6fb2ff"/><rect x="412" y="206" width="14" height="8" fill="#2a3550"/>
+        <rect x="490" y="204" width="44" height="10" rx="3" fill="#46536e"/>
+        <rect x="180" y="238" width="104" height="14" rx="6" fill="#3f7bff"/><rect x="186" y="150" width="14" height="96" rx="6" fill="#3f7bff"/><rect x="226" y="252" width="12" height="66" fill="#5a6b86"/><path d="M196 330l36-14 36 14" stroke="#5a6b86" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <path d="M214 238c-6-34 14-66 56-84l24 18c-30 16-40 40-34 66z" fill="#ff8a2a"/>
+        <circle cx="318" cy="134" r="28" fill="#f2c7a0"/><path d="M294 122c6-20 32-26 48-12-16-2-30 2-42 18z" fill="#3b2a20"/>
+        <path d="M278 176c26 12 50 18 74 18" stroke="#ff8a2a" stroke-width="16" stroke-linecap="round" fill="none"/><circle cx="356" cy="196" r="9" fill="#f2c7a0"/>
+        <path d="M244 244h70l-4 38" stroke="#25408f" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M304 288h24" stroke="#20242e" stroke-width="12" stroke-linecap="round"/>
+      </svg>
     </div>
+    <div class="cam-list" id="camList"></div>
+    <button class="cam-btn" id="camDone">Тексеруді аяқтау</button>
   </div>
 
   <!-- chat (алынып тасталды) -->
@@ -207,33 +234,18 @@ body{background:
     </div>
   </div>
 
-  <!-- finish -->
-  <div class="finish" id="finishBar">
-    <button class="finish-btn" id="finishBtn" onclick="finishGame()">✓ Аяқтау — картаға оралу</button>
-  </div>
-
 </div>
 
 <script>
 /* ════════════════════════════════════════════════════════════
    1-ОЙЫН: Кибер-эргономика — ЖИ Көмекшіні емдеу
-   Дұрыс жауап → ЖИ денсаулығы 85% → 100%. Ұпай 10 ұпайлық шкала бойынша (сервер есептейді).
+   1-кезең ЖИ-камера: Кронос 5 қатенің 3-ін табады, қалған екеуін білім алушы табады (талдау, 4 балл).
+   2-кезең: 10 сұрақ (бағалау, 6 балл).
 ════════════════════════════════════════════════════════════ */
 
-let hp = 85;
-let won = false;
-/* Рубрика (тапсырыс берушінің 3-кестесі): қате таңдаулар саналады.
-   3 жетон — бәрі бірінші әрекетте дұрыс; 2 — «қауіпті» жоқ, 1–2 «жартылай қате»;
-   1 — кемінде бір «қауіпті» немесе 2-ден көп «жартылай қате». */
-let softCount = 0, dangerCount = 0;
-function ergoTokens(){
-  if(dangerCount===0 && softCount===0) return 3;
-  if(dangerCount===0 && softCount<=2) return 2;
-  return 1;
-}
-// Серверде белгіше ұпай үлесімен есептеледі (≥90% → 3, ≥70% → 2, қалғаны → 1),
-// сондықтан жетонды сол шектерге дәл түсетін ұпайға айналдырамыз.
-const ERGO_SCORE = {3:0.10, 2:0.07, 1:0.04};
+/* Бағалау (6 балл): «қауіпті» таңдау −1, «жартылай қате» −0,5 */
+let softCount = 0, dangerCount = 0, taldau = 0;
+const evalPts = () => Math.max(0, 6 - dangerCount - softCount*0.5);
 let selected = -1;
 let answeredCorrect = false;
 
@@ -330,11 +342,16 @@ const SCENES = [
         fb:'Бұл көмектеспейді және қауіпті. Компьютерге жақындама, үлкендерге айт.' },
     ] },
 ];
+/* Әр сұрақтың суреті: дұрыс жауапты емес, сұрақтағы жағдайды көрсетеді */
+const Q_ALT=['Компьютер алдындағы бала және сағат','Көз бен экран арасындағы қашықтық','Орындықтағы отыру сұлбасы','Биіктігі реттелетін монитор','Көзі шаршаған бала','Қолын қарап отырған бала','Үстелдегі тамақ пен шай','Үстелге төгілген шай','Сыртқы қабы жарылған сым','Компьютерден шыққан түтін'];
+const Q_IMG=n=>"{{ url_for('static', filename='img/toqsan4/ergo/') }}q"+(n+1)+".webp";
+Q_ALT.forEach((_,i)=>{ new Image().src=Q_IMG(i); });
 let scene=0, optEls=[];
 
 function renderScene(){
   const sc=SCENES[scene];
   document.getElementById('qText').textContent=sc.q;
+  const qi=document.getElementById('qImg'); qi.src=Q_IMG(scene); qi.alt=Q_ALT[scene];
   document.getElementById('qBadge').textContent='СҰРАҚ '+(scene+1)+'/'+SCENES.length;
   selected=-1; answeredCorrect=false;
   document.getElementById('feedback').className='feedback';
@@ -369,22 +386,22 @@ function submitAnswer(){
     el.classList.remove('sel'); el.classList.add('correct');
     optEls.forEach(e=>e.classList.add('locked'));
     document.getElementById('answerBtn').disabled=true;
-    setHealth(Math.round(40 + (scene+1)/SCENES.length*60));
+    showPts();
     ding();
     if(scene < SCENES.length-1){
       setTimeout(()=>{ scene++; renderScene(); },1400);
     } else {
-      setTimeout(winSequence,500);
+      setTimeout(finishGame,1300);
     }
   } else if(o.kind==='danger'){
-    dangerCount++;
+    dangerCount++; showPts();
     el.classList.add('wrong');
     dangerFlash();
     buzz();
     setTimeout(()=>{ el.classList.remove('wrong','sel'); },700);
     selected=-1; document.getElementById('answerBtn').disabled=true;
   } else { /* soft */
-    softCount++;
+    softCount++; showPts();
     el.classList.add('wrong'); buzz();
     setTimeout(()=>{ el.classList.remove('wrong','sel'); },600);
     selected=-1; document.getElementById('answerBtn').disabled=true;
@@ -401,30 +418,55 @@ function showFeedback(o){
   speak(o.title+'. '+o.fb);
 }
 
-/* ── health ── */
-function setHealth(v){
-  hp=v;
-  const f=document.getElementById('hpFill'), p=document.getElementById('hpPct');
-  f.style.width=v+'%'; p.textContent=v+'%';
-  f.classList.toggle('warn', v<60);
-}
-setHealth(40); renderScene();
+const showPts=()=>{ const q=document.getElementById('qCard').style.display!=='none'; document.getElementById('scoreVal').textContent=String(taldau+(q?evalPts():0)).replace('.',','); };
 
-/* ── win ── */
-function winSequence(){
-  if(won) return; won=true;
-  document.getElementById('cert').classList.add('show');
-  document.getElementById('finishBar').classList.add('show');
-  const tk=ergoTokens();
-  document.getElementById('certNote').textContent =
-    tk===3 ? 'Барлық жауап бірінші әрекетте дұрыс — 3 белгіше!'
-    : tk===2 ? `«Қауіпті» таңдау жоқ, ${softCount} «жартылай қате» — 2 белгіше.`
-    : `${dangerCount ? dangerCount+' «қауіпті» таңдау' : softCount+' «жартылай қате»'} болды — 1 белгіше. Қайта өтіп көр!`;
-  document.getElementById('finishBtn').textContent = `✓ Аяқтау — картаға оралу (+${Math.round(ERGO_SCORE[tk]/0.1*10)} ұпай)`;
-  confetti();
-  // celebrate chat line
-  setTimeout(()=>aiSay('🎉 Жүйем қалпына келді — 100%! Рахмет, бас инженер! Маған тағы сұрақ қойсаң, көбірек кеңес беремін.'),700);
+/* ── ЖИ-камера ── */
+const SPOTS=[
+  {x:39,y:41,t:'Арқа бүгілген',err:true,found:true},
+  {x:58,y:37,t:'Экранға тым жақын отыр',err:true,found:true},
+  {x:68,y:39,t:'Экран тым төмен, бас еңкейген',err:true,found:true},
+  {x:58,y:51,t:'Қол үстелге жатпай, білек салбырап тұр',err:true},
+  {x:51,y:76,t:'Аяқ еденге жетпей тұр',err:true},
+  {x:19,y:26,t:'Терезе',ok:true},
+  {x:83,y:54,t:'Тінтуір',ok:true},
+  {x:37,y:77,t:'Орындық',ok:true},
+];
+function toQuestions(){
+  document.getElementById('cam').classList.remove('show');
+  document.getElementById('qCard').style.display='';
+  document.getElementById('st1').className='done'; document.getElementById('st2').className='on';
+  showPts(); renderScene();
 }
+function cameraScene(){
+  const cam=document.getElementById('cam'), view=document.getElementById('camView'), list=document.getElementById('camList'), txt=document.getElementById('camTxt');
+  cam.classList.add('show');
+  const log=t=>{ const d=document.createElement('div'); d.textContent=t; list.appendChild(d); };
+  const btns=SPOTS.map((s,i)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='spot'; b.textContent=i+1;
+    b.style.left=s.x+'%'; b.style.top=s.y+'%'; b.setAttribute('aria-label','Нүкте '+(i+1)); b.disabled=true;
+    if(s.found) b.classList.add('err');
+    view.appendChild(b); return b;
+  });
+  SPOTS.filter(s=>s.found).forEach(s=>log('Кронос: '+s.t));
+  const end=msg=>{ btns.forEach(b=>b.disabled=true); txt.textContent=msg; showPts(); const d=document.getElementById('camDone'); d.textContent='Келесі кезең: сұрақтар'; d.classList.add('show'); d.onclick=toQuestions; };
+  Kronos.ask({text:'ЖИ-камерам кадрдан 3 қате тапты. Менің талдауым бойынша басқа қате жоқ.',wrong:true,
+    onAgree(){ SPOTS.forEach((s,i)=>{ if(s.err&&!s.found){ btns[i].classList.add('err'); log('Кронос таппады: '+s.t); } }); end(Kronos.PHRASE.wrong); },
+    onCheck(){
+      Kronos.caughtOne();
+      txt.textContent='Қызыл нүктелерді Кронос тапты. Қалған екі қатені көк нөмірлі нүктелерден тап. Қате таңдау −1 балл.';
+      let found=0, miss=0;
+      SPOTS.forEach((s,i)=>{ if(s.found) return; const b=btns[i]; b.disabled=false;
+        b.onclick=()=>{ b.disabled=true;
+          if(s.err){ b.classList.add('err'); found++; log('Сен таптың: '+s.t); }
+          else { b.classList.add('ok'); miss++; log(s.t+': бұл жерде қате жоқ'); }
+          taldau=Math.max(0,found*2-miss); showPts();
+          if(found===2) end(Kronos.PHRASE.found);
+        };
+      });
+    }
+  });
+}
+(function(){ const gb=document.getElementById('bgiStart'); if(gb) gb.addEventListener('click',()=>setTimeout(cameraScene,300)); else cameraScene(); })();
 
 /* ── chat ── */
 const HELP=[
@@ -478,18 +520,9 @@ function sendFree(){
 let submitting=false;
 function finishGame(){
   if(submitting) return; submitting=true;
-  // unlock progression on the quest map (block 1 done → block 2 active)
-  try{
-    const k='bilimquest_t4_progress_v1';
-    let s=JSON.parse(localStorage.getItem(k));
-    if(!s||!s.status||s.status.length!==5) s={status:['active','locked','locked','locked','locked']};
-    s.status[0]='done';
-    if(s.status[1]==='locked') s.status[1]='active';
-    localStorage.setItem(k,JSON.stringify(s));
-  }catch(e){}
-  // бірыңғай нәтиже терезесі (ұпай + тарау жетоны + артқа)
-  const tk=ergoTokens();
-  bqFinish({game_name:'Эргономика', score:ERGO_SCORE[tk], stars:tk, backUrl:'/toqsan_4'});
+  const be=evalPts();
+  bqFinish({game_name:'Эргономика', title:'Отырыс тексерілді!', score:be+taldau, bloom:{taldau,bagalau:be}, bloom_max:{taldau:4,bagalau:6},
+    kronos:Kronos.summary(), backUrl:'/toqsan_4'});
 }
 
 /* ── FX ── */
@@ -514,6 +547,7 @@ function tone(f1,f2,type,dur,gain){try{actx=actx||new(window.AudioContext||windo
 function ding(){ tone(660,1320,'sine',.4,.25); setTimeout(()=>tone(990,1760,'sine',.35,.2),120); }
 function buzz(){ tone(200,70,'sawtooth',.28,.18); }
 </script>
+<script src="{{ url_for('static', filename='js/kronos.js') }}?v=3"></script>
 {% include '_win_modal.html' %}
 </body>
 </html>

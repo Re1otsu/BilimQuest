@@ -1,4 +1,5 @@
 import re
+import json
 from flask import Flask, render_template, request, redirect, session, send_from_directory, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -144,6 +145,12 @@ class AppMeta(db.Model):
     """Бір реттік деректер көшірулерінің белгісі (мысалы, 10 ұпайлық шкалаға көшу)."""
     key = db.Column(db.String(64), primary_key=True)
     value = db.Column(db.String(255), nullable=True)
+
+class GameBloom(db.Model):
+    """Ойынның Блум деңгейлері бойынша нақты балдары (ең үздік нәтижеден)."""
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
+    game_name = db.Column(db.String(100), primary_key=True)
+    data = db.Column(db.Text, nullable=False)   # JSON: {"Білу": 2.0, "Бағалау": 4.0, ...}
 
 class GameAccess(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -488,7 +495,8 @@ def _render_dashboard(student_id):
         return min(float(p.score), MAX_SCORE.get(gname, 0)) if p else 0.0
 
     # ── Блум таксономиясы: тек ойналған ойындар бойынша, ойналмаса — «дерек жоқ» ──
-    chapters_progress = bloom_breakdown({g: float(p.score or 0) for g, p in best.items()})
+    bloom_stored = {g: d for (_, g), d in bloom_rows_map([student_id]).items()}
+    chapters_progress = bloom_breakdown({g: float(p.score or 0) for g, p in best.items()}, bloom_stored)
 
     # ── Тарау (тоқсан) прогрессі ──
     chapters_progress_display = {}
@@ -504,7 +512,7 @@ def _render_dashboard(student_id):
     # ── Значки по главам (тоқсан жетондары) ──
     CHAPTER_BADGE = {
         "info": ("Жұлдыз", "⭐"), "graphics": ("Пазл", "🧩"),
-        "robotics": ("Карта", "🗺️"), "security": ("Чип", "🔩"),
+        "robotics": ("Карта", "🗺️"), "security": ("Нейрон", "🧠"),
     }
     chapter_badges = []
     badges_total = 0
@@ -555,6 +563,7 @@ def _render_dashboard(student_id):
         summary=summary,
         stars_sum=badges_total,
         total_score=summary["score"],
+        lab_badge=brain_fully_on({g: p.stars for g, p in best.items()}),
     )
 
 
@@ -587,11 +596,31 @@ GAME_CHAPTERS = {
         "games": ["Робот орны", "Робот тарихы", "Гироскоп", "Лабиринт ойыны", "Сызық робот", "Сумо"],
     },
     "security": {
-        "kind": "chip", "back": "/toqsan_4",
-        "games": ["Эргономика", "Цифрлық детектив", "Кибер-бекініс", "Файл әлемі", "Желілік жүгіруші"],
+        "kind": "neuron", "back": "/toqsan_4",
+        "games": ["Эргономика", "Цифрлық детектив", "Кибер-бекініс", "Файл әлемі",
+                  "Желілік жүгіруші", "Фишинг сүзгісі"],
     },
 }
 GAME_TO_CHAPTER = {g: ck for ck, info in GAME_CHAPTERS.items() for g in info["games"]}
+
+# ЖИ зертханасы: 5 тақырып = «ЖИ миының» 5 бөлігі (03-тақырыпта екі ойын)
+AI_TOPICS = [
+    ("Ақпарат тасымалдаушылары", ["Цифрлық детектив"]),
+    ("Компьютерде жұмыс істеу қауіпсіздігі", ["Эргономика"]),
+    ("Интернеттегі қауіпсіздік және этика", ["Желілік жүгіруші", "Фишинг сүзгісі"]),
+    ("Ақпаратты қорғау және парольдер", ["Кибер-бекініс"]),
+    ("Бұлттық сақтау және ынтымақтастық", ["Файл әлемі"]),
+]
+BRAIN_PART_MIN = 2      # мидың бөлігі жану үшін тақырыпта керек нейрон саны
+
+
+def ai_topic_neurons(stars):
+    """Әр тақырыптың нейрон саны (0–3): тақырып ойындарының орташа жұлдызы, төмен дөңгелектенеді."""
+    return [sum(int(stars.get(g, 0) or 0) for g in games) // len(games) for _, games in AI_TOPICS]
+
+
+def brain_fully_on(stars):
+    return all(n >= BRAIN_PART_MIN for n in ai_topic_neurons(stars))
 
 # Ойынның максимал ұпайы (барлық ойын — бір жерде)
 # Барлық ойын 10 ұпайлық шкала бойынша бағаланады. Ойындар өз ішкі ұпайын жібереді
@@ -603,8 +632,9 @@ GAME_RAW_MAX = {
     "Агент": 0.7, "Робот": 0.6, "Сиқырлы шарлар": 1.4, "Блоктар": 1.4,
     "Робот орны": 0.3, "Робот тарихы": 0.5, "Гироскоп": 0.3, "Лабиринт ойыны": 0.5,
     "Сызық робот": 0.5, "Сумо": 0.5,
-    "Эргономика": 0.1, "Цифрлық детектив": 0.2, "Кибер-бекініс": 0.3,
-    "Файл әлемі": 0.3, "Желілік жүгіруші": 0.3,
+    # ЖИ зертханасының ойындары балды бірден 10-нан жібереді
+    "Эргономика": 10, "Цифрлық детектив": 10, "Кибер-бекініс": 10,
+    "Файл әлемі": 10, "Желілік жүгіруші": 10, "Фишинг сүзгісі": 10,
     "Пиксель шебері": 0.5, "Фотолаб": 0.5, "Лазер жолы": 0.5,
     "Вектор ядро": 0.5, "Графика текетірес": 0.6,
 }
@@ -651,34 +681,62 @@ GAME_BLOOM_LEVELS = {
     "Сызық робот": ["Қолдану", "Талдау"],
     "Сумо": ["Қолдану", "Бағалау"],
     # 4-бөлім. Жасанды интеллект зертханасы
-    "Эргономика": ["Түсіну", "Бағалау"],
     "Цифрлық детектив": ["Білу", "Қолдану", "Бағалау"],
-    "Желілік жүгіруші": ["Түсіну", "Қолдану"],
-    "Кибер-бекініс": ["Қолдану", "Бағалау", "Жасау"],
-    "Файл әлемі": ["Қолдану", "Бағалау"],
+    "Эргономика": ["Талдау", "Бағалау"],
+    "Желілік жүгіруші": ["Қолдану", "Бағалау"],
+    "Фишинг сүзгісі": ["Қолдану", "Жасау"],
+    "Кибер-бекініс": ["Қолдану", "Бағалау"],
+    "Файл әлемі": ["Қолдану", "Талдау"],
 }
+# ЖИ зертханасы: 10 балдың Блум деңгейлеріне бөлінуі (қалған ойындарда — тең бөлінеді)
+GAME_BLOOM_POINTS = {
+    "Цифрлық детектив": {"Білу": 2, "Қолдану": 2, "Бағалау": 6},
+    "Эргономика": {"Талдау": 4, "Бағалау": 6},
+    "Желілік жүгіруші": {"Қолдану": 6, "Бағалау": 4},
+    "Фишинг сүзгісі": {"Қолдану": 4, "Жасау": 6},
+    "Кибер-бекініс": {"Қолдану": 4, "Бағалау": 6},
+    "Файл әлемі": {"Қолдану": 4, "Талдау": 6},
+}
+BLOOM_KEYS = {"bilu": "Білу", "tusinu": "Түсіну", "koldanu": "Қолдану",
+              "taldau": "Талдау", "bagalau": "Бағалау", "jasau": "Жасау"}
 # Қысқа көрсету үшін (ойын тарихы, ИИ контексі): «Қолдану / Талдау»
 GAME_BLOOM = {g: " / ".join(lv) for g, lv in GAME_BLOOM_LEVELS.items()}
 
 
-def bloom_breakdown(best_scores):
-    """Блум деңгейлері бойынша ұпай мен пайыз (рубриканың 4-бөлімі).
+def game_bloom_parts(game_name, score, stored=None):
+    """{деңгей: (жиналған, ең жоғары)} бір ойын үшін.
 
-    best_scores: {ойын: ең үздік ұпай} — ТЕК ойналған ойындар.
-    Ойын ұпайы мен максимумы оның деңгейлеріне тең бөлінеді. Деңгей пайызы =
-    жиналған ұпай / ойналған ойындардың максимумы. Бірде-бір ойын ойналмаса — percent=None
-    («дерек жоқ»), сонда «ойнамаған» мен «нашар орындаған» шатаспайды.
+    Ойын нақты Блум балдарын жіберген болса — солар; әйтпесе ұпай деңгейлерге бөлінеді.
+    """
+    levels = GAME_BLOOM_LEVELS.get(game_name)
+    mx = MAX_SCORE.get(game_name, 0)
+    if not levels or mx <= 0:
+        return {}
+    points = GAME_BLOOM_POINTS.get(game_name) or {lvl: mx / len(levels) for lvl in levels}
+    sc = min(float(score or 0), mx)
+    if stored:
+        return {lvl: (min(float(stored.get(lvl, 0)), m), m) for lvl, m in points.items()}
+    return {lvl: (sc * m / mx, m) for lvl, m in points.items()}
+
+
+def bloom_rows_map(student_ids):
+    """{(student_id, ойын): {деңгей: балл}} — сақталған нақты Блум балдары."""
+    rows = GameBloom.query.filter(GameBloom.student_id.in_(list(student_ids))).all() if student_ids else []
+    return {(r.student_id, r.game_name): json.loads(r.data) for r in rows}
+
+
+def bloom_breakdown(best_scores, stored=None):
+    """Блум деңгейлері бойынша ұпай мен пайыз.
+
+    best_scores: {ойын: ең үздік ұпай} — ТЕК ойналған ойындар; stored: {ойын: {деңгей: балл}}.
+    Деңгей пайызы = жиналған балл / ойналған ойындардағы ең жоғары балл. Бірде-бір ойын
+    ойналмаса — percent=None («дерек жоқ»), сонда «ойнамаған» мен «нашар орындаған» шатаспайды.
     """
     agg = {lvl: {"earned": 0.0, "max": 0.0, "games": 0} for lvl in BLOOM_LEVELS}
     for gname, score in best_scores.items():
-        levels = GAME_BLOOM_LEVELS.get(gname)
-        mx = MAX_SCORE.get(gname, 0)
-        if not levels or mx <= 0:
-            continue
-        share = 1.0 / len(levels)
-        for lvl in levels:
-            agg[lvl]["earned"] += min(float(score), mx) * share
-            agg[lvl]["max"] += mx * share
+        for lvl, (got, mx) in game_bloom_parts(gname, score, (stored or {}).get(gname)).items():
+            agg[lvl]["earned"] += got
+            agg[lvl]["max"] += mx
             agg[lvl]["games"] += 1
     return {
         lvl: {
@@ -718,11 +776,12 @@ def stars_map(student_id, game_names):
 
 
 def game_tier(game_name, score, max_score, completed):
-    """Белгіше саны (0–3), 10 ұпайлық шкала бойынша: 9–10 → 3, 7–8 → 2, 1–6 → 1, 0 → 0."""
+    """Белгіше саны (0–3), 10 ұпайлық шкала бойынша: 9–10 → 3, 7–8 → 2, 1–6 → 1, 0 → 0.
+    ЖИ зертханасында 3 нейрон тек 10 балға беріледі: 10 → 3, 7–9 → 2, 1–6 → 1, 0 → 0."""
     if not completed or score <= 0:
         return 0          # жеңіліс (0 ұпай) — белгіше берілмейді
     s10 = (score / max_score * SCORE_SCALE) if max_score and max_score > 0 else 0.0
-    if s10 >= 9: return 3
+    if s10 >= (10 if GAME_TO_CHAPTER.get(game_name) == "security" else 9): return 3
     if s10 >= 7: return 2
     return 1
 
@@ -809,6 +868,21 @@ def game_result():
     student = Student.query.get(student_id)
     if student and added > 0:
         student.score += added
+
+    # Блум балдары: ең үздік нәтижемен бірге сақталады
+    points = GAME_BLOOM_POINTS.get(game_name)
+    raw_bloom = data.get("bloom")
+    if points and isinstance(raw_bloom, dict) and score >= prev_best:
+        clean = {}
+        for key, val in raw_bloom.items():
+            lvl = BLOOM_KEYS.get(key)
+            if lvl in points:
+                try:
+                    clean[lvl] = max(0.0, min(float(val), float(points[lvl])))
+                except (TypeError, ValueError):
+                    pass
+        db.session.merge(GameBloom(student_id=student_id, game_name=game_name,
+                                   data=json.dumps(clean, ensure_ascii=False)))
 
     db.session.commit()
 
@@ -962,14 +1036,11 @@ def teacher_panel():
             best[k] = float(gp.score or 0)
     lvl_earned = defaultdict(float)
     lvl_max = defaultdict(float)
+    bloom_stored = bloom_rows_map(ids)
     for (sid, gname), sc in best.items():
-        levels = GAME_BLOOM_LEVELS.get(gname)
-        mx = MAX_SCORE.get(gname, 0)
-        if not levels or mx <= 0:
-            continue
-        for lvl in levels:
-            lvl_earned[lvl] += min(sc, mx) / len(levels)
-            lvl_max[lvl] += mx / len(levels)
+        for lvl, (got, mx) in game_bloom_parts(gname, sc, bloom_stored.get((sid, gname))).items():
+            lvl_earned[lvl] += got
+            lvl_max[lvl] += mx
     labels = list(BLOOM_LEVELS)
     scores = [round(lvl_earned[l] / lvl_max[l] * 100, 1) if lvl_max[l] > 0 else None for l in labels]
 
@@ -1282,9 +1353,10 @@ def toqsan_3():
 def toqsan_4():
     student_id = session.get("user_id")
     student = Student.query.get_or_404(student_id)
+    stars = stars_map(student_id, GAME_CHAPTERS["security"]["games"])
     return render_template(
-        "toqsan_4.html", student=student,
-        stars=stars_map(student_id, GAME_CHAPTERS["security"]["games"])
+        "toqsan_4.html", student=student, stars=stars,
+        neurons=ai_topic_neurons(stars), brain_min=BRAIN_PART_MIN,
     )
 
 @app.route("/toqsan4/g1")
@@ -1311,6 +1383,11 @@ def toqsan4_g4():
 @login_required("student")
 def toqsan4_g5():
     return render_game_or_gate("Файл әлемі", "toqsan4_g5.html", "/toqsan_4")
+
+@app.route("/toqsan4/g6")
+@login_required("student")
+def toqsan4_g6():
+    return render_game_or_gate("Фишинг сүзгісі", "toqsan4_g6.html", "/toqsan_4")
 
 @app.route("/game1")
 @login_required("student")
@@ -1964,6 +2041,7 @@ PATH_TO_GAME = {
     "/toqsan2/g4": "Вектор ядро", "/toqsan2/g5": "Графика текетірес",
     "/toqsan4/g1": "Эргономика", "/toqsan4/g2": "Цифрлық детектив",
     "/toqsan4/g3": "Желілік жүгіруші", "/toqsan4/g4": "Кибер-бекініс", "/toqsan4/g5": "Файл әлемі",
+    "/toqsan4/g6": "Фишинг сүзгісі",
     "/quest3/m1": "Робот орны", "/quest3/m2": "Робот тарихы", "/quest3/m3": "Гироскоп",
     "/quest3/m4": "Лабиринт ойыны", "/quest3/m5": "Сызық робот", "/quest3/m6": "Сумо",
 }
@@ -2004,10 +2082,11 @@ GAME_INFO = {
     "Сызық робот": "Сызықпен жүретін роботты бағдарламалау/бағыттау. Талдау деңгейі.",
     "Сумо": "Сумо-робот жарысы: роботты дұрыс басқару стратегиясы.",
     "Эргономика": "Компьютерде дұрыс, қауіпсіз отыру ережелерін үйрену.",
-    "Цифрлық детектив": "Цифрлық іздерден жұмбақты шешетін детектив тапсырмалары.",
-    "Кибер-бекініс": "Кибер-қорғаныс ойыны: базаны хакер шабуылынан қорғау, энергия мен жұлдыз жинау. Киберқауіпсіздік негіздері.",
-    "Файл әлемі": "Файлдар мен қалталарды дұрыс реттеу/орналастыру. Файлдық жүйені түсіну.",
-    "Желілік жүгіруші": "Желі (интернет) арқылы деректі дұрыс жеткізу ойыны. Желі негіздері.",
+    "Цифрлық детектив": "Ақпарат тасымалдаушыларын тану, жағдайға қолайлысын таңдау және Кроностың қателерін табу.",
+    "Кибер-бекініс": "Кроностың құпиясөз бағасын тексеру, әлсіз құпиясөздің себебін табу және берік құпиясөз құрастыру.",
+    "Файл әлемі": "Кронос сұрыптаған файлдардың қатесін табу, бұлтта бірлесе өңдеу және дұрыс құқықпен бөлісу.",
+    "Желілік жүгіруші": "Интернеттегі қауіптерден секіріп өтіп, Кроностың сілтеме туралы кеңесін тексеру ойыны.",
+    "Фишинг сүзгісі": "Білім алушы хаттарды белгілеп, Кроносты фишингті табуға үйретеді және оның дәлдігін сынайды.",
 }
 
 
@@ -2034,7 +2113,7 @@ def _game_context(page, page_text):
 
 
 # Ойынның өзінде нұсқаулық терезесі бар — оларға қоспаймыз (қосарланбау үшін)
-GAMES_WITH_OWN_INTRO = {"Желілік жүгіруші"}
+GAMES_WITH_OWN_INTRO = {"Желілік жүгіруші", "Цифрлық детектив", "Фишинг сүзгісі", "Кибер-бекініс", "Файл әлемі"}
 
 # Ойын алдындағы нұсқаулық: icon + тарих (subtitle) + басқару ережелері + мақсат.
 # rules: (эмодзи, қалың жазу, түсіндірме). Қалың жазу бос болса — тек мәтін.
@@ -2156,25 +2235,10 @@ GAME_GUIDES = {
                   ("⚔️", "ЖҮРУ", "«ЖҮРУ!» басып әрекет жаса"),
                   ("🏆", "Жең", "қарсыласты шеңберден ит")],
         "goal": "Қарсыласты жеңіп, чемпион бол!"},
-    "Эргономика": {"icon": "💺", "subtitle": "Компьютерде дұрыс әрі қауіпсіз отырудың ережелерін біл!",
-        "rules": [("❓", "Сұрақ", "эргономика туралы сұрақты оқы"),
-                  ("👆", "Жауап", "дұрысын таңда"), ("❤️", "Денсаулық", "деңгейді 100%-ға жеткіз")],
-        "goal": "Көмекшінің денсаулығын 100%-ға толтыр!"},
-    "Цифрлық детектив": {"icon": "🕵️", "subtitle": "Ақпарат тасымалдаушылар туралы құпияны аш!",
-        "rules": [("🎬", "Сахна", "сұрақты оқы (3 сахна)"),
-                  ("💾", "Таңда", "дұрыс құрылғыны / жауапты тап (флешка, бұлт…)"),
-                  ("💎", "Кристалл", "қателеспей кристалл жина")],
-        "goal": "3 сахнаны өтіп, барлық кристалды жина!"},
-    "Кибер-бекініс": {"icon": "🛡️", "subtitle": "Базаны хакер шабуылынан қорға!",
-        "rules": [("🖱️", "Орналастыр", "қорғаныс / қалқанды тақтаға қой"),
-                  ("🚀", "Тойтар", "келе жатқан шабуылды тоқтат"),
-                  ("📊", "Шкала", "қорғаныс шкаласы нөлге түспесін")],
-        "goal": "Базаны аман сақтап, шабуылды тойтар!"},
-    "Файл әлемі": {"icon": "🗂️", "subtitle": "Файлдарды ретке келтіріп, бөлісуді үйрен!",
-        "rules": [("📁", "Сұрыпта", "6 файлды дұрыс папкаға сүйре"),
-                  ("✏️", "Түзет", "презентацияны (.pptx) аш та қатені түзе"),
-                  ("👥", "Бөліс", "файлды дұрыс құқықпен бөліс")],
-        "goal": "Барлық тапсырманы орындап, файл әлемін ретте!"},
+    "Эргономика": {"icon": "💺", "subtitle": "Кроностың ЖИ-камерасын тексер, содан кейін сұрақтарға жауап бер!",
+        "rules": [("📷", "ЖИ-камера", "отырыстағы қателерді тап"),
+                  ("❓", "Сұрақ", "эргономика туралы 10 сұраққа жауап бер")],
+        "goal": "5 қатені де тауып, сұрақтарға қатесіз жауап бер!"},
 }
 
 
@@ -2311,7 +2375,7 @@ GAME_ORDER = [
      "/game5", "/game6", "/game7", "/game8", "/game9", "/module4"],
     ["/toqsan2/g1", "/toqsan2/g2", "/toqsan2/g3", "/toqsan2/g4", "/toqsan2/g5"],
     ["/quest3/m1", "/quest3/m2", "/quest3/m3", "/quest3/m4", "/quest3/m5", "/quest3/m6"],
-    ["/toqsan4/g2", "/toqsan4/g1", "/toqsan4/g3", "/toqsan4/g4", "/toqsan4/g5"],
+    ["/toqsan4/g2", "/toqsan4/g1", "/toqsan4/g3", "/toqsan4/g6", "/toqsan4/g4", "/toqsan4/g5"],
 ]
 
 
@@ -2363,7 +2427,7 @@ CHAPTER_FINALE = {
     "info":     {"title": "Ақпарат галактикасы бағындырылды!", "acc": "#8fd0ff", "glow": "rgba(143,208,255,.6)"},
     "graphics": {"title": "Пазл әлемі толық жиналды!",          "acc": "#ffd24a", "glow": "rgba(255,210,74,.55)"},
     "robotics": {"title": "Квест жолы аяқталды!",               "acc": "#ffb35a", "glow": "rgba(255,170,60,.55)"},
-    "security": {"title": "ЖИ зертханасы толық іске қосылды!",  "acc": "#5ef2ff", "glow": "rgba(94,242,255,.55)"},
+    "security": {"title": "ЖИ миы толық іске қосылды!",         "acc": "#5ef2ff", "glow": "rgba(94,242,255,.55)"},
 }
 
 
@@ -2380,7 +2444,9 @@ def inject_chapter_complete(response):
         games = GAME_CHAPTERS[ck]["games"]
         rows = GameProgress.query.filter(GameProgress.student_id == sid,
                                          GameProgress.game_name.in_(games)).all()
-        if {r.game_name for r in rows} != set(games):
+        stars = {r.game_name: r.stars for r in rows}
+        # ЖИ зертханасының финалы — «ЖИ миының» бес бөлігі де жанғанда
+        if (not brain_fully_on(stars)) if ck == "security" else set(stars) != set(games):
             return response
         html = response.get_data(as_text=True)
         if "</body>" not in html or 'id="bqCC"' in html:
@@ -2428,6 +2494,27 @@ def migrate_to_scale10():
 
 
 migrate_to_scale10()
+
+
+def migrate_q4_neurons():
+    """Бір рет: ЖИ зертханасының бұрынғы нәтижелеріне жаңа жұлдыз ережесін қолдану (10 → 3)."""
+    from sqlalchemy.exc import IntegrityError
+    with app.app_context():
+        if db.session.get(AppMeta, "q4_neuron_stars"):
+            return
+        try:
+            db.session.add(AppMeta(key="q4_neuron_stars", value=datetime.utcnow().isoformat()))
+            db.session.flush()
+        except IntegrityError:
+            db.session.rollback()
+            return
+        rows = GameProgress.query.filter(GameProgress.game_name.in_(GAME_CHAPTERS["security"]["games"])).all()
+        for gp in rows:
+            gp.stars = game_tier(gp.game_name, float(gp.score or 0), SCORE_SCALE, bool(gp.completed))
+        db.session.commit()
+
+
+migrate_q4_neurons()
 
 
 if __name__ == "__main__":

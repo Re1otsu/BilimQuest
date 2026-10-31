@@ -55,7 +55,7 @@
   <div class="cc-stage" id="bqCCstage"></div>
   <div class="cc-text">
     <div class="cc-chip">{{ cc.label }}</div>
-    <div class="cc-title">{{ cc.title }}</div>
+    <div class="cc-title">{{ cc.title }}</div>{% if cc.key=='security' %}<div style="margin-top:8px;font-weight:800;color:#ffd24a">«Зертхана зерттеушісі» белгішесі берілді</div>{% endif %}
     <p class="cc-sub">Барлық {{ cc.games }} ойын өтілді — тоқсан толық аяқталды!</p>
     <div class="cc-stars"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.4L12 17.3l-5.8 3 1.1-6.4-4.7-4.6 6.5-.9z" fill="#ffd24a"/></svg>{{ cc.stars }} / {{ cc.max_stars }}</div>
     <button class="cc-btn" type="button" id="bqCCok">Керемет!</button>

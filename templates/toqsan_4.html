@@ -57,9 +57,14 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 .banner-sub{display:inline-block;margin-top:-16px;position:relative;padding:8px 26px;border-radius:999px;font-size:17px;font-weight:800;letter-spacing:2px;
   color:#7fe8ff;background:rgba(6,14,38,.95);border:2px solid #2f8cff;box-shadow:0 0 18px rgba(47,140,255,.5)}
 
-/* ═══ Орталық: ЖИ миы + робот ═══ */
+/* ═══ Орталық: ЖИ миы + робот ═══
+   Ми 5 бөліктен тұрады: әр бөлік — мидың контуры бойынша кесілген жеке сурет, тақырыпта кемінде 2 нейрон болса бөлік жанады */
 .brain{position:absolute;left:750px;top:238px;width:420px;pointer-events:none}
 .brain img{width:100%;display:block;animation:brainFloat 5s ease-in-out infinite}
+.brain .b-layer{position:absolute;left:0;top:0}
+.brain .b-part{opacity:0;transition:opacity .7s}
+.brain .b-part.on{opacity:1}
+.brain-count{position:absolute;left:50%;top:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 14px;border-radius:999px;font-size:16px;font-weight:800;color:#7fe8ff;background:rgba(6,14,38,.9);border:2px solid #2f8cff}
 .brain-ai{position:absolute;left:50%;top:21.5%;transform:translateX(-50%);font-size:58px;font-weight:900;color:#fff;letter-spacing:1px;
   text-shadow:0 0 14px #37e1ff,0 0 30px #2f8cff;animation:brainFloat 5s ease-in-out infinite}
 .brain-glow{position:absolute;left:12%;right:12%;bottom:6%;height:22%;border-radius:50%;
@@ -102,8 +107,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 .pf-go svg{width:22px;height:22px}
 .pf:hover .pf-go{background:var(--c);color:#06121a}
 .pf-stars{display:flex;justify-content:center;gap:6px;margin-top:8px}
-.pf-stars i{width:16px;height:16px;border-radius:4px;transform:rotate(45deg);background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.3)}
-.pf-stars i.on{background:#ffd24a;border-color:#fff3b0;box-shadow:0 0 8px rgba(255,210,74,.8)}
+.pf-stars svg{width:26px;height:26px;color:rgba(255,255,255,.28)}
+.pf-stars svg.on{color:#ffd24a;filter:drop-shadow(0 0 5px rgba(255,210,74,.85))}
 
 /* ═══ Терезе ═══ */
 #overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:18px;
@@ -123,7 +128,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 .m-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 .chip{font-size:13px;font-weight:700;padding:6px 13px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18)}
 .chip.done{color:#86efac;border-color:rgba(46,200,101,.5);background:rgba(46,200,101,.12)}
-.m-start{display:block;width:100%;margin-top:20px;padding:15px;border:none;border-radius:14px;cursor:pointer;font:inherit;font-size:18px;font-weight:800;
+.m-start{display:block;width:100%;margin-top:12px;padding:15px;border:none;border-radius:14px;cursor:pointer;font:inherit;font-size:18px;font-weight:800;
   color:#06231a;background:linear-gradient(180deg,#7dffb0,#33c75e);box-shadow:0 8px 18px rgba(51,199,94,.4);transition:filter .2s}
 .m-start:hover{filter:brightness(1.07)}
 .m-x{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:12px;cursor:pointer;border:1px solid rgba(255,255,255,.2);
@@ -182,11 +187,16 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
   <!-- ═══ Орталық ═══ -->
   <div class="brain" aria-hidden="true">
     <div class="brain-glow"></div>
-    <img src="{{ url_for('static', filename='img/toqsan4/lab/brain.webp') }}" alt="">
+    {% set lab = 'img/toqsan4/lab/' %}
+    <img src="{{ url_for('static', filename=lab+'brain.webp') }}" alt="">
+    <img class="b-layer" src="{{ url_for('static', filename=lab+'brain_off.webp') }}" alt="">
+    {% for n in neurons %}<img class="b-layer b-part{{ ' on' if n >= brain_min }}" src="{{ url_for('static', filename=lab+'brain_p'~loop.index~'.webp') }}" alt="">{% endfor %}
+    <img class="b-layer" src="{{ url_for('static', filename=lab+'brain_chip.webp') }}" alt="">
     <span class="brain-ai">ЖИ</span>
+    <span class="brain-count">ЖИ миы: {{ neurons|select('ge', brain_min)|list|length }} / 5</span>
   </div>
   <div class="robot" aria-hidden="true"><img src="{{ url_for('static', filename='img/toqsan4/lab/robot.webp') }}" alt=""></div>
-  <div class="bubble">Болашақ бүгіннен басталады!</div>
+  <div class="bubble">Мен де қателесемін. Тексеріп отыр!</div>
 
   <!-- ═══ Платформалар ═══ -->
   <nav class="pfs" id="pfs" aria-label="Ойындар"></nav>
@@ -202,7 +212,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
       <div class="m-title" id="mTitle"></div>
       <div class="m-desc" id="mDesc"></div>
       <div class="m-meta" id="mMeta"></div>
-      <button class="m-start" id="mStart">Бастау</button>
+      <div id="mGames"></div>
     </div>
   </div>
 </div>
@@ -210,41 +220,43 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;
 <script>
 const IMG="{{ url_for('static', filename='img/toqsan4/lab/') }}";
 const STARS={{ S|tojson }};
+const NEURONS={{ neurons|tojson }};
+const NEURON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 8V3M12 16v5M8.5 9.8L4 7M15.5 9.8L20 7M8.5 14.2L4 17M15.5 14.2L20 17"/></svg>';
 const ARROW='<svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const CHK='<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /* x — платформа ортасы, y — үсті, w — ені (1920×1080 сахнасында) */
 const PF=[
   {num:'', hero:true, img:'p_hero.webp', x:400, y:242, w:320, c:'#ffc21a', cr:'255,194,26', text:'Басты бет', href:'/student'},
-  {num:'01', img:'p_storage.webp',  x:1530, y:290, w:320, c:'#2f8cff', cr:'47,140,255',  game:'Цифрлық детектив', route:'/toqsan4/g2',
+  {num:'01', img:'p_storage.webp',  x:1530, y:290, w:320, c:'#2f8cff', cr:'47,140,255',  topic:0, games:[{name:'Цифрлық детектив',route:'/toqsan4/g2'}],
    text:'Ақпараттың<br>тасымалдаушылары', title:'Ақпараттың цифрлық тасымалдаушылары',
-   desc:'Цифрлық детектив: жоғалған файлдарды қауіпсіз жеткіз! Тасымалдаушыларды танып, дұрыс таңдау жаса, деректер кристалдарын жина.', tags:['Ойын','3 сахна','10 ұпайға дейін']},
-  {num:'02', img:'p_ergo.webp',     x:290, y:697, w:290, c:'#2ee86b', cr:'46,232,107',  game:'Эргономика', route:'/toqsan4/g1',
+   desc:'Цифрлық детектив: Кроноспен бірге тергеу жүргіз. Тасымалдаушыларды тан, оның ұсыныстарын тексер және ең сенімді сақтау тәсілін таңда.', tags:['Ойын','3 сахна','5 минут','10 балл']},
+  {num:'02', img:'p_ergo.webp',     x:290, y:697, w:290, c:'#2ee86b', cr:'46,232,107',  topic:1, games:[{name:'Эргономика',route:'/toqsan4/g1'}],
    text:'Компьютерде жұмыс<br>істеу қауіпсіздігі', title:'Компьютерде жұмыс істеу қауіпсіздігі',
-   desc:'Кибер-эргономика: ЖИ-Көмекшіні «емде»! Дұрыс отыру, үзіліс, экран қашықтығы және электр қауіпсіздігі туралы 10 сұраққа жауап бер.', tags:['Ойын','10 сұрақ','10 ұпайға дейін']},
-  {num:'03', img:'p_internet.webp', x:740, y:673, w:290, c:'#b46bff', cr:'180,107,255', game:'Желілік жүгіруші', route:'/toqsan4/g3',
+   desc:'Кроностың ЖИ-камерасын тексер: ол отырыстағы 5 қатенің 3-ін ғана тапты. Содан кейін дұрыс отыру мен электр қауіпсіздігі туралы 10 сұраққа жауап бер.', tags:['Ойын','2 кезең','10 балл']},
+  {num:'03', img:'p_internet.webp', x:740, y:673, w:290, c:'#b46bff', cr:'180,107,255', topic:2, games:[{name:'Желілік жүгіруші',route:'/toqsan4/g3'},{name:'Фишинг сүзгісі',route:'/toqsan4/g6'}],
    text:'Интернеттегі<br>қауіпсіздік және этика', title:'Интернеттегі қауіпсіздік және этика',
-   desc:'Кибер-Тұзақ: Желілік жүгіруші! Фишинг, күмәнді сілтемелер мен алаяқтардан секіріп өт, қауіпсіз сайттарды жина.', tags:['Раннер','3 деңгей','10 ұпайға дейін']},
-  {num:'04', img:'p_protect.webp',  x:1180, y:682, w:250, c:'#22d3a0', cr:'34,211,160',  game:'Кибер-бекініс', route:'/toqsan4/g4',
+   desc:'Екі ойын. Желілік жүгіруші: тұзақтардан секіріп, Кроностың сілтеме туралы кеңесін тексер. Фишинг сүзгісі: Кроносты фишинг хаттарын табуға үйрет.', tags:['2 ойын','Әрқайсысы 10 балл']},
+  {num:'04', img:'p_protect.webp',  x:1180, y:682, w:250, c:'#22d3a0', cr:'34,211,160',  topic:3, games:[{name:'Кибер-бекініс',route:'/toqsan4/g4'}],
    text:'Ақпаратты қорғау<br>және парольдер', title:'Ақпаратты қорғау және парольдер',
-   desc:'Кибер-Бекініс: базаны Пароль, Антивирус, Брандмауэр мұнараларымен қорша да фишинг, троян мен бопсалаушы вирус толқындарын тойтар!', tags:['Стратегия','3 толқын','10 ұпайға дейін']},
-  {num:'05', img:'p_cloud.webp',    x:1630, y:714, w:290, c:'#37e1ff', cr:'55,225,255',  game:'Файл әлемі', route:'/toqsan4/g5',
+   desc:'Кроностың құпиясөз бағасын тексер, әлсіз құпиясөздің себебін тап және базаға берік құпиясөз құрастыр.', tags:['Ойын','2 кезең','10 балл']},
+  {num:'05', img:'p_cloud.webp',    x:1630, y:714, w:290, c:'#37e1ff', cr:'55,225,255',  topic:4, games:[{name:'Файл әлемі',route:'/toqsan4/g5'}],
    text:'Бұлттық сақтау<br>және ынтымақтастық', title:'Бұлттық сақтау және ынтымақтастық',
-   desc:'Кибер-Аквариум: Файл Әлемі! «Үшеуін қатарла» ойынынан кейін файлдарды папкаларға сұрыпта, бірлесе өңде және дұрыс құқықпен бөліс.', tags:['«Үшеуін қатарла» + жұмыс кеңістігі','10 ұпайға дейін']},
+   desc:'Кронос файлдарды сұрыптады: қатесін тауып түзет. Содан кейін бұлттағы презентацияны бірлесе өңде және дұрыс құқықпен бөліс.', tags:['Ойын','2 кезең','10 балл']},
 ];
-const GAMES=PF.filter(p=>p.game);
+const GAMES=PF.filter(p=>p.games);
 
 const box=document.getElementById('pfs');
 PF.forEach((p,i)=>{
   const el=document.createElement(p.href?'a':'button'); el.className='pf'+(p.hero?' pf--hero':'');
   if(p.href) el.href=p.href; else el.type='button';
   el.style.cssText=`left:${p.x}px;top:${p.y}px;width:${p.w}px;--c:${p.c};--cr:${p.cr};--d:${(i*.4).toFixed(1)}s`;
-  const st=p.game?(STARS[p.game]||0):0, played=p.game&&(p.game in STARS);
+  const st=p.games?NEURONS[p.topic]:0, played=p.games&&p.games.every(g=>g.name in STARS);
   el.innerHTML=`${p.num?`<span class="pf-num">${p.num}</span>`:''}${played?`<span class="pf-done" title="Өтілді">${CHK}</span>`:''}
     <span class="pf-art"><img src="${IMG+p.img}" alt=""></span>
     <span class="pf-label"><span class="pf-text">${p.text}</span><span class="pf-go">${ARROW}</span></span>
-    ${p.game?`<span class="pf-stars" title="Жиналған белгілер: ${st}/3">${[0,1,2].map(k=>`<i class="${k<st?'on':''}"></i>`).join('')}</span>`:''}`;
-  if(p.game) el.addEventListener('click',()=>openGame(p));
+    ${p.games?`<span class="pf-stars" title="Нейрон: ${st}/3">${[0,1,2].map(k=>NEURON.replace('<svg',`<svg class="${k<st?'on':''}"`)).join('')}</span>`:''}`;
+  if(p.games) el.addEventListener('click',()=>openGame(p));
   box.appendChild(el);
 });
 
@@ -255,18 +267,22 @@ function openGame(p){
   cur=p;
   modal.style.setProperty('--mc',p.c); modal.style.setProperty('--mcr',p.cr);
   document.getElementById('mImg').src=IMG+p.img;
-  document.getElementById('mStep').textContent=`Блок ${GAMES.indexOf(p)+1} / ${GAMES.length}`;
+  document.getElementById('mStep').textContent=`Тақырып ${GAMES.indexOf(p)+1} / ${GAMES.length} · Нейрон: ${NEURONS[p.topic]} / 3`;
   document.getElementById('mTitle').textContent=p.title;
   document.getElementById('mDesc').textContent=p.desc;
   const meta=document.getElementById('mMeta'); meta.innerHTML='';
   p.tags.forEach(t=>{const c=document.createElement('span'); c.className='chip'; c.textContent=t; meta.appendChild(c);});
-  const played=p.game in STARS;
-  if(played){const c=document.createElement('span'); c.className='chip done'; c.textContent='✓ Аяқталды'; meta.appendChild(c);}
-  document.getElementById('mStart').textContent=played?'Қайта өту':'Бастау';
+  const list=document.getElementById('mGames'); list.innerHTML='';
+  p.games.forEach(g=>{
+    const b=document.createElement('button'); b.className='m-start'; b.type='button';
+    const label=g.name in STARS?'Қайта өту':'Бастау';
+    b.textContent=p.games.length>1?`${g.name}: ${label.toLowerCase()}`:label;
+    b.onclick=()=>{ location.href=g.route; };
+    list.appendChild(b);
+  });
   ov.classList.add('show');
 }
 function close(){ ov.classList.remove('show'); cur=null; }
-document.getElementById('mStart').onclick=()=>{ if(cur) location.href=cur.route; };
 document.getElementById('mX').onclick=close;
 ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
