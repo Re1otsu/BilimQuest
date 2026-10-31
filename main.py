@@ -877,18 +877,18 @@ def rating():
         )
         .outerjoin(GameProgress, GameProgress.student_id == Student.id)
         .group_by(Student.id)
-        # белгіше тең болса — жалпы ұпай шешеді
-        .order_by(func.coalesce(func.sum(GameProgress.stars), 0).desc(),
-                  func.coalesce(Student.score, 0).desc(), Student.name)
+        # орын жалпы ұпаймен анықталады; ұпай тең болса — белгіше шешеді
+        .order_by(func.coalesce(Student.score, 0).desc(),
+                  func.coalesce(func.sum(GameProgress.stars), 0).desc(), Student.name)
         .limit(20)
         .all()
     )
-    # Белгіше де, ұпай да тең болса — орын да бірдей (1, 2, 2, 4 ...)
+    # Ұпай да, белгіше де тең болса — орын да бірдей (1, 2, 2, 4 ...)
     students, prev, rank = [], None, 0
     for i, r in enumerate(rows):
         d = dict(r._mapping)
         d["total_score"] = round(float(d["total_score"] or 0), 2)
-        key = (int(d["stars_sum"]), d["total_score"])
+        key = (d["total_score"], int(d["stars_sum"]))
         if key != prev:
             rank, prev = i + 1, key
         d["rank"] = rank

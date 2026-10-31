@@ -13,7 +13,7 @@
 <body>
   {% set role = session.get('role') %}
   {% set home = '/student' if role == 'student' else ('/teacher_panel' if role == 'teacher' else 'javascript:history.back()') %}
-  {% set max_stars = (students[0].stars_sum|int) if students else 0 %}
+  {% set max_stars = (students|map(attribute='stars_sum')|max|int) if students else 0 %}
   {% set total_stars = students|sum(attribute='stars_sum')|int %}
   {# аватар түстері — басты беттегі 4 модуль түсі #}
   {% set av_colors = ['#2f79ff','#2dbd66','#ff8a2a','#8e6bff'] %}
@@ -51,7 +51,7 @@
       </div>
       <div class="r-hero-txt">
         <h1>Білім алушылар рейтингі</h1>
-        <p>{% if students %}Белгіше саны бойынша үздік {{ students|length }} білім алушы{% else %}Белгіше жинаған білім алушылар осында көрсетіледі{% endif %}</p>
+        <p>{% if students %}Жалпы ұпай бойынша үздік {{ students|length }} білім алушы{% else %}Ұпай жинаған білім алушылар осында көрсетіледі{% endif %}</p>
       </div>
       <div class="r-hero-stats">
         <div class="r-hs"><b>{{ students|length }}</b><span>білім алушы</span></div>
@@ -118,7 +118,7 @@
 
     <p class="r-note">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
-      Орын белгіше санымен анықталады; белгіше тең болса — жалпы ұпаймен. Екеуі де тең болса — орын бірдей.
+      Орын жалпы ұпаймен анықталады; ұпай тең болса — белгіше санымен. Екеуі де тең болса — орын бірдей.
     </p>
 
     {% else %}
